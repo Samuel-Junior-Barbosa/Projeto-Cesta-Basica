@@ -1,0 +1,41 @@
+.ArticleDiv {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-auto-rows: minmax(0px, 90dvh);
+    width: 78dvw;
+    height: 90dvh;
+    margin-right: 20px;
+    background-color: var(--bg-page2);
+}
+.NavAndSearchDiv {
+    width: 100%;
+    padding: 20px;
+}
+
+.searchOnDocumentation {
+    width: 100%;
+    height: 2rem;
+    border-radius: 20px;
+    padding-left: 20px;
+    outline: 0;
+    border: 0;
+    &::selection {
+        outline: 0;
+    }
+}
+
+.ArticleComp {
+    width: 100%;
+    display: block;
+    padding-right: 20px;
+    text-align: left;
+    overflow-y: scroll;
+    & > h1 {
+        background-color: var(--bg-page3);
+        text-align: center;
+    }
+}
+
+.navbarArticle {
+
+}

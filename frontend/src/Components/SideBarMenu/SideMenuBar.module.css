@@ -1,0 +1,101 @@
+
+.NavBarSideMenu {
+    display: inline-block;
+    height: 100%;
+    margin-right: auto;
+    
+}
+
+.SideBarMenuList {
+    display: inline-block;
+    list-style: none;
+    background-color: var(--bg-page2);
+    font-size: 1.5rem;
+    height: 100%;
+    padding: 0px;
+    margin: 0px;
+    overflow-y: scroll;
+}
+
+.SideBarMenuListItem {
+    border: 1px solid var(--bg-page1);
+    width: 100%;
+
+    & > a > abbr {
+        display: flex;
+        position: relative;
+        justify-content: left;
+        flex-direction: row;
+        width: 100%;
+        height: 50px;
+        padding: 10px 0px 10px 15px;
+        margin: auto 0px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    & > a > abbr > svg {
+        display: inline-block;
+        width: 80px;
+        height: 50px;
+        color: var(--icon-svg-color);
+    }
+    & > a > abbr > label {
+        display: block;
+        position: relative;
+        font-size: 1rem;
+        cursor: pointer;
+        text-align: left;
+        width: 95%;
+        height: 1rem;
+        margin: auto 0px auto 5px;
+        color: var(--color-font)
+    }
+}
+
+.SideBarMenuListItem:hover {
+    transition: 0.5s;
+    background-color: var(--bg-page1);
+    border: 1px solid var(--bg-page2);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.ShowSideMenu {
+    width: 18vw;
+    min-width: 60px;
+    transition: 0.5s;
+    & > li > a > abbr > a {
+        transition: 0.6s;
+        font-size: 1rem;
+    }
+    & > li > a > abbr > label {
+        display: inline-block;
+        transition: 0.9s;
+        opacity: 100;
+    }
+}
+
+.HiddenSideMenu {
+    width: 5vw;
+    min-width: 60px;
+    transition: 0.5s;
+    & > li > a > abbr > label{
+        transition: 0.3s;
+        font-size: 0px;
+        color: var(--color-font);
+        opacity: 0;
+    }
+    & > li > a {
+        padding: 0px 0px 20px 5px;
+        font-size: 0px;
+    }
+}
+
+li > a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: var(--color-font);
+    padding: 10px 10px 10px 15px;
+    text-decoration: none;
+}

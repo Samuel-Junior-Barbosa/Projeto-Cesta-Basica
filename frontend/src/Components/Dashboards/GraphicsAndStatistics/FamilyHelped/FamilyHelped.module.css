@@ -1,0 +1,22 @@
+.DivGraph {
+    display: block;
+    margin: auto;
+    width: 100%;
+    height: 100%;
+}
+
+.DivMainGraph {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    margin: auto;
+}
+
+@media screen and (max-width: 900px) {
+    .DivGraph {
+        font-size: 0.5rem;
+    }
+}

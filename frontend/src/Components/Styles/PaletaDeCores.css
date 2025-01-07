@@ -1,0 +1,19 @@
+:root {
+    --bg-page1: #232323;
+    --bg-page2: #454545;
+    --bg-page3: #686868;
+    --bg-page4: #0496FF;
+    --bg-page5: #87BCDE;
+    --color-button: var(--bg-page4);
+    --color-button-hover: var(--bg-page5);
+    --color-font: #ffffff;
+    --color-font2: #B1A9DC;
+    --color-button-font: white;
+    --color-font-hover: #9465E8;
+    --color-font-visited: #9465E8;
+    --bg-dashboard: #454545;
+    --bg-button-comp: var(--bg-page4);
+    --bg-button-comp-hover: var(--bg-page5);
+    --icon-svg-color: white;
+    --color-label-titles: var(--bg-page4);
+}

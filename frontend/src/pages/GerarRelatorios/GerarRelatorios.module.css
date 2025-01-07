@@ -1,0 +1,51 @@
+@import url('../../Components/MainScreenStyles/MainScreenStyles.css');
+
+.GerarRelatoriosDiv {
+    width: 76vw;
+
+    margin-right: 20px;
+
+    padding: 20px;
+    padding-top: 30px;
+    background-color: var(--bg-page2);
+
+
+}
+
+.tituloPaginaAtual {
+    width: 100%;
+}
+
+.escolhaDeRelatorio {
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    background-color: var(--bg-page3);
+    margin-top: 20px;
+    padding: 20px;
+    gap: 20px;
+    & > p {
+        font-size: 2rem;
+    }
+
+    & > button {
+        font-size: 2rem;
+        width: max-content;
+        margin: auto;
+        padding: 10px 50px;
+    }
+}
+
+.escolhaRelatorio {
+    width: 65%;
+    margin: auto;
+    padding: 10px;
+    border-radius: 20px;
+    border: 0 none;
+}
+
+.escolhaRelatorio:focus {
+    border: 0 none;
+    outline: 0;
+}
+

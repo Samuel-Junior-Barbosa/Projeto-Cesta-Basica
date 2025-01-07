@@ -1,0 +1,52 @@
+.DivGraph {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(0px, max-content);
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    margin: auto;
+    padding: 5px;
+    min-width: 20px;
+    min-height: 20px;
+    
+    & > canvas {
+        display: inline-block;
+        margin: auto;
+
+        grid-column-start: 1;
+        grid-column-end: 2;
+        grid-row-start: 1;
+        grid-row-end: 2;
+    
+        
+        min-width: 40px;
+        min-height: 40px;
+    }
+}
+
+.DivMainGraph {
+    width: 100%;
+    height: 100%;
+    min-width: 20px;
+    min-height: 20px;
+    background-color: var(--bg-page2);
+    
+}
+
+.porcentagem {
+    display: block;
+    position: relative;
+    width: max-content;
+    height: max-content;
+    margin: 0px;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 1;
+    grid-row-end: 2;
+}
