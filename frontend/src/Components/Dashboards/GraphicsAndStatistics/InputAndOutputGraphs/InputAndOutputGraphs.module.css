@@ -2,7 +2,7 @@
     display: grid;
     grid-template-columns: 1fr;
     grid-auto-rows: minmax(0px, max-content);
-    width: 100%;
+    width: 90%;
     height: 100%;
     margin: auto;
     position: relative;
@@ -42,4 +42,13 @@
     grid-column-end: 2;
     grid-row-start: 1;
     grid-row-end: 2;
+}
+
+@media screen and (max-width: 1000px) {
+    .DivMainGraph {
+        width: 90%;
+        max-width: 250px;
+    }
+
+    
 }

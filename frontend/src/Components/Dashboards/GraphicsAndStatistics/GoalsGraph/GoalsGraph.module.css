@@ -29,8 +29,10 @@
 .DivMainGraph {
     width: 100%;
     height: 100%;
+    max-width: 300px;
     min-width: 20px;
     min-height: 20px;
+    border-radius: 20px;
     background-color: var(--bg-page2);
     
 }
@@ -49,4 +51,10 @@
     grid-column-end: 2;
     grid-row-start: 1;
     grid-row-end: 2;
+}
+
+
+@media screen and (max-screen: 900px) {
+
+    
 }

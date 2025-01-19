@@ -68,6 +68,7 @@
 
 #DB7 {
     width: 100%;
+    max-width: 500px;
     height: 100%;
     border-radius: 20px;
     background-color: var(--bg-page2);
@@ -89,11 +90,11 @@ div#DB8 {
     flex-direction: column;
     padding: 0px;
     
-    margin: auto;
+    
 
     width: 100%;
     height: 140px;
-    border-radius: 20px;
+    border-radius: 20px 20px 0px 0px;
     background-color: var(--bg-page2);
     
 }
@@ -106,10 +107,11 @@ div#DB9 {
 
     background-color: var(--bg-page2);
 
-    border-radius: 20px;
+    border-radius: 0px 0px 20px 20px;
 
     width: 100%;
     height: 100%;
+
     margin: auto;
 }
 
@@ -124,7 +126,7 @@ div#DB10 {
     color: var(--color-font);
     background-color: var(--bg-page2);
 
-    width: 600px;
+    width: 100%;
     height: 100%;
 
     padding: 10px;
@@ -134,11 +136,26 @@ div#DB10 {
 }
 
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 950px) {
+
     .GridDashboard {
         width: 80dvw;
         margin-right: 20px;
         gap: 5px 4px;
+    }
+
+
+    #DB8 {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    #DB9 {
+        width: 100% !important;
+    }
+
+    #DB10 {
+        width: 100% !important;
     }
     
 }

@@ -9,12 +9,16 @@
 
 .LabelTopOptions {
     display: block;
-    max-width: 100vw;
+    max-width: max-content;
     position: relative;
     margin: auto;
     color: var(--color-font);
     text-align: center;
     width: max-content;
+
+    width: 100%;
+    word-wrap: break-word;
+    
 }
 
 .UnderscoreBar {

@@ -25,6 +25,18 @@ const CadastrosDeFamilias = () => {
             <SideBarMenu  />
             <div className={styles.CadastrosDeFamiliasDiv}>
                 <LabelTitles nameClass={styles.tituloPaginaAtualDiv} text="Cadastros de Familias"/>
+                <div className={styles.topNavbarCadastroFamiliaDiv}>
+                    <SimpleButton nameClass={styles.TopNavBarButton} textButton="Adicionar"/>
+                    <SimpleButton nameClass={styles.TopNavBarButton} textButton="Remover" />
+                    <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar Item" />
+                    <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" />
+                    <input
+                        className={styles.inputValue}
+                        onChange={(e) => {setItemPesquisa(e.target.value)}}
+                    />
+                    
+                </div>
+
                 <div>
                     <TabelaListaDeProdutos listaDeItens={cadastroDeFamilias}/>
                 </div>

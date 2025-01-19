@@ -3,36 +3,37 @@ import { useNavigate } from "react-router-dom";
 import { authenticator } from './auth';
 
 export function useAuthenticator() {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [useAutenticatorLoading, useAutenticatorSetLoading] = useState(false);
+    const [useAutenticatorError, useAutenticatorSetError] = useState(null);
+    const [useAutenticatorAuthenticated, useAutenticatorSetAuthenticated] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async (username, password) => {
-        setLoading(true);
-        setError(null);
+        useAutenticatorSetLoading(true);
+        useAutenticatorSetError(null);
 
         try {
             const response = await authenticator(username, password);
             if (response === true) {
-                const timer = setTimeout(() => {
-                    navigate('/home')
-                }, 1000);
-                setError('Logado com sucesso');
-                setLoading(false);
-                return () => clearTimeout(timer);
+                useAutenticatorSetAuthenticated(true)
+                useAutenticatorSetError('Logado com sucesso');
+                useAutenticatorSetLoading(false);
+                
     
             }
             else {
-                setError(response.message)
+                useAutenticatorSetError(response.message)
             }
             
             
         } catch (err) {
-            setError(err.message);
+            useAutenticatorSetError(err.message);
+            
         } finally {
-            setLoading(false);
+            useAutenticatorSetLoading(false);
+            
         } 
     }
 
-    return { handleLogin, loading, error };
+    return { handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorError };
 }

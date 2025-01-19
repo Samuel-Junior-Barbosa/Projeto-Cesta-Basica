@@ -47,36 +47,43 @@ const RegistrarFamilia = () => {
                         <input
                             name="representative"
                             required
+                            placeholder='Insira o nome do representante da familia'
                         />
 
                         <label> Numero de membros: </label>
                         <input
                             type="number"
                             name="members"
+                            min="0"
                             required
+                            placeholder='Insira o numero de membros da familia cadastrada'
                         />
 
                         <label> Endereço: </label>
                         <input
                             name="address"
                             required
+                            placeholder='Insira o endereço da familia'
                         />
                         
                         <label> Numero de telefone: </label>
                         <input
                             name="telephone"
                             required
+                            placeholder='Insira um numero de contato'
                         />
 
                         <label> Prioridade da familia: </label>
                         <input
                             name="situation"
                             required
+                            placeholder='Insira a situação atual da familia'
                         />
                         <label> Pertence a congregação: </label>
                         <input
                             name="congregation"
                             required
+                            placeholder='Insira a congregação que a familia frequenta'
                         />
                     </div>
 

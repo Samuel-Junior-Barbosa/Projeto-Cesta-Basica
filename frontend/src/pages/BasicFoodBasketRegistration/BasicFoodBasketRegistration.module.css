@@ -1,7 +1,6 @@
 @import url('../../Components/MainScreenStyles/MainScreenStyles.css');
 
-
-.CadastrosDeFamiliasDiv {
+.basicFoodBasketRegistrationDiv {
     display: flex;
     flex-direction: column;
     width: 78dvw;
@@ -12,13 +11,23 @@
     margin-right: 20px;
 }
 
-.topNavbarCadastroFamiliaDiv {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: minmax(0px, 100%);
+.currentPageTitleDiv {
     width: 100%;
-    padding: 5px 50px;
-    gap: 20px 15px;
+    margin-bottom: 10px;
+}
+
+.divTabelaMeta {
+    width: max-content;
+    margin: auto;
+}
+
+.tabelaCestas {
+    width: 100%;
+    margin: auto;
+}
+
+.TopNavBarButton {
+
 }
 
 .inputValue {
@@ -27,9 +36,9 @@
     box-shadow: 3px 4px 5px rgba(0, 0, 0, 0.523);
     padding: 10px;
     margin: 10px;
-}
-
-.tituloPaginaAtualDiv {
-    width: 100%;
-    margin-bottom: 10px;
+    outline: 0;
+    &::selection {
+        outline: 0;
+        border: 0;
+    }
 }

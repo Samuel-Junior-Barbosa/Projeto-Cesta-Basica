@@ -53,34 +53,42 @@ const RegisterChurch = () => {
                         <input
                             name="representative"
                             required
+                            placeholder='Insira o nome do responsavel pela igreja'
                         />
 
                         <label> Numero de membros: </label>
                         <input
                             type="number"
                             name="members"
+                            min="0"
+                            
                             required
+                            placeholder='Insira o numero de membros da igreja'
                         />
                         <label> Cidade: </label>
                         <input
                             name="city"
                             required
+                            placeholder='Insira a cidade da igreja'
                         />
                         <label> Bairro: </label>
                         <input
                             name="Neighborhood"
                             required
+                            placeholder='Insira o bairro da igreja'
                         />
 
                         <label> Rua: </label>
                         <input
                             name="Street"
                             required
+                            placeholder='Insira a rua da igreja'
                         />
                         <label> Numero: </label>
                         <input
                             name="Number"
                             required
+                            placeholder='Insira o numero do prédio da igreja'
                         />
                         
                     </div>

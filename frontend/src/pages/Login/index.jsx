@@ -1,31 +1,37 @@
 import styles from './Login.module.css';
 import SimpleButton from '../../Components/SimpleButton';
 import { useAuthenticator } from '../../Components/hooks/Authenticator/useAuthenticator';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import SwitchProfiles from '../../Components/SwitchUsersLogin';
+import { useNavigate } from 'react-router-dom';
+
+import { useAuth } from '../../AuthContext';
 
 const Login = () => {
-    const {handleLogin, loading, error } = useAuthenticator();
-
+    const {handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorError } = useAuthenticator();
+    const navigate = useNavigate();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const { login } = useAuth();
+    
+
+    useEffect(() => {
+        if(useAutenticatorAuthenticated === true) {
+            login();
+            navigate('/home');
+        }
+    }, [useAutenticatorAuthenticated,navigate])
 
     const onSubmit = (e) => {
-        
+        e.preventDefault();
         // Implementar uma logica de login
         let use = getUserName();
-        let pass = getPassword();
-        console.log(use, pass);
+        let pass = password;
+        //console.log('User: ', use, 'Password: ', pass);
+
         // Hook que "valida" o login do usuario
         handleLogin(use, pass);
-    }
-
-    const getPassword = () => {
-        let inputPassword = window.document.getElementsByClassName(`${styles.inputPassword}`);
-        inputPassword = String(inputPassword[0].value);
-        setPassword(inputPassword);
-        return inputPassword;
     }
 
     const getUserName = () => {
@@ -34,42 +40,23 @@ const Login = () => {
         setUsername(userName);
         return userName;
     }
-
     
-
+    
     return (
-        <>
+        <form onSubmit={onSubmit}>
             <div className={styles.SwitchProfilesDiv}>
                 <SwitchProfiles />
             </div>
 
-            <input type="password" className={styles.inputPassword} />
+            <input
+                type="password"
+                className={`${styles.inputPassword}`}
+                onChange={(e) => setPassword(e.target.value)}
+            />
             <SimpleButton onClickButton={onSubmit} textButton="Entrar" />
-            {error && <p> {error} </p>}
-        </>
+            {useAutenticatorError && <p> {useAutenticatorError} </p>}
+        </form>
     );
 }
-/*
-        <div  className={styles.loginMainDiv}>
-            <listaGiratoria />
-            
-            <img className={styles.userIconImg} src={userIcon} />
-            <form onSubmit={onSubmit}>
-                <div>
-                    <label> Admin </label>
-                </div>
-                <div>
-                    <input 
-                        className={styles.inputPassword}
-                        type="password"
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
 
-                </div>
-                <SimpleButton typeButton="submit" textButton="Acessar"/>
-                {error && <p> {error} </p>}
-            </form>
-        </div>
-*/
 export default Login;

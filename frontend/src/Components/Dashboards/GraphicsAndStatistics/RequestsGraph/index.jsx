@@ -27,13 +27,21 @@ ChartJS.register(
 
 
 const RequestsGraph = () => {
-    const labels = ['40', '10', '10', '5', '2', '3', '14', '45', '12', '45', '65', '42']
-    const data = {
+
+  const reciveDataRequests = () => {
+    let data;
+    data = [40, 10, 10, 5, 2, 3, 14, 45, 12, 45, 65, 42];
+    return data;
+  }
+  const dataRequests = reciveDataRequests();
+  const labels = ['40', '10', '10', '5', '2', '3', '14', '45', '12', '45', '65', '42']
+  
+  const data = {
     labels: labels,
     datasets: [
       {
         label: 'Pedidos mensais: ',
-        data: [40, 10, 10, 5, 2, 3, 14, 45, 12, 45, 65, 42],
+        data: dataRequests,
         backgroundColor: [
           "rgba(75, 192, 192, 1)",
         ],
@@ -48,6 +56,7 @@ const RequestsGraph = () => {
     responsive: true,
     plugins: {
       legend: {
+        display: false,
         position: 'top',
         labels: {
           color: 'white',
@@ -64,10 +73,10 @@ const RequestsGraph = () => {
     return (
         <div className={styles.mainDivGraph}>
             <div className={styles.labelGraphDiv}>
-                <LabelTopOptions mensagem="Pedidos" />
+                <LabelTopOptions mensagem="Pedidos Mensais" />
             </div>
             <div className={styles.graphDiv}>
-                <Graph data={data} options={options} width={150} height={100}/>
+                <Graph data={data} options={options} width={130} height={100}/>
             </div>
         </div>
     );

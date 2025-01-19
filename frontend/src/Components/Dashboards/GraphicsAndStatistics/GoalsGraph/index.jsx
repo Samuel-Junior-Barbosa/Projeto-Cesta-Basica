@@ -9,13 +9,22 @@ ChartJS.register(CategoryScale, ArcElement, Title, LinearScale, Tooltip, Legend)
 
 
 const GoalsGraph = () => {
-    const labels = ['Completas', 'Não Completas']
-    const data = {
+
+  const reciveDataGoals = () => {
+    let data;    
+    data = [40, 10]
+    return data;
+  }
+
+  const dataGoals = reciveDataGoals();
+
+  const labels = ['Completas', 'Não Completas']
+  const data = {
     labels: labels,
     datasets: [
       {
         label: ['%'],
-        data: [40, 10],
+        data: dataGoals,
         backgroundColor: [
             "rgba(75, 192, 192, 1)",
             'rgba(255, 99, 132, 1)',

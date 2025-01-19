@@ -158,6 +158,7 @@ const  GerenciarProdutos = () => {
                     <input
                         className={styles.inputValue}
                         onChange={(e) => {setItemPesquisa(e.target.value)}}
+                        placeholder='Pesquisar o item pelo nome'
                     />
                     
                 </div>

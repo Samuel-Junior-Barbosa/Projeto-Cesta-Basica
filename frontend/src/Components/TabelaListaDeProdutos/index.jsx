@@ -4,13 +4,19 @@ import { useNavigate } from 'react-router-dom';
 
 import styles from './TabelaListaDeProdutos.module.css'
 
-const TabelaListaDeProdutos = ({listaDeItens}) => {
+const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel}) => {
     
     const [itens, setItens] = useState([]);
+    const [editableColumnIndex, setEditableColumnIndex] = useState([]);
+    const [editableLabel, setEditableLabel] = useState(null);
+
+    const handleInput = (event) => {
+        console.log(editableLabel), ' === ';
+        setEditableLabel(event.target.textContent);
+    }
     
     // Estado para armazenar o novo item que será adicionado
     const [novoItem, setNovoItem] = useState("");
-
     const [linhaSelecionada, setLinhaSelecionada] = useState([null]);
 
 
@@ -38,7 +44,6 @@ const TabelaListaDeProdutos = ({listaDeItens}) => {
             tabela.childNodes[index].childNodes[0].childNodes[1].checked = true;
         }
     }
-
 
 
     const desSelecionarTudo = () => {
@@ -75,7 +80,6 @@ const TabelaListaDeProdutos = ({listaDeItens}) => {
 
         let colunaDoTopoDaTabela = window.document.querySelectorAll(topoDaTabela);
         let colunaDoCorpoDaTabela = window.document.querySelectorAll(corpoDaTabela);
-        console.log(colunaDoTopoDaTabela)
         
         for(let index = 0; index < colunaDoTopoDaTabela.length; index ++) {
             colunaDoTopoDaTabela[index].style.gridTemplateColumns = colunasTemplate;
@@ -87,13 +91,16 @@ const TabelaListaDeProdutos = ({listaDeItens}) => {
 
     }
 
+
     // define uma lista de itens para ser renderizada na tela com base no parametro recebido
     useEffect(() => {
             setItens(listaDeItens);
             setTimeout(() => {
                 setColumns(Object.keys(listaDeItens[0]).length);
-            }, 800)
+                setEditableColumnIndex(editableCel)
+            }, 50)
             
+
         }, [])
 
     //adicionarItem()
@@ -102,7 +109,7 @@ const TabelaListaDeProdutos = ({listaDeItens}) => {
     return (
         <>
             <div className={styles.ListaDeProdutosCadastradosDiv}>
-                <table className={styles.ListaDeProdutosCadastrados}>
+                <table className={styles.ListaDeProdutosCadastrados + ' ' + nameClass}>
                     <thead>
                         <tr className={styles.linhaTabela}>
                         <th className={styles.LabelListProdutos}> <input onChange={selecionarTudoCheckbox} type="checkbox" className={styles.checkBoxItem + ' ' + ' checkBoxItemPrimary'}/> </th>
@@ -127,7 +134,13 @@ const TabelaListaDeProdutos = ({listaDeItens}) => {
                                 <td> <input type="checkbox" className={styles.checkBoxItem}/>  </td>
                                 {Object.keys(item).map((item2, index2) => (
                                     <td key={index2}>
-                                        <label> {item[item2]} </label>
+                                        <label
+                                            contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
+                                            suppressContentEditableWarning={true}
+                                            
+                                        >
+                                            {item[item2]}
+                                        </label>
                                     </td>
                                 ))}
                                     
@@ -140,28 +153,18 @@ const TabelaListaDeProdutos = ({listaDeItens}) => {
         </>
     );
 }
-/*
-                        <th className={styles.LabelListProdutos}> <input onChange={selecionarTudoCheckbox} type="checkbox" className={styles.checkBoxItem + ' ' + ' checkBoxItemPrimary'}/> </th>
-                        <th className={styles.LabelListProdutos}> Produto </th>
-                        <th className={styles.LabelListProdutos}> Marca </th>
-                        <th className={styles.LabelListProdutos}> ID </th>
-                        <th className={styles.LabelListProdutos}> Quantidade </th>
-*/
-
-
-                            /* <!-- <td> <input type="checkbox" className={styles.checkBoxItem}/>  </td>
-                            <td className={styles.ProdutoListaCadastrado}><label> {item.produto} </label></td>
-                            <td> <label> {item.marca} </label> </td>
-                            <td> <label> {item.id} </label> </td>
-                            <td> <label> {item.quantidade} </label> </td> --> */
 
 
 TabelaListaDeProdutos.proptype = {
     listaDeItens: PropTypes.array,
+    nameClass: PropTypes.string,
+    editableCel: PropTypes.array,
 }
 
 TabelaListaDeProdutos.default = {
-    listaDeItens: ['Açucar 1kg', 'Arroz 5kg', 'Feijão 1kg', 'Manteiga 500g']
+    listaDeItens: [],
+    nameClass: '',
+    editableCel: []
 }
 
 export default TabelaListaDeProdutos;

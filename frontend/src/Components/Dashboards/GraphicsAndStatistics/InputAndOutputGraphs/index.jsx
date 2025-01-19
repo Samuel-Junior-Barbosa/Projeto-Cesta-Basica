@@ -7,13 +7,20 @@ import styles from './InputAndOutputGraphs.module.css'
 ChartJS.register(CategoryScale, ArcElement, Title, Tooltip, Legend);
 
 const InputAndOutputGraphs = () => {
-    const labels = ['Entrada', 'Saida']
-    const data = {
+  const reciveDataIOBaskets = () => {
+    let data;
+    data = [40, 10];
+    return data;
+  }
+  const dataIOBaskets = reciveDataIOBaskets();
+  const labels = ['Entrada', 'Saida']
+
+  const data = {
     labels: labels,
     datasets: [
       {
         label: ['%'],
-        data: [40, 10],
+        data: dataIOBaskets,
         backgroundColor: [
             "rgba(75, 192, 192, 1)",
             'rgba(255, 99, 132, 1)',

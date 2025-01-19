@@ -13,7 +13,7 @@ import { FaClipboardUser as FamilysCadastre } from "react-icons/fa6";
 //import { MdChurch as ChurchRegister } from "react-icons/md";
 import { FaChurch as ChurchsRegistered } from "react-icons/fa";
 import { FaCross as ChurchRegister } from "react-icons/fa";
-
+import { FaShoppingBasket as BasicFoodBasketIcon } from "react-icons/fa";
 
 import styles from './SideMenuBar.module.css';
 
@@ -99,7 +99,14 @@ const SideBarMenu = React.memo(() => {
                         </abbr>
                     </Link>
                 </li>
-
+                <li className={styles.SideBarMenuListItem}>
+                    <Link to="/cestas-basicas">
+                        <abbr title="Gerenciar Cestas Basicas">
+                            <BasicFoodBasketIcon />
+                            <label> Gerenciar Cesta </label>
+                        </abbr>
+                    </Link>
+                </li>
                 <li className={styles.SideBarMenuListItem}>
                     <Link to="/gerar-relatorios">
                         <abbr title="Gerar relatorio de informações do sistema">

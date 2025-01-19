@@ -1,12 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import styles from './Logout.page.css';
+import styles from './Logout.module.css';
 import { useEffect } from 'react';
-
+import { useAuth } from '../../AuthContext';
 
 const Logout = () => {
     const navigate = useNavigate()
+    const { logout } = useAuth();
     useEffect(() => {
         const timer = setTimeout(() => {
+            logout();
+
             navigate('/login');
         }, 1600);
 
