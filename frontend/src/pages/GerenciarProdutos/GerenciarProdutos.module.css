@@ -1,5 +1,3 @@
-@import url('../../Components/MainScreenStyles/MainScreenStyles.css');
-
 .GerenciarProdutosDiv {
     background-color: var(--bg-page2);
     display: flex;

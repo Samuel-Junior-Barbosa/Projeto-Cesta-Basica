@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 
-import TopBarMenu from '../../Components/TopBarMenu';
-import SideBarMenu from '../../Components/SideBarMenu';
 import LabelTitles from '../../Components/LabelTitles';
 import SimpleButton from '../../Components/SimpleButton';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -39,48 +37,45 @@ const RegistrarProdutos = () => {
     }
 
     return (
-        <div className={styles.MainScreen}>
-            <TopBarMenu />
-            <SideBarMenu  />
-            <div className={styles.RegistrarProdutosDiv}>
-                <LabelTitles nameClass={styles.tituloPaginaAtual} text="Cadastrar Produtos"/>
-                <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
 
-                    <div className={styles.entradaDeDados}>
-                        <label> Nome: </label>
-                        <input
-                            type='text'
-                            defaultValue={produto}
-                            required
-                        />
-                        <label> Marca: </label>
-                        <input
-                            type='text'
-                            defaultValue={marca}
-                            required
-                        />
-                        <label> ID: </label>
-                        <input
-                            type='text'
-                            defaultValue={id}
-                            required
-                        />
-                        <label> Quantidade: </label>
-                        <input
-                            min="0"
-                            required
-                            type='number'
-                            defaultValue={quantidade}
-                        />
-                    </div>
+        <div className={styles.RegistrarProdutosDiv}>
+            <LabelTitles nameClass={styles.tituloPaginaAtual} text="Cadastrar Produtos"/>
+            <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
 
-                    <SimpleButton type="submit" nameClass={styles.buttonRegister} textButton="Cadastrar" />
-                    <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
-                </form>
-                {RegisterProductMessage && (
-                    <p> {RegisterProductMessage} </p>
-                )}
-            </div>
+                <div className={styles.entradaDeDados}>
+                    <label> Nome: </label>
+                    <input
+                        type='text'
+                        defaultValue={produto}
+                        required
+                    />
+                    <label> Marca: </label>
+                    <input
+                        type='text'
+                        defaultValue={marca}
+                        required
+                    />
+                    <label> ID: </label>
+                    <input
+                        type='text'
+                        defaultValue={id}
+                        required
+                    />
+                    <label> Quantidade: </label>
+                    <input
+                        min="0"
+                        required
+                        type='number'
+                        defaultValue={quantidade}
+                    />
+                </div>
+
+                <SimpleButton type="submit" nameClass={styles.buttonRegister} textButton="Cadastrar" />
+                <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
+            </form>
+            {RegisterProductMessage && (
+                <p> {RegisterProductMessage} </p>
+            )}
         </div>
     );
 }

@@ -16,4 +16,11 @@
     --bg-button-comp-hover: var(--bg-page5);
     --icon-svg-color: white;
     --color-label-titles: var(--bg-page4);
+    /*
+    --bg-page1: rgb(0, 0, 65);
+    --bg-page2: blue;
+    --bg-page3: rgb(108, 108, 255);
+    --bg-page4: rgb(143, 0, 0);
+    --bg-page5: rgb(150, 161, 25);
+    */
 }

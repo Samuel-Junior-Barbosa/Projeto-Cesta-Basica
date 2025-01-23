@@ -1,0 +1,40 @@
+.GenerateBascketsDiv {
+    background-color: var(--bg-page2);
+    
+    width: 100%;
+    height: 100%;
+    
+
+    margin: auto;
+    padding: 10px;
+
+}
+
+.GenerateBasketsForm {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: minmax(0px, max-content);
+    background-color: var(--bg-page3);
+    border-radius: 20px;
+    gap: 10px;
+
+    width: 100%;
+
+    padding: 10px;
+
+    & > label {
+        text-align: right;
+    }
+    
+}
+
+
+.buttonsForm {
+
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+
+.TopTitleDiv {
+    margin: 20px 0px;
+}

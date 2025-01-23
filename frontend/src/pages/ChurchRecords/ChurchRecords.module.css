@@ -1,6 +1,3 @@
-@import url('../../Components/MainScreenStyles/MainScreenStyles.css');
-
-
 .ChurchRecordsDiv {
     display: flex;
     flex-direction: column;

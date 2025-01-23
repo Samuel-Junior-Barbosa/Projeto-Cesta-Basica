@@ -1,8 +1,6 @@
 import React from 'react';
 
 // Componentes
-import TopBarMenu from '../../Components/TopBarMenu';
-import SideBarMenu from '../../Components/SideBarMenu';
 import LabelTitles from '../../Components/LabelTitles';
 import SimpleButton from '../../Components/SimpleButton';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -38,45 +36,42 @@ const AlterarItem = () => {
 
 
     return (
-        <div className={styles.MainScreen}>
-            <TopBarMenu />
-            <SideBarMenu  />
-            <div className={styles.AlterarDadosProdutosDiv}>
-                <LabelTitles nameClass={styles.tituloPaginaAtual} text="Alterar Produto"/>
-                <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
 
-                    <div className={styles.entradaDeDados}>
-                        <label> Nome: </label>
-                        <input
-                            defaultValue={produto}
-                            required
-                        />
-                        <label> Marca: </label>
-                        <input
-                            defaultValue={marca}
-                            required
-                        />
-                        <label> ID: </label>
-                        <input
-                            defaultValue={id}
-                            required
-                        />
-                        <label> Quantidade: </label>
-                        <input
-                            min="0"
-                            required
-                            type='number'
-                            defaultValue={quantidade}
-                        />
-                    </div>
+        <div className={styles.AlterarDadosProdutosDiv}>
+            <LabelTitles nameClass={styles.tituloPaginaAtual} text="Alterar Produto"/>
+            <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
 
-                    <SimpleButton type="submit" nameClass={styles.buttonRegister} textButton="Alterar"/>
-                    <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
-                </form>
-                {AlterProductMessage && (
-                    <p>{AlterProductMessage}</p>
-                )}
-            </div>
+                <div className={styles.entradaDeDados}>
+                    <label> Nome: </label>
+                    <input
+                        defaultValue={produto}
+                        required
+                    />
+                    <label> Marca: </label>
+                    <input
+                        defaultValue={marca}
+                        required
+                    />
+                    <label> ID: </label>
+                    <input
+                        defaultValue={id}
+                        required
+                    />
+                    <label> Quantidade: </label>
+                    <input
+                        min="0"
+                        required
+                        type='number'
+                        defaultValue={quantidade}
+                    />
+                </div>
+
+                <SimpleButton type="submit" nameClass={styles.buttonRegister} textButton="Alterar"/>
+                <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
+            </form>
+            {AlterProductMessage && (
+                <p>{AlterProductMessage}</p>
+            )}
         </div>
     );
 }

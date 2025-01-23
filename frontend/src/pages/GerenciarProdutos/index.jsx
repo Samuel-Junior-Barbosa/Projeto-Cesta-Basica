@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TopBarMenu from '../../Components/TopBarMenu';
-import SideBarMenu from '../../Components/SideBarMenu';
-import EntradaValor from '../../Components/EntradaValor';
+
 import SimpleButton from '../../Components/SimpleButton';
 import TabelaListaDeProdutos from '../../Components/TabelaListaDeProdutos';
 import LabelTitles from '../../Components/LabelTitles';
@@ -89,32 +87,6 @@ const  GerenciarProdutos = () => {
         }
     }
     
-    /*
-    const pesquisarItem = () => {
-        console.log(itemPesquisa, itemPesquisa === '')
-        if(itemPesquisa === '') {
-            console.log('adicionando')
-            for( let item in listaDeItens) {
-                setNovoItem(listaDeItens[item]);
-                adicionarItem();
-            }
-
-            return;
-        }
-        const itensSelecionados = document.querySelectorAll('table > tbody > tr > td > label')
-        const tabela = document.querySelector('table > tbody');
-        let linhaSelecionada;
-        for (let linha = 0; linha < itensSelecionados.length; linha ++) {
-            linhaSelecionada = itensSelecionados[linha];
-            if(linhaSelecionada.innerText === itemPesquisa) {
-                selecionarTudo();
-                linhaSelecionada.parentNode.parentNode.childNodes[0].childNodes[1].checked = false;
-                removerItem();
-                
-            }
-        }
-    }
-    */
     const pesquisarItem = () => {
         handleSearchOnDB(itemPesquisa)
     }
@@ -139,31 +111,27 @@ const  GerenciarProdutos = () => {
     };
 
     return (
-        <div className={styles.MainScreen}>
-            <TopBarMenu />
-            <SideBarMenu />
-            <div className={styles.GerenciarProdutosDiv}>
-                <LabelTitles nameClass={styles.tituloPaginaAtual} text="Gerenciador de Produtos"/>
-                {SearchOnDBMessage && (
-                    <p>{SearchOnDBMessage}</p>
-                )}
-                {RemoveProductMessage && (
-                    <p> {RemoveProductMessage}</p>
-                )}
-                <div className={styles.topNavBarGerenciarProdutos}>
-                    <SimpleButton nameClass={styles.TopNavBarButton} textButton="Adicionar" onClickButton={adicionarItemPage}/>
-                    <SimpleButton nameClass={styles.TopNavBarButton} textButton="Remover" onClickButton={removerItem}/>
-                    <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar Item" onClickButton={alterarItem} />
-                    <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" onClickButton={pesquisarItem} />
-                    <input
-                        className={styles.inputValue}
-                        onChange={(e) => {setItemPesquisa(e.target.value)}}
-                        placeholder='Pesquisar o item pelo nome'
-                    />
-                    
-                </div>
-                <TabelaListaDeProdutos listaDeItens={listaDeItens}/>
+        <div className={styles.GerenciarProdutosDiv}>
+            <LabelTitles nameClass={styles.tituloPaginaAtual} text="Gerenciador de Produtos"/>
+            {SearchOnDBMessage && (
+                <p>{SearchOnDBMessage}</p>
+            )}
+            {RemoveProductMessage && (
+                <p> {RemoveProductMessage}</p>
+            )}
+            <div className={styles.topNavBarGerenciarProdutos}>
+                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Adicionar" onClickButton={adicionarItemPage}/>
+                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Remover" onClickButton={removerItem}/>
+                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar Item" onClickButton={alterarItem} />
+                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" onClickButton={pesquisarItem} />
+                <input
+                    className={styles.inputValue}
+                    onChange={(e) => {setItemPesquisa(e.target.value)}}
+                    placeholder='Pesquisar o item pelo nome'
+                />
+                
             </div>
+            <TabelaListaDeProdutos listaDeItens={listaDeItens}/>
         </div>
     );
 }

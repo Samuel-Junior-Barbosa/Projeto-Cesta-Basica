@@ -1,7 +1,5 @@
 import React from 'react';
 
-import TopBarMenu from '../../Components/TopBarMenu';
-import SideBarMenu from '../../Components/SideBarMenu';
 import LabelTitles from '../../Components/LabelTitles';
 import SimpleButton from '../../Components/SimpleButton';
 import { useRegisterFamily } from '../../Components/hooks/RegistrarFamilia/useRegisterFamily';
@@ -12,10 +10,9 @@ import styles from './RegistrarFamilia.module.css';
 const RegistrarFamilia = () => {
     const navigate = useNavigate();
 
-    const voltarPagina = () => {
+    const handleGoBack = () => {
         navigate(-1);
-    };
-
+    }
 
 
     const {handleRegisterFamily, loading, warning } = useRegisterFamily();
@@ -35,68 +32,70 @@ const RegistrarFamilia = () => {
     }
 
     return (
-        <div className={styles.MainScreen}>
-            <TopBarMenu />
-            <SideBarMenu  />
-            <div className={styles.RegistrarFamiliaDiv}>
-                <LabelTitles nameClass={styles.tituloPaginaAtualDiv} text="Cadastrar Familias"/>
+        <div className={styles.RegistrarFamiliaDiv}>
+            <LabelTitles nameClass={styles.tituloPaginaAtualDiv} text="Cadastrar Familias"/>
 
-                <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
-                    <div className={styles.entradaDeDados}>
-                        <label> Representante: </label>
-                        <input
-                            name="representative"
-                            required
-                            placeholder='Insira o nome do representante da familia'
-                        />
-
-                        <label> Numero de membros: </label>
-                        <input
-                            type="number"
-                            name="members"
-                            min="0"
-                            required
-                            placeholder='Insira o numero de membros da familia cadastrada'
-                        />
-
-                        <label> Endereço: </label>
-                        <input
-                            name="address"
-                            required
-                            placeholder='Insira o endereço da familia'
-                        />
-                        
-                        <label> Numero de telefone: </label>
-                        <input
-                            name="telephone"
-                            required
-                            placeholder='Insira um numero de contato'
-                        />
-
-                        <label> Prioridade da familia: </label>
-                        <input
-                            name="situation"
-                            required
-                            placeholder='Insira a situação atual da familia'
-                        />
-                        <label> Pertence a congregação: </label>
-                        <input
-                            name="congregation"
-                            required
-                            placeholder='Insira a congregação que a familia frequenta'
-                        />
-                    </div>
-
-                    <SimpleButton
-                        type="submit"
-                        nameClass={styles.buttonRegister}
-                        textButton="Cadastrar"
-
+            <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
+                <div className={styles.entradaDeDados}>
+                    <label> Representante: </label>
+                    <input
+                        name="representative"
+                        required
+                        placeholder='Insira o nome do representante da familia'
                     />
-                    <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
-                    {warning && <p>{warning}</p>}
-                </form>
-            </div>
+
+                    <label> Numero de membros: </label>
+                    <input
+                        type="number"
+                        name="members"
+                        min="0"
+                        required
+                        placeholder='Insira o numero de membros da familia cadastrada'
+                    />
+
+                    <label> Endereço: </label>
+                    <input
+                        name="address"
+                        required
+                        placeholder='Insira o endereço da familia'
+                    />
+                    
+                    <label> Numero de telefone: </label>
+                    <input
+                        name="telephone"
+                        required
+                        placeholder='Insira um numero de contato'
+                    />
+
+                    <label> Prioridade da familia: </label>
+                    <select name="situation"
+                        required
+                        placeholder='Insira a situação atual da familia'
+                    >
+                        <option> Muito Alta </option>
+                        <option> Alta </option>
+                        <option> Medio </option>
+                        <option> Baixo </option>
+                        <option> Muito Baixo </option>
+                    </select>
+
+                    <label> Pertence a congregação: </label>
+                    <input
+                        name="congregation"
+                        required
+                        placeholder='Insira a congregação que a familia frequenta'
+                    />
+                </div>
+
+                <SimpleButton
+                    type="submit"
+                    nameClass={styles.buttonRegister}
+                    textButton="Cadastrar"
+
+                />
+                <SimpleButton nameClass={styles.buttonRegister} onClickButton={handleGoBack} textButton="Cancelar"/>
+                {warning && <p>{warning}</p>}
+            </form>
         </div>
     );
 }

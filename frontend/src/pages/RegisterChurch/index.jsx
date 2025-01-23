@@ -1,6 +1,4 @@
 
-import TopBarMenu from '../../Components/TopBarMenu';
-import SideBarMenu from '../../Components/SideBarMenu';
 import LabelTitles from '../../Components/LabelTitles';
 import SimpleButton from '../../Components/SimpleButton';
 import { useRegisterChurch } from '../../Components/hooks/ManageChurches/RegisterChurch/useRegisterChurch';
@@ -11,9 +9,9 @@ import styles from './RegisterChurch.module.css';
 const RegisterChurch = () => {
     const navigate = useNavigate();
 
-    const voltarPagina = () => {
+    const handleGoBack = () => {
         navigate(-1);
-    };
+    }
 
 
 
@@ -41,68 +39,71 @@ const RegisterChurch = () => {
     }
 
     return (
-        <div className={styles.MainScreen}>
-            <TopBarMenu />
-            <SideBarMenu  />
-            <div className={styles.RegisterChurchDiv}>
-                <LabelTitles nameClass={styles.tituloPaginaAtualDiv} text="Registrar Igreja"/>
+        <div className={styles.RegisterChurchDiv}>
+            <LabelTitles nameClass={styles.tituloPaginaAtualDiv} text="Registrar Igreja"/>
 
-                <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
-                    <div className={styles.entradaDeDados}>
-                        <label> Representante: </label>
-                        <input
-                            name="representative"
-                            required
-                            placeholder='Insira o nome do responsavel pela igreja'
-                        />
-
-                        <label> Numero de membros: </label>
-                        <input
-                            type="number"
-                            name="members"
-                            min="0"
-                            
-                            required
-                            placeholder='Insira o numero de membros da igreja'
-                        />
-                        <label> Cidade: </label>
-                        <input
-                            name="city"
-                            required
-                            placeholder='Insira a cidade da igreja'
-                        />
-                        <label> Bairro: </label>
-                        <input
-                            name="Neighborhood"
-                            required
-                            placeholder='Insira o bairro da igreja'
-                        />
-
-                        <label> Rua: </label>
-                        <input
-                            name="Street"
-                            required
-                            placeholder='Insira a rua da igreja'
-                        />
-                        <label> Numero: </label>
-                        <input
-                            name="Number"
-                            required
-                            placeholder='Insira o numero do prédio da igreja'
-                        />
-                        
-                    </div>
-
-                    <SimpleButton
-                        type="submit"
-                        nameClass={styles.buttonRegister}
-                        textButton="Cadastrar"
-
+            <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
+                <div className={styles.entradaDeDados}>
+                    <label> Nome da igreja: </label>
+                    <input
+                        name="churchName"
+                        required
+                        placeholder='Insira o nome da igreja'
                     />
-                    <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
-                    {RegisterChurchMessage && <p>{RegisterChurchMessage}</p>}
-                </form>
-            </div>
+
+                    <label> Representante: </label>
+                    <input
+                        name="representative"
+                        required
+                        placeholder='Insira o nome do responsavel pela igreja'
+                    />
+
+                    <label> Numero de membros: </label>
+                    <input
+                        type="number"
+                        name="members"
+                        min="0"
+                        
+                        required
+                        placeholder='Insira o numero de membros da igreja'
+                    />
+                    <label> Cidade: </label>
+                    <input
+                        name="city"
+                        required
+                        placeholder='Insira a cidade da igreja'
+                    />
+                    <label> Bairro: </label>
+                    <input
+                        name="Neighborhood"
+                        required
+                        placeholder='Insira o bairro da igreja'
+                    />
+
+                    <label> Rua: </label>
+                    <input
+                        name="Street"
+                        required
+                        placeholder='Insira a rua da igreja'
+                    />
+                    <label> Numero: </label>
+                    <input
+                        name="Number"
+                        required
+                        placeholder='Insira o numero do prédio da igreja'
+                    />
+                    
+                </div>
+
+                <SimpleButton
+                    type="submit"
+                    nameClass={styles.buttonRegister}
+                    textButton="Cadastrar"
+
+                />
+                <SimpleButton nameClass={styles.buttonRegister} onClickButton={handleGoBack} textButton="Cancelar"/>
+                {RegisterChurchMessage && <p>{RegisterChurchMessage}</p>}
+            </form>
         </div>
     );
 }

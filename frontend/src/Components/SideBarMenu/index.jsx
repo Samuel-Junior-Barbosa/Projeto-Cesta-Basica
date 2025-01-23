@@ -14,6 +14,7 @@ import { FaClipboardUser as FamilysCadastre } from "react-icons/fa6";
 import { FaChurch as ChurchsRegistered } from "react-icons/fa";
 import { FaCross as ChurchRegister } from "react-icons/fa";
 import { FaShoppingBasket as BasicFoodBasketIcon } from "react-icons/fa";
+import { FaGear as GearIcon} from "react-icons/fa6";
 
 import styles from './SideMenuBar.module.css';
 
@@ -51,14 +52,13 @@ const SideBarMenu = React.memo(() => {
                     </Link>
                 </li>
                 <li className={styles.SideBarMenuListItem}>
-                    <Link to="/registrar-produtos">
-                        <abbr title="Registrar um novo produto">
+                    <Link to="/iobasckets">
+                        <abbr title="Registrar entrada e saida de cestas">
                             <BasketIcon />
-                            <label> Registrar Produtos </label>
+                            <label> Ent/Sai Cestas Basicas </label>
                         </abbr>
                     </Link>
                 </li>
-
                 <li className={styles.SideBarMenuListItem}>
                     <Link to="/gerenciar-produtos">
                         <abbr title="Gerenciar o estoque dos produtos">
@@ -68,34 +68,18 @@ const SideBarMenu = React.memo(() => {
                     </Link>
                 </li>
                 <li className={styles.SideBarMenuListItem}>
-                    <Link to="/registrar-familia">
-                        <abbr title="Registrar uma nova familia">
-                            <FamilyRegistration />
-                            <label> Registrar Familia </label>
-                        </abbr>
-                    </Link>
-                </li>
-                <li className={styles.SideBarMenuListItem}>
                     <Link to="/cadastros-de-familias">
-                        <abbr title="Cadastros das familias registradas">
+                        <abbr title="Gerenciar os cadastros das familias registradas">
                             <FamilysCadastre />
-                            <label> Familias Cadastradas </label>
+                            <label> Gerenciar Familias </label>
                         </abbr>
                     </Link>
                 </li>
                 <li className={styles.SideBarMenuListItem}>
-                    <Link to="/register-church">
-                        <abbr title="Registrar Igrejas">
-                            <ChurchRegister />
-                            <label> Registrar Igreja </label>
-                        </abbr>
-                    </Link>
-                </li>
-                <li className={styles.SideBarMenuListItem}>
-                    <Link to="/church-records">
-                        <abbr title="Cadastros das Igrejas">
+                    <Link to="/manage-churches">
+                        <abbr title="Gerenciar os cadastros das Igrejas">
                             <ChurchsRegistered />
-                            <label> Igrejas Cadastradas </label>
+                            <label> Gerenciar Igrejas </label>
                         </abbr>
                     </Link>
                 </li>
@@ -112,6 +96,14 @@ const SideBarMenu = React.memo(() => {
                         <abbr title="Gerar relatorio de informações do sistema">
                             <ReportIcon />
                             <label> Gerar Relatorio </label>
+                        </abbr>
+                    </Link>
+                </li>
+                <li className={styles.SideBarMenuListItem}>
+                    <Link to="/options">
+                        <abbr title="Configuração e personalização">
+                            <GearIcon />
+                            <label> Configurações </label>
                         </abbr>
                     </Link>
                 </li>

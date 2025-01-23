@@ -1,21 +1,13 @@
 import React, { useContext, useEffect } from 'react';
 
-import TopBarMenu from '../../Components/TopBarMenu';
-import SideBarMenu from '../../Components/SideBarMenu';
 import GridDashboard from '../../Components/Dashboards/GridDashboard'
 import styles from './Home.module.css';
 
-import { useNavigate } from 'react-router-dom';
-
-
-
 const Home = () => {
     return (
-        <div className={styles.MainScreen}>
-            <TopBarMenu />
-            <SideBarMenu  />
+        <>
             <GridDashboard />
-        </div>
+        </>
     );
 }
 

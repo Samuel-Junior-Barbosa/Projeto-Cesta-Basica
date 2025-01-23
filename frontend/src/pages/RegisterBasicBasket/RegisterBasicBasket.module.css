@@ -1,5 +1,3 @@
-@import url('../../Components/MainScreenStyles/MainScreenStyles.css');
-
 .basicFoodBasketRegistrationDiv {
     display: flex;
     flex-direction: column;
@@ -17,7 +15,7 @@
 }
 
 .divTabelaMeta {
-    width: max-content;
+    width: 100%;
     margin: auto;
 }
 

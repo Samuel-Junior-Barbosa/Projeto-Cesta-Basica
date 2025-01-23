@@ -1,13 +1,16 @@
-.RegistrarFamiliaDiv {
+.ChangeChurchRegistrationDiv {
     display: block;
+    
     background-color: var(--bg-page2);
     width: 76vw;
+    
     padding: 20px;
     padding-top: 30px;
-    margin-right: 20px;   
+
+    margin-right: 20px;
 }
 
-.tituloPaginaAtualDiv {
+.titleTopPageDiv {
     width: 100%;
 }
 

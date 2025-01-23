@@ -17,6 +17,12 @@ table, th ,td {
     padding: 10px;
     width: 100%;
     margin: 0px;
+
+}
+
+td {
+    color: black;
+    background-color: white;
 }
 
 table {

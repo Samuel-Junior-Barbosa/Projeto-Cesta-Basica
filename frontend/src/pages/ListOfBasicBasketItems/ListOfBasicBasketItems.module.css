@@ -1,6 +1,3 @@
-@import url('../../Components/MainScreenStyles/MainScreenStyles.css');
-
-
 .listBasicBasketItensDiv {
     display: flex;
     flex-direction: column;

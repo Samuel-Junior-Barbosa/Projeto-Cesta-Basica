@@ -1,6 +1,3 @@
-@import url('../../Components/MainScreenStyles/MainScreenStyles.css');
-
-
 .CadastrosDeFamiliasDiv {
     display: flex;
     flex-direction: column;

@@ -15,19 +15,22 @@ import Suporte from './pages/Suporte';
 import Logout from './pages/Logout';
 import NoPage from "./pages/NoPage";
 import Login from './pages/Login';
-import Documentacao from './Components/Docspage';
+import Documentacao from './pages/Docspage';
 import MetaPage from './pages/MetaPage';
-import BasicFoodBasket from './pages/BasicFoodBasketRegistration';
+import BasicFoodBasket from './pages/RegisterBasicBasket';
 import ChangeBasicBasket from './pages/ListOfBasicBasketItems';
-
+import Layout from './pages/Layout';
+import IOBasckets from './pages/IOBaskets';
+import GenerateBasicFoodBaskets from './pages/GenerateBasicFoodBaskets';
+import Options from './pages/Options';
+import ChangeChurchRegistration from './pages/ChangeChurchRegistration';
 
 import { AuthProvider,  } from './AuthContext';
 import RouteGuard from './RouteGuard';
-import { useAuth } from './AuthContext';
+
 
 
 const App = () => {
-  const [authenticated, setAuthenticated ] = useState(false);
 
   return (
       <div id="app">
@@ -37,24 +40,30 @@ const App = () => {
           <Routes>
           <Route path="/login" element={<Login />} />
             <Route element={<RouteGuard />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/gerenciar-produtos" element={<GerenciarProdutos />} />
-              <Route path="/registrar-familia" element={<RegistrarFamilia />} />
-              <Route path="/cadastros-de-familias" element={<CadastroDeFamilias />} />
-              <Route path="/registrar-produtos" element={<RegistrarProdutos />} />
-              <Route path="/alterar-dados-produtos" element={<AlterarDadosProduto />} />
-              <Route path="/register-church" element={<RegisterChurch />} />
-              <Route path="/church-records" element={<ChurchRecords />} />
-              <Route path="/gerar-relatorios" element={<GerarRelatorios />} />
-              <Route path="/suporte" element={<Suporte />} />
-              <Route path="/metas" element={<MetaPage />} />
-              <Route path="/documentacao" element={ <Documentacao /> } />
-              <Route path="/cestas-basicas" element={ <BasicFoodBasket /> } />
-              <Route path="/change-basic-basket" element={ <ChangeBasicBasket /> } />
-              
-              <Route path="/logout" element={<Logout/>} />
-              
+              <Route element={<Layout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/gerenciar-produtos" element={<GerenciarProdutos />} />
+                <Route path="/register-family" element={<RegistrarFamilia />} />
+                <Route path="/cadastros-de-familias" element={<CadastroDeFamilias />} />
+                <Route path="/registrar-produtos" element={<RegistrarProdutos />} />
+                <Route path="/alterar-dados-produtos" element={<AlterarDadosProduto />} />
+                <Route path="/register-church" element={<RegisterChurch />} />
+                <Route path="/manage-churches" element={<ChurchRecords />} />
+                <Route path="/gerar-relatorios" element={<GerarRelatorios />} />
+                <Route path="/suporte" element={<Suporte />} />
+                <Route path="/metas" element={<MetaPage />} />
+                <Route path="/documentacao" element={ <Documentacao /> } />
+                <Route path="/cestas-basicas" element={ <BasicFoodBasket /> } />
+                <Route path="/change-basic-basket" element={ <ChangeBasicBasket /> } />
+                <Route path="/iobasckets" element={ <IOBasckets /> } />
+                <Route path="/generate-basic-food-basket" element={ <GenerateBasicFoodBaskets /> } />
+                <Route path="/options" element={ <Options /> } />
+                <Route path="/change-church-registration" element={ <ChangeChurchRegistration /> } />
+                
+              </Route>
+
+              <Route path="/logout" element={<Logout/>} />              
               <Route path="*" element={<NoPage />} />
             </Route>
           </Routes>

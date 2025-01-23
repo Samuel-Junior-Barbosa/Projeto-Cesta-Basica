@@ -9,6 +9,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel}) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
+    const [columnsTemplate, setColumnsTemplate ] = useState(null);
 
     const handleInput = (event) => {
         console.log(editableLabel), ' === ';
@@ -66,6 +67,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel}) => {
         }
         colunasTemplate += ' 1fr';
 
+        setColumnsTemplate(colunasTemplate);
         /*
         let colunaCorpo  = `max-content`;
         colunaCorpo += ' 1fr';
@@ -75,6 +77,11 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel}) => {
 
         colunaCorpo += ' 1fr';
         */
+
+
+    }
+
+    const setTable = () => {
         const topoDaTabela = `.${styles.ListaDeProdutosCadastrados} > thead > tr`;
         const corpoDaTabela = `.${styles.ListaDeProdutosCadastrados} > tbody > tr`;
 
@@ -82,13 +89,12 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel}) => {
         let colunaDoCorpoDaTabela = window.document.querySelectorAll(corpoDaTabela);
         
         for(let index = 0; index < colunaDoTopoDaTabela.length; index ++) {
-            colunaDoTopoDaTabela[index].style.gridTemplateColumns = colunasTemplate;
+            colunaDoTopoDaTabela[index].style.gridTemplateColumns = columnsTemplate;
         }
         
         for( let index = 0; index < colunaDoCorpoDaTabela.length; index++) {
-            colunaDoCorpoDaTabela[index].style.gridTemplateColumns = colunasTemplate;        
+            colunaDoCorpoDaTabela[index].style.gridTemplateColumns = columnsTemplate;        
         }
-
     }
 
 
@@ -97,11 +103,12 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel}) => {
             setItens(listaDeItens);
             setTimeout(() => {
                 setColumns(Object.keys(listaDeItens[0]).length);
+                setTable();
                 setEditableColumnIndex(editableCel)
             }, 50)
             
 
-        }, [])
+        }, [columnsTemplate, setColumnsTemplate, setColumns, setTable])
 
     //adicionarItem()
     
