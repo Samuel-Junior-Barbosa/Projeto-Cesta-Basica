@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 
@@ -28,14 +28,15 @@ const SideBarMenu = React.memo(() => {
     const [ classeAtiva, setClasseAtiva ] = useState(HiddenSideMenu);
 
     // função que abre o menu
-    const handleOpenMenu = () => {
+    const handleOpenMenu = useCallback(() => {
         setClasseAtiva(ShowSideMenu)
-    }
+    }, []);
 
     // função para fechar o menu
-    const handleCloseMenu = () => {
+    const handleCloseMenu = useCallback(() => {
         setClasseAtiva(HiddenSideMenu)
-    }
+    }, []);
+
     return (
         <div className={styles.NavBarSideMenu}>
             <ul
@@ -52,8 +53,8 @@ const SideBarMenu = React.memo(() => {
                     </Link>
                 </li>
                 <li className={styles.SideBarMenuListItem}>
-                    <Link to="/iobasckets">
-                        <abbr title="Registrar entrada e saida de cestas">
+                    <Link to="/output-baskets">
+                        <abbr title="Registrar saida de cestas">
                             <BasketIcon />
                             <label> Ent/Sai Cestas Basicas </label>
                         </abbr>

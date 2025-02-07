@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import styles from './Logout.module.css';
 import { useEffect } from 'react';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from '../../contexts/AuthenticateContext/AuthContext';
 
 const Logout = () => {
     const navigate = useNavigate()

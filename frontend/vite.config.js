@@ -1,10 +1,17 @@
 const { defineConfig } = require('vite');
 const react = require('@vitejs/plugin-react');
 const nodePolyfills = require('rollup-plugin-node-polyfills');
+
+
 const path = require('path');
 
 module.exports = defineConfig({
   base: './',
+  plugins: [
+    react(),
+    
+
+  ],
   resolve: {
     alias: {
       '#minpath': path.resolve(__dirname, 'node_modules/vfile/lib/minpath.js'),
@@ -26,9 +33,7 @@ module.exports = defineConfig({
       external: [],
       plugins: [nodePolyfills()],
     },
-    chunkSizeWarningLimit: 1600,
+      chunkSizeWarningLimit: 1600,
   },
-  plugins: [
-    react(),
-  ],
+
 });

@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import SwitchProfiles from '../../Components/SwitchUsersLogin';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from '../../AuthContext';
+import { useAuth } from '../../contexts/AuthenticateContext/AuthContext';
 
 const Login = () => {
     const {handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorError } = useAuthenticator();

@@ -3,14 +3,11 @@ import ReactDOM from 'react-dom';
 import {createRoot} from 'react-dom/client'
 import './style.css'
 import App from './App'
-import  { MyNewContext, NewProvider } from './MyProvider';
 
 
 /*
 ReactDOM.render(
-    <newProvider>
-        <App />
-    </newProvider>,
+    <App />,
     document.getElementById('root')
 )
 */

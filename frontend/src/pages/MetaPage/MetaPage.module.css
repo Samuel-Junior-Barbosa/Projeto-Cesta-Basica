@@ -90,6 +90,7 @@
 
 .tabelaListaDeMetas {
     margin: auto;
+    box-shadow: 3px 4px 6px rgba(0, 0, 0, 0.487);
     & > thead, & > tbody {
         display: block;
         margin: auto;
