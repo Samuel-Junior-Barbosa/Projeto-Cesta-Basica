@@ -1,23 +1,36 @@
-import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEffect, useCallback} from 'react';
+import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEffect, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
 import styles from './TabelaListaDeProdutos.module.css'
 
 
-const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel}, ref) => {
-    
+const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel, limitarMaxNumber}, ref) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
     const [columnsTemplate, setColumnsTemplate ] = useState(null);
+    const tableClassRef = useRef('');
+    const [ tableClassName, setTableClassName ] = useState('');
+
 
     const handleInput = useCallback((event) => {
-        console.log(editableLabel), ' === ';
         setEditableLabel(event.target.textContent);
     }, [])
     
     const [linhaSelecionada, setLinhaSelecionada] = useState([]);
+
+
+    const getTableBody = useCallback(() => {
+        if( !tableClassRef.current ) {
+            return;
+        }
+        let tableClass = tableClassRef.current.replaceAll(' ', '.')
+        
+        const tableBody = window.document.querySelector(`.${tableClass} > tbody`)
+        
+        return tableBody;
+    }, [tableClassRef])
 
 
         // Função que adiciona o novo item à lista
@@ -66,8 +79,8 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel}
             colunasTemplate += ' 1fr';
         }
         colunasTemplate += ' 1fr';
-
         setColumnsTemplate(colunasTemplate);
+        
         /*
         let colunaCorpo  = `max-content`;
         colunaCorpo += ' 1fr';
@@ -95,11 +108,30 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel}
         for( let index = 0; index < colunaDoCorpoDaTabela.length; index++) {
             colunaDoCorpoDaTabela[index].style.gridTemplateColumns = columnsTemplate;        
         }
-    }, []);
+    }, [columnsTemplate]);
+
+    const retornarLinhasDaTabela = () => {
+        let linhas = getTableBody();
+        if( !linhas ) {
+            return null;
+        }
+        linhas = linhas.childNodes;
+        return linhas;
+    }
+
+    const getSelectedElements = useCallback(() => {
+        if( !tableClassRef.current ) {
+            return;
+        }
+        let tableClass = tableClassRef.current.replace(' ', '.')
+        const elementsSelected = window.document.querySelectorAll(`.${tableClass} > tbody > tr > td > input:checked`);
+
+        return elementsSelected;
+    }, [tableClassRef])
 
     // Lista os itens marcados como selecionados na tabela de produtos
     const listarElementosSelecionados = useCallback(() => {
-        const itensSelecionados = document.querySelectorAll('table > tbody > tr > td > input:checked');
+        const itensSelecionados = getSelectedElements(); 
         if( itensSelecionados ) {
             if( itensSelecionados.length < 1) {
                 return [];
@@ -113,7 +145,7 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel}
             linhaSelecionadas.push(itensSelecionados[linha].parentNode.parentNode);
         }
         return linhaSelecionadas;
-    }, [])
+    }, [tableClassRef])
 
     const listarItensSelecionados = useCallback(() => {
         const elementosSelecionados = listarElementosSelecionados();
@@ -126,23 +158,48 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel}
             return [];
         }
         let listaItens = []
+        let objeto = {}
+        const topTitleTable = Object.keys(listaDeItens[0])
+        
         for(let I = 0; I < elementosSelecionados.length; I++) {
-            let produto = elementosSelecionados[I].childNodes[1].innerText;
-            let marca = elementosSelecionados[I].childNodes[2].innerText;
-            let id = elementosSelecionados[I].childNodes[3].innerText;
-            let quantidade = elementosSelecionados[I].childNodes[4].innerText;
+            for(let II = 0; II < topTitleTable.length; II ++ ) {
+                objeto[topTitleTable[II]] = elementosSelecionados[I].childNodes[II+1].innerText;
+            }
 
-            let objeto = {
-                produto: produto,
-                marca: marca,
-                id: id,
-                quantidade: quantidade
-            };
             listaItens.push(objeto);
         }
         return listaItens;
+    }, [listarElementosSelecionados])
+
+
+    const listarColuna = useCallback(() => {
+        
+
     }, [])
 
+    const listarValoresDeUmaColuna = useCallback(() => {
+
+    }, [])
+
+
+    useEffect(() => {
+        let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
+        tableClassRef.current = classN;
+        setTableClassName(classN);
+        
+    }, [])
+
+    // define uma lista de itens para ser renderizada na tela com base no parametro recebido
+    useLayoutEffect(() => {
+        if( listaDeItens ) {
+            setItens(listaDeItens);
+            setTimeout(() => {
+                setColumns(Object.keys(listaDeItens[0]).length);
+                setTable();
+                setEditableColumnIndex(editableCel);
+            }, 10)
+        }
+        }, [columnsTemplate, listaDeItens])
 
     useImperativeHandle(ref, () => ({
         adicionarItem,
@@ -150,28 +207,16 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel}
         selecionarTudo,
         listarElementosSelecionados,
         listarItensSelecionados,
+        retornarLinhasDaTabela,
+        getTableBody,
     }), [])
 
-    // define uma lista de itens para ser renderizada na tela com base no parametro recebido
-    useEffect(() => {
-        if( listaDeItens ) {
-            setItens(listaDeItens);
-            setTimeout(() => {
-                setColumns(Object.keys(listaDeItens[0]).length);
-                setTable();
-                setEditableColumnIndex(editableCel)
-            }, 50)
-        }            
 
-        }, [columnsTemplate])
-
-    //adicionarItem()
-    
 
     return (
         <>
             <div className={styles.ListaDeProdutosCadastradosDiv}>
-                <table className={styles.ListaDeProdutosCadastrados + ' ' + nameClass}>
+                <table className={`${styles.ListaDeProdutosCadastrados} ${nameClass}`}>
                     <thead>
                         <tr className={styles.linhaTabela}>
                         <th className={styles.LabelListProdutos}> <input onChange={selecionarTudoCheckbox} type="checkbox" className={styles.checkBoxItem + ' ' + ' checkBoxItemPrimary'}/> </th>
@@ -186,22 +231,43 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel}
                         </tr>
                     </thead>
                     <tbody>
-                        {itens.map((item, index) => (
+                        {itens && 
+                            itens.map((item, index) => (
                             <tr 
                                 key={index}
                                 onClick={() => selecionarLinha(index)}
                                 className={(styles.linhaTabela) + " " + (linhaSelecionada === index ? (styles.selecionada) : '')}
                             >
                                 <td> <input type="checkbox" className={styles.checkBoxItem}/>  </td>
-                                {Object.keys(item).map((item2, index2) => (
+                                {item && Object.keys(item).map((item2, index2) => (
                                     <td key={index2}>
-                                        <label
-                                            contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
-                                            suppressContentEditableWarning={true}
-                                            
-                                        >
-                                            {item[item2]}
-                                        </label>
+                                        {limitarMaxNumber ?
+                                            (limitarMaxNumber.includes(index2)? ( 
+                                                <input 
+                                                    type={'number'}
+                                                    min={0} 
+                                                    max={Number(item.quantidade)}
+                                                    defaultValue={item.quantidade}
+                                                    className={styles.inputTableEditable}
+                                                />
+                                            ) : (
+                                                <label
+                                                    contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
+                                                    suppressContentEditableWarning={true}
+                                                    >
+                                                        {item[item2]}
+                                                </label>
+                                                )
+                                            ) : (
+                                                <label
+                                                contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
+                                                suppressContentEditableWarning={true}
+                                                >
+                                                    {item[item2]}
+                                                </label>
+                                            )
+                                        }
+                                        
                                     </td>
                                 ))}
                                     
@@ -216,18 +282,20 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel}
 })
 
 
-TabelaListaDeProdutos.proptype = {
+TabelaListaDeProdutos.propTypes = {
     listaDeItens: PropTypes.array,
     nameClass: PropTypes.string,
     editableCel: PropTypes.array,
-    ref: PropTypes.object,
+    limitarMaxNumber: PropTypes.array,
+    
 }
 
 TabelaListaDeProdutos.default = {
     listaDeItens: [],
     nameClass: '',
     editableCel: [],
-    ref: null,
+    limitarMaxNumber: [],
+    
 }
 
 

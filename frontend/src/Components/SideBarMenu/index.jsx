@@ -53,7 +53,7 @@ const SideBarMenu = React.memo(() => {
                     </Link>
                 </li>
                 <li className={styles.SideBarMenuListItem}>
-                    <Link to="/output-baskets">
+                    <Link to="/input-and-output-baskets">
                         <abbr title="Registrar saida de cestas">
                             <BasketIcon />
                             <label> Ent/Sai Cestas Basicas </label>

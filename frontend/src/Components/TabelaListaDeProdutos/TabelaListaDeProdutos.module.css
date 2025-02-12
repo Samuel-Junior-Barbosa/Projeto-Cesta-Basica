@@ -131,3 +131,11 @@ table {
 .checkBoxItem {
     box-shadow: 2px 3px 4px rgba(0, 0, 0, 0.496);
 }
+
+
+.inputTableEditable {
+    width: 50%;
+    text-align: center;
+    border: 2px solid black;
+    font-size: 1.2rem;
+}
