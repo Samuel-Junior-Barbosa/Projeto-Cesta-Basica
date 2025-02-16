@@ -11,6 +11,7 @@ import Suporte from './pages/Suporte';
 import Layout from './pages/Layout';
 import Options from './pages/Options';
 import NoPage from "./pages/NoPage";
+import NoAuthorized from './pages/NoAuthorized';
 //import Documentacao from '../src/public/Docspage';
 import MetaPage from './pages/MetaPage';
 // ------------------------------------------------------------------------------------------------------
@@ -39,6 +40,7 @@ import ChangeBasicBasket from './pages/ManagementOfBaskets/ListOfBasicBasketItem
 import GenerateBasicFoodBaskets from './pages/ManagementOfBaskets/GenerateBasicFoodBaskets';
 import IOBaskets from './pages/ManagementOfBaskets/IOBaskets';
 import HistoryBasicFoodBasket from './pages/ManagementOfBaskets/HistoryBasicFoodBasket';
+import BasketDeliveryOrder from './pages/ManagementOfBaskets/BasketDeliveryOrder';
 // ------------------------------------------------------------------------------------------------------
 
 // ------------------------------------- Outros ---------------------------------------------------------
@@ -58,37 +60,57 @@ const App = () => {
           <Router>
             
             <Routes>
-            <Route path="/login" element={<Login />} />
-              <Route element={<RouteGuard />}>
+              <Route path="/login" element={<Login />} />
+              <Route element={<RouteGuard AllowedRoles={['admin']}/>}>
                 <Route element={<Layout />}>
                   <Route path="/" element={<Home />} />
                   <Route path="/home" element={<Home />} />
                   <Route path="/gerenciar-produtos" element={<GerenciarProdutos />} />
                   <Route path="/register-family" element={<RegistrarFamilia />} />
                   <Route path="/cadastros-de-familias" element={<CadastroDeFamilias />} />
-                  <Route path="/registrar-produtos" element={<RegistrarProdutos />} />
+                  
                   <Route path="/alterar-dados-produtos" element={<AlterarDadosProduto />} />
                   <Route path="/register-church" element={<RegisterChurch />} />
                   <Route path="/manage-churches" element={<ChurchRecords />} />
                   <Route path="/gerar-relatorios" element={<GerarRelatorios />} />
-                  <Route path="/suporte" element={<Suporte />} />
                   <Route path="/metas" element={<MetaPage />} />
-                  <Route path="/documentacao" element={ <MetaPage /> } /> {/* Documentacao */}
-                  <Route path="/cestas-basicas" element={ <BasicFoodBasket /> } />
-                  <Route path="/register-basic-food-basket" element={ <RegisterBasicFoodBasket /> } />
-                  
-                  <Route path="/change-basic-basket" element={ <ChangeBasicBasket /> } />
-                  <Route path="/input-and-output-baskets" element={ <IOBaskets /> } />
-                  <Route path="/generate-basic-food-basket" element={ <GenerateBasicFoodBaskets /> } />
-                  <Route path="/options" element={ <Options /> } />
                   <Route path="/change-church-registration" element={ <ChangeChurchRegistration /> } />
-                  <Route path="/history-basic-food-basket" element={ <HistoryBasicFoodBasket /> } />
                   
                 </Route>
-
-                <Route path="/logout" element={<Logout/>} />              
-                <Route path="*" element={<NoPage />} />
               </Route>
+
+              <Route element={<RouteGuard AllowedRoles={['operator']}/>}>
+                <Route element={<Layout />}>
+                  <Route path="/home" element={<ChangeBasicBasket />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard AllowedRoles={['admin', 'operator']}/>}>
+                <Route element={<Layout />}>
+                  <Route path="/register-basic-food-basket" element={ <RegisterBasicFoodBasket /> } />
+                  <Route path="/change-basic-basket" element={ <ChangeBasicBasket /> } />
+                  <Route path="/generate-basic-food-basket" element={ <GenerateBasicFoodBaskets /> } />
+                  <Route path="/cestas-basicas" element={ <BasicFoodBasket /> } />
+                  <Route path="/registrar-produtos" element={<RegistrarProdutos />} />
+                  <Route path="/input-and-output-baskets" element={ <IOBaskets /> } />
+                  <Route path="/history-basic-food-basket" element={ <HistoryBasicFoodBasket /> } />
+                  <Route path="/basket-delivery-order" element={ <BasketDeliveryOrder /> } />
+                  
+                  
+                  
+                </Route>
+              </Route>
+              <Route element={<RouteGuard AllowedRoles={['admin', 'operator', 'visit']}/>}>
+                <Route element={<Layout />}>
+                  <Route path="/documentacao" element={ <MetaPage /> } /> {/* Documentacao */}
+                  <Route path="/options" element={ <Options /> } />
+                  <Route path="/suporte" element={<Suporte />} />
+                  <Route path="/logout" element={<Logout/>} />              
+                </Route>
+              </Route>
+
+              
+              <Route path="nao-autorizado" element={<NoAuthorized />} />
+              <Route path="*" element={<NoPage />} />
             </Routes>
           </Router>
         </ProductsDB>

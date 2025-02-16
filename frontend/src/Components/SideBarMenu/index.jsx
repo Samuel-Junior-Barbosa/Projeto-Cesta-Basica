@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 
@@ -17,6 +17,7 @@ import { FaShoppingBasket as BasicFoodBasketIcon } from "react-icons/fa";
 import { FaGear as GearIcon} from "react-icons/fa6";
 
 import styles from './SideMenuBar.module.css';
+import { getCurrentUser } from '../hooks/Authenticator/auth';
 
 
 const SideBarMenu = React.memo(() => {
@@ -24,7 +25,7 @@ const SideBarMenu = React.memo(() => {
     const HiddenSideMenu = styles.HiddenSideMenu
     // classe do menu expandido
     const ShowSideMenu = styles.ShowSideMenu
-    
+    const [currentUser, setCurrentUser ] = useState();
     const [ classeAtiva, setClasseAtiva ] = useState(HiddenSideMenu);
 
     // função que abre o menu
@@ -37,6 +38,11 @@ const SideBarMenu = React.memo(() => {
         setClasseAtiva(HiddenSideMenu)
     }, []);
 
+    useEffect(() => {
+        const userActuality = getCurrentUser();
+        setCurrentUser(userActuality);
+    }, [])
+
     return (
         <div className={styles.NavBarSideMenu}>
             <ul
@@ -44,62 +50,78 @@ const SideBarMenu = React.memo(() => {
                 onMouseEnter={handleOpenMenu}
                 onMouseLeave={handleCloseMenu}
             >
-                <li className={styles.SideBarMenuListItem} >
-                    <Link to="/" exact="true" >
-                        <abbr title="Pagina principal">
-                            <HomeIcon />
-                            <label> Home </label>
-                        </abbr>
-                    </Link>
-                </li>
-                <li className={styles.SideBarMenuListItem}>
-                    <Link to="/input-and-output-baskets">
-                        <abbr title="Registrar saida de cestas">
-                            <BasketIcon />
-                            <label> Ent/Sai Cestas Basicas </label>
-                        </abbr>
-                    </Link>
-                </li>
-                <li className={styles.SideBarMenuListItem}>
-                    <Link to="/gerenciar-produtos">
-                        <abbr title="Gerenciar o estoque dos produtos">
-                            <ManageInventoryIcon />
-                            <label> Gerenciar Produtos </label>
-                        </abbr>
-                    </Link>
-                </li>
-                <li className={styles.SideBarMenuListItem}>
-                    <Link to="/cadastros-de-familias">
-                        <abbr title="Gerenciar os cadastros das familias registradas">
-                            <FamilysCadastre />
-                            <label> Gerenciar Familias </label>
-                        </abbr>
-                    </Link>
-                </li>
-                <li className={styles.SideBarMenuListItem}>
-                    <Link to="/manage-churches">
-                        <abbr title="Gerenciar os cadastros das Igrejas">
-                            <ChurchsRegistered />
-                            <label> Gerenciar Igrejas </label>
-                        </abbr>
-                    </Link>
-                </li>
-                <li className={styles.SideBarMenuListItem}>
-                    <Link to="/cestas-basicas">
-                        <abbr title="Gerenciar Cestas Basicas">
-                            <BasicFoodBasketIcon />
-                            <label> Gerenciar Cesta </label>
-                        </abbr>
-                    </Link>
-                </li>
-                <li className={styles.SideBarMenuListItem}>
-                    <Link to="/gerar-relatorios">
-                        <abbr title="Gerar relatorio de informações do sistema">
-                            <ReportIcon />
-                            <label> Gerar Relatorio </label>
-                        </abbr>
-                    </Link>
-                </li>
+                { currentUser && currentUser.role === 'admin' && (
+                    <>
+                        <li className={styles.SideBarMenuListItem} >
+                            <Link to="/" exact="true" >
+                                <abbr title="Pagina principal">
+                                    <HomeIcon />
+                                    <label> Home </label>
+                                </abbr>
+                            </Link>
+                        </li>
+                    </>
+                )}
+                { currentUser && 
+                    ((currentUser.role === 'operator' || currentUser.role === 'admin') && (
+                    <>
+                        <li className={styles.SideBarMenuListItem}>
+                            <Link to="/input-and-output-baskets">
+                                <abbr title="Registrar saida de cestas">
+                                    <BasketIcon />
+                                    <label> Ent/Sai Cestas Basicas </label>
+                                </abbr>
+                            </Link>
+                        </li>
+                        <li className={styles.SideBarMenuListItem}>
+                            <Link to="/cestas-basicas">
+                                <abbr title="Gerenciar Cestas Basicas">
+                                    <BasicFoodBasketIcon />
+                                    <label> Gerenciar Cesta </label>
+                                </abbr>
+                            </Link>
+                        </li>
+                    </>
+                ))}
+
+                { currentUser && currentUser.role === 'admin' && (
+                    <>
+                        <li className={styles.SideBarMenuListItem}>
+                            <Link to="/gerenciar-produtos">
+                                <abbr title="Gerenciar o estoque dos produtos">
+                                    <ManageInventoryIcon />
+                                    <label> Gerenciar Produtos </label>
+                                </abbr>
+                            </Link>
+                        </li>
+                        <li className={styles.SideBarMenuListItem}>
+                            <Link to="/cadastros-de-familias">
+                                <abbr title="Gerenciar os cadastros das familias registradas">
+                                    <FamilysCadastre />
+                                    <label> Gerenciar Familias </label>
+                                </abbr>
+                            </Link>
+                        </li>
+                        <li className={styles.SideBarMenuListItem}>
+                            <Link to="/manage-churches">
+                                <abbr title="Gerenciar os cadastros das Igrejas">
+                                    <ChurchsRegistered />
+                                    <label> Gerenciar Igrejas </label>
+                                </abbr>
+                            </Link>
+                        </li>
+                        <li className={styles.SideBarMenuListItem}>
+                            <Link to="/gerar-relatorios">
+                                <abbr title="Gerar relatorio de informações do sistema">
+                                    <ReportIcon />
+                                    <label> Gerar Relatorio </label>
+                                </abbr>
+                            </Link>
+                        </li>
+                    </>
+                ) } 
+                
+
                 <li className={styles.SideBarMenuListItem}>
                     <Link to="/options">
                         <abbr title="Configuração e personalização">

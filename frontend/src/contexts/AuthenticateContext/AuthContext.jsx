@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext } from "react";
+import { useEffect } from "react";
 
 // Cria o contexto
 const AuthContext = createContext();
@@ -10,6 +11,7 @@ export const useAuth = () => {
 
 // Provedor do contexto
 export const AuthProvider = ({ children }) => {
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem("isAuthenticated") === "true";
   }); // Simula o estado de login
@@ -18,6 +20,7 @@ export const AuthProvider = ({ children }) => {
   const login = () => {
     setIsAuthenticated(true);
     localStorage.setItem("isAuthenticated", "true");
+    
   };
 
   // Função para logout
@@ -31,4 +34,5 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+  
 };

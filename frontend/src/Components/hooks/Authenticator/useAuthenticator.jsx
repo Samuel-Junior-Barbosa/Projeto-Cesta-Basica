@@ -18,7 +18,6 @@ export function useAuthenticator() {
                 useAutenticatorSetAuthenticated(true)
                 useAutenticatorSetError('Logado com sucesso');
                 useAutenticatorSetLoading(false);
-                
     
             }
             else {

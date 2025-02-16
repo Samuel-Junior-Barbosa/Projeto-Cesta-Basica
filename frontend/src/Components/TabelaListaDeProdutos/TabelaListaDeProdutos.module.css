@@ -97,22 +97,26 @@ table {
 }
 
 .ListaDeProdutosCadastrados > tbody > tr.linhaTabela:nth-child(1) {
-    border-radius: 20px 20px 0px 0px;
+    
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
     & > td:nth-child(1) {
-        border-radius: 20px 0px 0px 0px;
+        
+        border-top-left-radius: 20px;
     }
 
     & > td:nth-last-child(1) {
-        border-radius: 0px 20px 0px 0px;
+        border-top-right-radius: 20px;
     }
 }
 .ListaDeProdutosCadastrados > tbody > tr.linhaTabela:nth-last-child(1) {
-    border-radius: 0px 0px 20px 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
     & > td:nth-child(1) {
-        border-radius: 0px 0px 0px 20px;
+        border-bottom-left-radius: 20px;
     }
     & > td:nth-last-child(1) {
-        border-radius: 0px 0px 20px 0px;
+        border-bottom-right-radius: 20px;
     }
 }
 
@@ -126,6 +130,7 @@ table {
 .selecionada > td {
     background-color: var(--bg-page1);
     color: var(--color-font-hover);
+    
 }
 
 .checkBoxItem {
@@ -138,4 +143,12 @@ table {
     text-align: center;
     border: 2px solid black;
     font-size: 1.2rem;
+}
+
+.breakParagraph {
+    display: block;
+    & > p {
+        display: block;
+        margin: 5px;
+    }
 }

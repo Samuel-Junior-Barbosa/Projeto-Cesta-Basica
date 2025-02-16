@@ -1,6 +1,6 @@
 
 // ----- Modules do NPM ---------
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import TabelaListaDeProdutos from '../../../Components/TabelaListaDeProdutos';
 // ------------------------------
 
@@ -76,20 +76,52 @@ const HistoryBasicFoodBasket = () => {
         let dataHistory;
 
         dataHistory = queryDataForDB();
-        if( dataHistory ) {
-            return dataHistory;
+        if( !dataHistory ) {
+            return new Error(' Ocorreu um erro ao receber dados para o banco de dados')
         }
-        return new Error(' Ocorreu um erro ao receber dados para o banco de dados')
 
-    }, [])
+        for( let I = 0; I < dataHistory.length; I ++ ) {
+            let labelListProdutos = '';
+            let itensDaCesta = JSON.parse(dataHistory[I].itensDaCesta);
+            console.log(itensDaCesta)
+            for( let II = 0; II < itensDaCesta.length; II ++ ) {
+                labelListProdutos += `[ Produto: ${itensDaCesta[II].produto}; ID: ${itensDaCesta[II].id}; Quant.: ${itensDaCesta[II].quantidade} ]\n`
+            }
+
+            if( !tabelaRef.current ) {
+                dataHistory[I].itensDaCesta = labelListProdutos
+            }
+            else {
+                
+                dataHistory[I].itensDaCesta = tabelaRef.current.LineBreakForLabel(labelListProdutos)
+            }
+
+        }
+        
+        return dataHistory;
+
+    }, [tabelaRef])
 
 
 
-    const selectThisBasket = () => {
-        let inputsProdutosSelecionados = tabelaRef.current.listarItensSelecionados();
-        if( inputsProdutosSelecionados.length > 1 || inputsProdutosSelecionados.length < 1) {
-            alert('Selecione apenas 1 item do historio por vez')
+    const selectThisBasket = useCallback(() => {
+        if( tabelaRef ) {
+            if( !tabelaRef.current ) {
+                return;
+            }
+        }
+
+        else {
             return;
+        }
+
+        let inputsProdutosSelecionados = tabelaRef.current.listarItensSelecionados();
+
+        if( inputsProdutosSelecionados) {
+            if( inputsProdutosSelecionados.length > 1 || inputsProdutosSelecionados.length < 1) {
+                alert('Selecione apenas 1 item do historio por vez')
+                return;
+            }
         }
         
         inputsProdutosSelecionados[0].itensDaCesta = JSON.parse(inputsProdutosSelecionados[0].itensDaCesta)
@@ -108,20 +140,21 @@ const HistoryBasicFoodBasket = () => {
                 quantidade: tmp_quantidade,
             })
         }
-        console.log('objeto: ', produtos)
+
         navigate('/input-and-output-baskets', { state: { typeAction: 'Saida', dataOfBasket: '', dataProdutosRecived: produtos}});
-    };
-    const handleGoBack = () => {
+    }, [tabelaRef.current]);
+    
+    const handleGoBack = useCallback(() => {
         navigate(-1);
-    }
+    }, []);
 
     // ------------------------------------------------------
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const dataRecived = reciveDataHistory()
         setHistoricoDeCesta(dataRecived);
         
-    }, [])
+    }, [tabelaRef])
     /*
     useEffect(() => {
         setTimeout(() => {
@@ -142,9 +175,13 @@ const HistoryBasicFoodBasket = () => {
                 <SimpleButton textButton='Voltar' onClickButton={handleGoBack} />
             </div>
             <div>
-                { historicoDeCestas && (
-                    <TabelaListaDeProdutos ref={testRef} nameClass={styles.historyTableOfBaskets} listaDeItens={historicoDeCestas}/>
-                )}
+                
+                <TabelaListaDeProdutos
+                    ref={testRef}
+                    nameClass={styles.historyTableOfBaskets}
+                    listaDeItens={historicoDeCestas}
+                    lengthColumns={'1fr 1fr 1fr 3fr 1fr'}
+                />
                 
             </div>
         </div>

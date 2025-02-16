@@ -4,17 +4,18 @@
     --bg-page3: #686868;
     --bg-page4: #0496FF;
     --bg-page5: #87BCDE;
+    --color-font: #ffffff;
     --color-button: var(--bg-page4);
     --color-button-hover: var(--bg-page5);
-    --color-font: #ffffff;
+    
     --color-font2: #B1A9DC;
-    --color-button-font: white;
+    --color-button-font: var(--color-font);
     --color-font-hover: #9465E8;
     --color-font-visited: #9465E8;
-    --bg-dashboard: #454545;
+    --bg-dashboard: var(--bg-page2);
     --bg-button-comp: var(--bg-page4);
     --bg-button-comp-hover: var(--bg-page5);
-    --icon-svg-color: white;
+    --icon-svg-color: var(--color-font);
     --color-label-titles: var(--bg-page4);
     /*
     --bg-page1: rgb(0, 0, 65);

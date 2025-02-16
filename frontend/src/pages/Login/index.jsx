@@ -7,6 +7,7 @@ import SwitchProfiles from '../../Components/SwitchUsersLogin';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../contexts/AuthenticateContext/AuthContext';
+import { getCurrentUser } from "../../Components/hooks/Authenticator/auth";
 
 const Login = () => {
     const {handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorError } = useAuthenticator();
@@ -19,9 +20,24 @@ const Login = () => {
     useEffect(() => {
         if(useAutenticatorAuthenticated === true) {
             login();
-            navigate('/home');
+            const currentUser = getCurrentUser();
+
+            if( currentUser.role === 'admin') {
+                navigate('/home');
+            }   
+            else if( currentUser.role === 'operator' ) {
+                navigate('/cestas-basicas')
+            }
+            else if( currentUser.role === 'visit' ) {
+                navigate('/suporte')
+            }
+            else {
+                navigate('/login')
+            }
+            
+            
         }
-    }, [useAutenticatorAuthenticated,navigate])
+    }, [useAutenticatorAuthenticated])
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -31,7 +47,8 @@ const Login = () => {
         //console.log('User: ', use, 'Password: ', pass);
 
         // Hook que "valida" o login do usuario
-        handleLogin(use, pass);
+        let returnOfLogin = handleLogin(use, pass);
+
     }
 
     const getUserName = () => {

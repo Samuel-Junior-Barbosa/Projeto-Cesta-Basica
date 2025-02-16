@@ -32,10 +32,13 @@ const ManageBasicBasket = () => {
 
         <div className={styles.topNavBarGerenciarProdutos}>
             <SimpleButton nameClass={styles.TopNavBarButton} textButton="Adicionar"onClickButton={ () => {goToPage('/register-basic-food-basket')}} />
+            <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar" onClickButton={ () => {goToPage('/change-basic-basket')}} />
             <SimpleButton nameClass={styles.TopNavBarButton} textButton="Remover" />
             <SimpleButton nameClass={styles.TopNavBarButton} textButton="Gerar" onClickButton={ () => {goToPage('/generate-basic-food-basket')}}/>
-            <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar" onClickButton={ () => {goToPage('/change-basic-basket')}} />
+            <SimpleButton nameClass={styles.TopNavBarButton} textButton="Ordens de entregas"onClickButton={ () => {goToPage("/basket-delivery-order")} }/>
+            
             <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" />
+            
             <input
                 className={styles.inputValue}
                 placeholder='Pesquisar a Cesta pelo nome'

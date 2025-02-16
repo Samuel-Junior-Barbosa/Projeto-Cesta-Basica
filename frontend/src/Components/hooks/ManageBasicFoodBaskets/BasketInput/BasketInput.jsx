@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 
 
-export async function BasketOutput( productName, productId, productQuantity ) {
+export async function BasketInput( productName, productId, productQuantity ) {
     const listaDeItensNoBD = [
             {produto: 'Açucar 1kg', marca: 'generica', id: 'PDV0', quantidade: 1},
             {produto: 'Arroz 5kg', marca: 'generica', id: 'PDV1', quantidade: 1},
