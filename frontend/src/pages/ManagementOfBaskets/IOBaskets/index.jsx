@@ -32,13 +32,13 @@ const IOBaskets = () => {
     const [ typeOfAction, setTypeOfAction ] = useState('Entrada');
     const [ itemSearch, setItemSearch ] = useState('');
     const [ itemIdSearched, setItemIdSearched ] = useState('');
-    const [ itemSearchedByID, setItemSearchedByID ] = useState();
-    const [ inputQuantityPerItem, setInputQuantityPerItem ] = useState();
+    const [ itemSearchedByID, setItemSearchedByID ] = useState('');
     const [ donationFromOutside, setDonationFromOutside ] = useState(false);
 
     // elementos html
     const [ inputProductName, setInputProductName ] = useState();
     const [ inputIdItem, setInputIdItem ] = useState();
+    const [ inputQuantityPerItem, setInputQuantityPerItem ] = useState();
 
     const testRef = useCallback((node) => {
         if( node !== null) {
@@ -46,26 +46,37 @@ const IOBaskets = () => {
         }
     }, [tabelaRef])
 
-    const handleSetItemSearch = useCallback((itemName) => {
-        if( itemName ) {
-            setItemSearch(itemName);
+    const handleSetItemSearch = useCallback((itemName) => {        
+        if( itemName === null ) {
+            return
         }
-    }, []);
-
+        //console.log('set itemSearch: ', itemSearch)
+        setItemSearch(itemName);
+    }, [itemSearch]);
+    
     const handleSetSearchById = useCallback((idSearch) => {
-        if( !idSearch ) {
+        if( idSearch === null) {
             return;
         }
+
+        setItemIdSearched(idSearch)
         
         for( let I = 0; I < listaDeItensNoBD.length; I++ ) {
             if( idSearch === listaDeItensNoBD[I].id ) {
+                
                 setItemSearchedByID( listaDeItensNoBD[I].produto );
                 setDataBasicFoodBasket( listaDeItensNoBD[I] )
                 setItemSearch( listaDeItensNoBD[I].produto  )
                 inputProductName.value = listaDeItensNoBD[I].produto;
+                setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
+                //console.log(inputProductName.value)
             }
         }
-    }, [inputProductName, listaDeItensNoBD])
+
+        
+        
+        
+    }, [inputProductName, listaDeItensNoBD, inputIdItem, itemSearchedByID])
 
 
     const handleFocusItemSearch = useCallback((itemName) => {
@@ -108,40 +119,47 @@ const IOBaskets = () => {
         }
     }, [ listaDeItensNoBD, inputProductName, itemSearchedByID, itemSearch ]);
 
+    
     const handleFocusIdItem = useCallback((e) => {
         let itemFind = false
         let index = 0;
-        console.log(' inputItem: ', inputIdItem)
+        //console.log(' inputItem: ', inputIdItem)
         if( (itemSearch) && (!inputIdItem.value || inputIdItem.value) ) {
-            console.log('opção 1 ')
+            //console.log('opção 1 ')
             for( let I = 0; I < listaDeItensNoBD.length; I ++) {
+                //console.log(' itemSearch: ', itemSearch)
                 if( listaDeItensNoBD[I].produto === itemSearch) {
+                    //console.log('Encontrou')
+                    //console.log(' listaDeItensNoBD', listaDeItensNoBD[I])
                     index = I;
                     setItemSearchedByID(listaDeItensNoBD[I].id)
                     setItemIdSearched(listaDeItensNoBD[I].id);
+                    
                     setDataBasicFoodBasket(listaDeItensNoBD[I])
-
                     setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
                     
-                    inputIdItem.value = listaDeItensNoBD[I].id;
+                    
+                    handleSetSearchById(listaDeItensNoBD[I].id)
                     itemFind = true;
                 }
             }
         }
-        else if( (inputIdItem.value) && (!itemSearch)) {
-            console.log('opção2 ')
+        else if( (inputIdItem.value) && (itemSearch !== '')) {
+            //console.log('opção2 ')
             for( let I = 0; I < listaDeItensNoBD.length; I ++) {
                 if( listaDeItensNoBD[I].id === inputIdItem.value) {
-                    console.log(' inputIdItem', inputIdItem.value)
+                    //console.log(' inputIdItem', inputIdItem.value)
                     index = I;
                     setItemSearchedByID(listaDeItensNoBD[I].id)
                     setItemIdSearched(listaDeItensNoBD[I].id);
+                    inputIdItem.value = listaDeItensNoBD[I].id;
+
                     setDataBasicFoodBasket(listaDeItensNoBD[I])
                     setItemSearch( listaDeItensNoBD[I].produto );
                     setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
 
                     inputProductName.value = listaDeItensNoBD[I].produto;
-                    inputIdItem.value = listaDeItensNoBD[I].id;
+                    
                     
                     itemFind = true;
 
@@ -150,8 +168,10 @@ const IOBaskets = () => {
         }
 
         
-    }, [ inputIdItem, listaDeItensNoBD, itemSearch, inputQuantityPerItem, inputProductName ])
+    }, [ inputIdItem, listaDeItensNoBD, inputProductName, itemSearch ])
+    
 
+    
     const handleFocusQuantityPerItens = useCallback(() => {
         inputQuantityPerItem.value = dataBasicFoodBasket.quantidade;
         handleSetQuantityPerItens();
@@ -174,7 +194,7 @@ const IOBaskets = () => {
 
     const resetTable = useCallback(() => {
         if( tabelaRef.current ) {
-            console.log(' Limpando os itens selecionados da tabela')
+            //console.log(' Limpando os itens selecionados da tabela')
             tabelaRef.current.desSelecionarTudo();
         }
     }, [tabelaRef])
@@ -220,7 +240,7 @@ const IOBaskets = () => {
         const idProduct = e.target.elements[1].value;
         const quantityProduct = e.target.elements[2].value;
         const donationFromOutsideValue = donationFromOutside
-        console.log(' enviando: ', nameProduct, idProduct, quantityProduct)
+        //console.log(' enviando: ', nameProduct, idProduct, quantityProduct)
         if( (nameProduct !== '') && (idProduct !== '') && (quantityProduct !== '') ) {
             handleBasketInput(nameProduct, idProduct, quantityProduct)
         }    
@@ -287,6 +307,23 @@ const IOBaskets = () => {
 
     const handleButtonDonationFromOutside = useCallback((checkValue) => {
         setDonationFromOutside(checkValue);
+        let labelsInputsDonations = window.document.querySelectorAll(`.${styles.inputsOfUser} > div > label`)
+        let inputsDonations = window.document.querySelectorAll(`.${styles.inputsOfUser} > div > input`)
+        const bodyPage = window.getComputedStyle(document.documentElement);
+        if( checkValue ) {
+            for( let I = 0; I < labelsInputsDonations.length; I ++ ) {
+                labelsInputsDonations[I].style.color = bodyPage.getPropertyValue('--bg-page1');
+                inputsDonations[I].style.backgroundColor = bodyPage.getPropertyValue('--bg-page1');
+            }    
+        }
+
+        else {
+            for( let I = 0; I < labelsInputsDonations.length; I ++ ) {
+                labelsInputsDonations[I].style.color = bodyPage.getPropertyValue('--color-font');
+                inputsDonations[I].style.backgroundColor = bodyPage.getPropertyValue('--color-font');
+            }
+                
+        }
 
     }, [])
 
@@ -295,6 +332,14 @@ const IOBaskets = () => {
         setInputIdItem( window.document.querySelector(`.${styles.inputIdItem}`) );
         setInputQuantityPerItem( window.document.querySelector(`.${styles.inputQuantityPerItem}`) );
         setInputProductName( window.document.querySelector(`.${styles.inputProductName}`) )
+    }, [])
+
+
+    // Atualiza as informações enviadas entre as paginas
+    useEffect(() => {
+        setDataRecivedOfProducts(dataProdutosRecived);
+        setDataOfBasketRecived(dataOfBasket);
+        setTypeOfAction(typeAction);
     }, [])
 
     // Depois de receber informações da pagina de historico,
@@ -310,13 +355,6 @@ const IOBaskets = () => {
             }
         }, 20)
     }, [dataRecivedOfProducts])
-
-    // Atualiza as informações enviadas entre as paginas
-    useEffect(() => {
-        setDataRecivedOfProducts(dataProdutosRecived);
-        setDataOfBasketRecived(dataOfBasket);
-        setTypeOfAction(typeAction);
-    }, [])
 
     return (
         <div className={styles.IOBasketsDivMain}>
@@ -423,6 +461,7 @@ const IOBaskets = () => {
                                     <input
                                         className={styles.inputProductName}
                                         list='itemSearchedOption'
+                                        value = {itemSearch}
                                         onChange={(e) => handleSetItemSearch(e.target.value)}
                                         onFocus={(e) => handleFocusItemSearch(e.target.value)}
                                     />
@@ -434,11 +473,13 @@ const IOBaskets = () => {
                                 <div>
                                     <label> Id do item: </label>
                                     <input
+                                        type="text"
                                         className={styles.inputIdItem}
-                                        defaultValue={itemIdSearched}
+                                        value = {itemIdSearched}
+                                        
                                         onChange={(e) => {handleSetSearchById(e.target.value)}}
                                         onFocus={handleFocusIdItem}
-                                        
+
                                     />
                                 </div>
                                 <div>
@@ -449,7 +490,7 @@ const IOBaskets = () => {
                                         defaultValue={"0"}
                                         
                                         className={styles.inputQuantityPerItem}
-                                        
+                                        onFocus={handleSetQuantityPerItens}
                                     />
                                 </div>
                                 <div className={styles.buttonsForm}>

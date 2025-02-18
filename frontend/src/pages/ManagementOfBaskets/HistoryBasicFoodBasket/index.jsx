@@ -28,7 +28,7 @@ const HistoryBasicFoodBasket = () => {
         if( node !== null) {
             tabelaRef.current = node;    
         }
-    }, [])
+    }, [tabelaRef])
 
     const queryDataForDB = useCallback(() => {
         let data;
@@ -83,7 +83,7 @@ const HistoryBasicFoodBasket = () => {
         for( let I = 0; I < dataHistory.length; I ++ ) {
             let labelListProdutos = '';
             let itensDaCesta = JSON.parse(dataHistory[I].itensDaCesta);
-            console.log(itensDaCesta)
+
             for( let II = 0; II < itensDaCesta.length; II ++ ) {
                 labelListProdutos += `[ Produto: ${itensDaCesta[II].produto}; ID: ${itensDaCesta[II].id}; Quant.: ${itensDaCesta[II].quantidade} ]\n`
             }
@@ -103,17 +103,59 @@ const HistoryBasicFoodBasket = () => {
     }, [tabelaRef])
 
 
+    const returnStringToJson = (stringToFormating) => {
+        let tmp_formating = stringToFormating;
+        //console.log('string: ', stringToFormating)
+
+        tmp_formating = tmp_formating.trim()        
+
+        tmp_formating = tmp_formating.split('] [')
+        
+        let tmp_formating2 = [];
+        let tmp_formating3 = {};
+
+        //console.log(`string2: `, tmp_formating, ' fim ')
+        for(let I = 0; I < tmp_formating.length; I ++ ) {
+            tmp_formating[I] = tmp_formating[I].split(';');
+            for( let II = 0; II < tmp_formating[I].length; II ++ ) {
+                tmp_formating[I][II] = tmp_formating[I][II].split(':');
+                if( tmp_formating[I][II][1].includes(']')) {
+                    tmp_formating[I][II][1] =  tmp_formating[I][II][1].replace(']', '');
+                }
+
+                if( tmp_formating[I][II][1].includes(' ')) {
+                    tmp_formating[I][II][1] =  tmp_formating[I][II][1].trim();
+                }
+            }
+            
+            tmp_formating3 = {
+                produto: `${tmp_formating[I][0][1]}`,
+                id: `${tmp_formating[I][1][1]}`,
+                quantidade: `${tmp_formating[I][2][1]}`,
+            }
+            
+            tmp_formating[I] = tmp_formating3;
+            tmp_formating2 = {}
+        }
+
+
+        //console.log('tmp_formating: ', tmp_formating, ' tmp_formating2: ', tmp_formating2)
+        return tmp_formating
+
+    }
 
     const selectThisBasket = useCallback(() => {
+        
         if( tabelaRef ) {
-            if( !tabelaRef.current ) {
-                return;
-            }
+            if( tabelaRef.current.length === 0) {
+                return [];
+            }   
+        }
+        
+        else {
+            return [];
         }
 
-        else {
-            return;
-        }
 
         let inputsProdutosSelecionados = tabelaRef.current.listarItensSelecionados();
 
@@ -123,26 +165,33 @@ const HistoryBasicFoodBasket = () => {
                 return;
             }
         }
-        
-        inputsProdutosSelecionados[0].itensDaCesta = JSON.parse(inputsProdutosSelecionados[0].itensDaCesta)
+        else {
+            return;
+        }
 
         let produtos = [];
         let tmp_produto;
         let tmp_id;
         let tmp_quantidade;
-        for( let I = 0; I < inputsProdutosSelecionados[0].itensDaCesta.length; I ++ ) {
-            tmp_produto = inputsProdutosSelecionados[0].itensDaCesta[I].produto
-            tmp_id = inputsProdutosSelecionados[0].itensDaCesta[I].id
-            tmp_quantidade = inputsProdutosSelecionados[0].itensDaCesta[I].quantidade
+        let formatingLabelReturned;
+        
+        formatingLabelReturned = returnStringToJson(inputsProdutosSelecionados[0].itensDaCesta)
+        for( let I = 0; I < formatingLabelReturned.length; I ++ ) {
+            tmp_produto = formatingLabelReturned[I].produto;
+            tmp_id = formatingLabelReturned[I].id;
+            tmp_quantidade = formatingLabelReturned[I].quantidade;
             produtos.push({
                 produto: tmp_produto,
                 id: tmp_id,
                 quantidade: tmp_quantidade,
             })
+    
         }
+        
 
+        //console.log('Produtos: ', produtos)
         navigate('/input-and-output-baskets', { state: { typeAction: 'Saida', dataOfBasket: '', dataProdutosRecived: produtos}});
-    }, [tabelaRef.current]);
+    }, [tabelaRef]);
     
     const handleGoBack = useCallback(() => {
         navigate(-1);
@@ -155,16 +204,13 @@ const HistoryBasicFoodBasket = () => {
         setHistoricoDeCesta(dataRecived);
         
     }, [tabelaRef])
-    /*
-    useEffect(() => {
-        setTimeout(() => {
-            if( tabelaRef.current ) {
-                setListarItensSelecionados(() => tabelaRef.current.listarItensSelecionados);
-            }
     
+    useLayoutEffect(() => {
+        setTimeout(() => {
+            setListarItensSelecionados(() => tabelaRef.current.listarItensSelecionados);
         }, 10)
-    })
-        */
+    }, [tabelaRef])
+        
 
     return(
         
@@ -176,12 +222,15 @@ const HistoryBasicFoodBasket = () => {
             </div>
             <div>
                 
-                <TabelaListaDeProdutos
-                    ref={testRef}
-                    nameClass={styles.historyTableOfBaskets}
-                    listaDeItens={historicoDeCestas}
-                    lengthColumns={'1fr 1fr 1fr 3fr 1fr'}
-                />
+                { historicoDeCestas && (
+                    <TabelaListaDeProdutos
+                        ref={tabelaRef}
+                        nameClass={styles.historyTableOfBaskets}
+                        listaDeItens={historicoDeCestas}
+                        lengthColumns={'1fr 1fr 1fr 3fr 1fr'}
+                    />
+
+                )}
                 
             </div>
         </div>

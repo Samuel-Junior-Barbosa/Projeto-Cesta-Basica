@@ -25,6 +25,7 @@ import AlterarDadosProduto from './pages/ManagementOfProducts/AlterarDadosProdut
 // ------------------------------------- Managemente of Families  ---------------------------------------
 import RegistrarFamilia from './pages/ManagementOfFamilies/RegistrarFamilia';
 import CadastroDeFamilias from './pages/ManagementOfFamilies/CadastrosDeFamilias';
+import AlterarCadastroDeFamilia from './pages/ManagementOfFamilies/AlterarCadastroDeFamilia';
 // ------------------------------------------------------------------------------------------------------
 
 // ------------------------------------- Management of churches -----------------------------------------
@@ -47,6 +48,7 @@ import BasketDeliveryOrder from './pages/ManagementOfBaskets/BasketDeliveryOrder
 import { AuthProvider,  } from './contexts/AuthenticateContext/AuthContext';
 import RouteGuard from './contexts/GuardRoutes/RouteGuard';
 import {ProductsDB } from './contexts/ListOfProductsonStock';
+
 // ------------------------------------------------------------------------------------------------------
 
 
@@ -68,6 +70,7 @@ const App = () => {
                   <Route path="/gerenciar-produtos" element={<GerenciarProdutos />} />
                   <Route path="/register-family" element={<RegistrarFamilia />} />
                   <Route path="/cadastros-de-familias" element={<CadastroDeFamilias />} />
+                  <Route path="/alterar-cadastro-familia" element={<AlterarCadastroDeFamilia />} />
                   
                   <Route path="/alterar-dados-produtos" element={<AlterarDadosProduto />} />
                   <Route path="/register-church" element={<RegisterChurch />} />

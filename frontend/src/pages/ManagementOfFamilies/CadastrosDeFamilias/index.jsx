@@ -33,10 +33,9 @@ const CadastrosDeFamilias = () => {
     const existItemSelected = () => {
         const itensSelecionados = document.querySelectorAll('table > tbody > tr > td > input:checked');
         if(itensSelecionados) {
-            if( itensSelecionados[0].parentNode.parentNode.length > 1 || itensSelecionados[0].parentNode.parentNode.length < 1) {
+            if( itensSelecionados[0].parentNode.parentNode.length < 1) {
                 return false;
             }
-            return false;
         }
         return true
     }
@@ -44,8 +43,11 @@ const CadastrosDeFamilias = () => {
     const alterRegister = () => {
         console.log(' aa ')
         if( !existItemSelected() ) {
-            alert('Só é possivel alterar 1 igreja por vez');
+            alert('Só é possivel alterar 1 familia por vez');
         }
+
+
+        goToPage('/alterar-cadastro-familia')
     }
 
 

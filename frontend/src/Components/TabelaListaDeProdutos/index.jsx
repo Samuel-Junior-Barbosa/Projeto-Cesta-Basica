@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './TabelaListaDeProdutos.module.css'
 
 
-const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns}, ref) => {
+const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref}) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -127,8 +127,11 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel,
     }, [])
 
     const getSelectedElements = useCallback(() => {
-        if( !tableClassRef.current ) {
-            return;
+        if( tableClassRef ) {
+            if( !tableClassRef.current ) {
+                return;
+            }
+            
         }
         let tableClass = tableClassRef.current.replace(' ', '.')
         const elementsSelected = window.document.querySelectorAll(`.${tableClass} > tbody > tr > td > input:checked`);
@@ -137,10 +140,10 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel,
     }, [tableClassRef])
 
     // Lista os itens marcados como selecionados na tabela de produtos
-    const listarElementosSelecionados = useCallback(() => {
+    const listarElementosSelecionados = () => {
         const itensSelecionados = getSelectedElements(); 
         if( itensSelecionados ) {
-            if( itensSelecionados.length < 1) {
+            if( itensSelecionados.length === 0) {
                 return [];
             }
         }
@@ -152,22 +155,22 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel,
             linhaSelecionadas.push(itensSelecionados[linha].parentNode.parentNode);
         }
         return linhaSelecionadas;
-    }, [tableClassRef])
+    }
 
     const listarItensSelecionados = useCallback(() => {
+        
         if( listaDeItens ) {
-            if( listaDeItens.length < 1) {
-                return;
+            if( listaDeItens.length === 0) {
+                return [];
             }
-            
         }
         else {
-            return;
+            return [];
         }
 
         const elementosSelecionados = listarElementosSelecionados();
         if( elementosSelecionados ) {
-            if( elementosSelecionados.length < 1 ) {
+            if( elementosSelecionados.length === 0 ) {
                 return [];
             }
         }
@@ -182,11 +185,12 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel,
             for(let II = 0; II < topTitleTable.length; II ++ ) {
                 objeto[topTitleTable[II]] = elementosSelecionados[I].childNodes[II+1].innerText;
             }
-
             listaItens.push(objeto);
         }
+
         return listaItens;
-    }, [listarElementosSelecionados, listaDeItens])
+
+    }, [listaDeItens]);
 
 
     const listarColuna = useCallback(() => {
@@ -213,11 +217,10 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel,
         let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
         tableClassRef.current = classN;
         setTableClassName(classN);
-
     }, [])
 
     // define uma lista de itens para ser renderizada na tela com base no parametro recebido
-    useLayoutEffect(() => {
+    useEffect(() => {
         if( listaDeItens ) {
             if( listaDeItens.length > 0 ) {
                 setItens(listaDeItens);
@@ -228,19 +231,21 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel,
                 }, 20)
             }
         }
-        
+
         }, [columnsTemplate, listaDeItens])
 
-    useImperativeHandle(ref, () => ({
-        adicionarItem,
-        desSelecionarTudo,
-        selecionarTudo,
-        listarElementosSelecionados,
-        listarItensSelecionados,
-        retornarLinhasDaTabela,
-        getTableBody,
-        LineBreakForLabel,
-    }), [])
+    useImperativeHandle(ref, () => {
+        return {
+            adicionarItem,
+            desSelecionarTudo,
+            selecionarTudo,
+            listarElementosSelecionados,
+            listarItensSelecionados,
+            retornarLinhasDaTabela,
+            getTableBody,
+            LineBreakForLabel,
+        };
+    }, []);
 
     
 
@@ -315,7 +320,7 @@ const TabelaListaDeProdutos = forwardRef(({listaDeItens, nameClass, editableCel,
             </div>
         </>
     );
-})
+}
 
 
 TabelaListaDeProdutos.propTypes = {

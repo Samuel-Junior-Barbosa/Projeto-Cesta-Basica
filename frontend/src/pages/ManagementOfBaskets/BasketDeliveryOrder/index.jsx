@@ -134,7 +134,7 @@ const BasketDeliveryOrder = () => {
         else {
             setBasketDeliveryOrderFocus(basketDeliveryOrderPendente)
         }
-    }, [])
+    }, [basketDeliveryOrderAll, basketDeliveryOrderPendente])
 
     useLayoutEffect(() => {
         reciveDataBasketOrder();
@@ -158,13 +158,14 @@ const BasketDeliveryOrder = () => {
             </div>
 
             <div className={styles.divBeforeTable}>
-                
-                <TabelaListaDeProdutos
-                    ref={tabelaRef}
-                    listaDeItens={basketDeliveryOrderFocus}
-                    lengthColumns={'1fr 1fr 1fr 4fr 1fr 1fr 1fr 1fr'} 
-                    nameClass={styles.tableClass}
-                />
+                { basketDeliveryOrderFocus && (
+                    <TabelaListaDeProdutos
+                        ref={tabelaRef}
+                        listaDeItens={basketDeliveryOrderFocus}
+                        lengthColumns={'1fr 1fr 1fr 4fr 1fr 1fr 1fr 1fr'} 
+                        nameClass={styles.tableClass}
+                    />
+                )}
                 
                 
             </div>

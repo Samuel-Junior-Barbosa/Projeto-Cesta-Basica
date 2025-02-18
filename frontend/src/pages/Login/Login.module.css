@@ -34,6 +34,11 @@
     border: 0 none;
     outline: 0;
     border-radius: 20px;
+
+    &::selection {
+        background-color: var(--bg-page3);
+        
+    }
 }
 
 .inputPassword::selection {

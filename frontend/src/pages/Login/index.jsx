@@ -26,7 +26,7 @@ const Login = () => {
                 navigate('/home');
             }   
             else if( currentUser.role === 'operator' ) {
-                navigate('/cestas-basicas')
+                navigate('/input-and-output-baskets')
             }
             else if( currentUser.role === 'visit' ) {
                 navigate('/suporte')

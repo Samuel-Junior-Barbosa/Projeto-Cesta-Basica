@@ -27,6 +27,7 @@ const  GerenciarProdutos = () => {
     const [novoItem, setNovoItem] = useState("");
   
     // Lista para simular um banco de dados com itens cadastrados
+    
     const listaDeItens = [
         {produto: 'Açucar 1kg', marca: 'generica', id: 'PD0', quantidade: 1},
         {produto: 'Arroz 5kg', marca: 'generica', id: 'PD1', quantidade: 1},
@@ -39,6 +40,7 @@ const  GerenciarProdutos = () => {
         {produto: 'café 250g',marca: 'generica', id: 'PD8', quantidade: 1},
         {produto: 'pão sovado', marca: 'generica', id: 'PD9', quantidade: 1},
     ]
+    
     
     // Função que adiciona o novo item à lista
     const adicionarItem = () => {

@@ -9,11 +9,10 @@ import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 const ManageBasicBasket = () => {
     const listaDeCestas = [
         {
-            "Nome da cesta" : "Exemplo1",
+            "Nome da cesta" : "Modelo1",
             id: '01',
             "Quantidade de itens": 10,
             "Quantidade de cestas geradas" : 2,
-            "Valor da Cesta" : "R$100"
         }
     ]
 
