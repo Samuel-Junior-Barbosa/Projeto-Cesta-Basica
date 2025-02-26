@@ -1,0 +1,26 @@
+.priorityRegistrationDiv {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-page2);
+    border-radius: 0px 0px 20px 20px;
+    padding: 10px;
+
+}
+
+.actionsButtonsDiv {
+    margin-bottom: 10px;
+}
+
+.priorityTable {
+    
+    margin: auto;
+}
+
+.titleTopPage {
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+
+}

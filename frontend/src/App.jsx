@@ -26,6 +26,9 @@ import AlterarDadosProduto from './pages/ManagementOfProducts/AlterarDadosProdut
 import RegistrarFamilia from './pages/ManagementOfFamilies/RegistrarFamilia';
 import CadastroDeFamilias from './pages/ManagementOfFamilies/CadastrosDeFamilias';
 import AlterarCadastroDeFamilia from './pages/ManagementOfFamilies/AlterarCadastroDeFamilia';
+import PriorityRegistration from './pages/ManagementOfFamilies/PriorityRegistration';
+import AddingPriorityRegister from './pages/ManagementOfFamilies/AddingPriorityRegister';
+import AlterPrirotityRegister from './pages/ManagementOfFamilies/AlterPrirotityRegister';
 // ------------------------------------------------------------------------------------------------------
 
 // ------------------------------------- Management of churches -----------------------------------------
@@ -78,6 +81,12 @@ const App = () => {
                   <Route path="/gerar-relatorios" element={<GerarRelatorios />} />
                   <Route path="/metas" element={<MetaPage />} />
                   <Route path="/change-church-registration" element={ <ChangeChurchRegistration /> } />
+                  <Route path="/priority-registration" element={ <PriorityRegistration /> } />
+                  <Route path="/adding-priority-register" element={ <AddingPriorityRegister /> } />
+                  <Route path="/alter-priority-register" element={ <AlterPrirotityRegister /> } />
+                  
+                  
+                  
                   
                 </Route>
               </Route>

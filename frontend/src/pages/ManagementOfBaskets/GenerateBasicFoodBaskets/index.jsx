@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -7,10 +7,47 @@ import SimpleButton from "/src/Components/SimpleButton";
 import styles from './GenerateBasicFoodBaskets.module.css';
 import { useListaDeItensNoBD } from '/src/contexts/ListOfProductsonStock';
 
+export function generateBasket(produtos, modelo) {
+    //let produtos = queryDataOnDB();
+    //console.log('modelName: ', modelName)
+    console.log('produtos: ', produtos)
+    //let modelo = modelsBasket[modelName]
+    console.log('model: ', modelo)
+    let mediaDeProdutosGeraveis = []
+    let contador = 0
+    for( let I in modelo.produtos ) {
+        
+        console.log('produto: ', I)
+        console.log('modelo.produto: ', modelo.produtos[I])
+        console.log('produtos.produtos: ', produtos[I])
+        console.log('quantidade: ', produtos[I].quantidade / Number(modelo.produtos[I].quantidade))
+        mediaDeProdutosGeraveis.push({
+            produto: modelo.produtos[I],
+            geravel: Number.parseInt(produtos[I].quantidade / Number(modelo.produtos[I].quantidade))
+        })
+        contador += 1;
+    }
+
+    let minValueOfGenerate = 0;
+    for( let I = 0; I < mediaDeProdutosGeraveis.length; I ++) {
+        if( I === 0 ) {
+            minValueOfGenerate = mediaDeProdutosGeraveis[I].geravel
+        }
+        else if( mediaDeProdutosGeraveis[I].geravel < minValueOfGenerate) {
+            minValueOfGenerate = mediaDeProdutosGeraveis[I].geravel
+        }
+    }
+    console.log(' Minimo geravel de cesta nesse modelo: ', minValueOfGenerate)
+    return minValueOfGenerate;
+}
+
+
+
 
 const GenerateBasicFoodBaskets = () => {
     const [ modelName, setModelName ] = useState('Modelo1');
     const [ countBasketGenerate, setCountBasketGenerate] = useState('0');
+    const [ produtos, setProdutos ] = useState();
 
 
     const modelsBasket = {
@@ -36,9 +73,11 @@ const GenerateBasicFoodBaskets = () => {
     const onSubmit = (e) => {
         e.preventDefault();
         console.log('Informação enviada')
-        generateBasket()
+        generateBasketGetInformations()
         
     }
+
+
 
     const queryDataOnDB = () => {
         let data;
@@ -64,36 +103,12 @@ const GenerateBasicFoodBaskets = () => {
     }
 
 
-
-    const generateBasket = () => {
+    const generateBasketGetInformations = () => {
+        
         let produtos = queryDataOnDB();
-        //console.log('modelName: ', modelName)
-        let modelo = modelsBasket[modelName]
-        //console.log('model: ', modelo)
-        let mediaDeProdutosGeraveis = []
-
-        for( let I in modelo.produtos) {
-            /*
-            console.log('produto: ', I)
-            console.log('modelo.produto: ', modelo.produtos[I])
-            console.log('produtos.produtos: ', produtos.produtos[I])
-            */
-            mediaDeProdutosGeraveis.push({
-                produto: I,
-                geravel: Number.parseInt(produtos.produtos[I].quantidade / modelo.produtos[I].quantidade)
-            })
-        }
-
-        let minValueOfGenerate = 0;
-        for( let I = 0; I < mediaDeProdutosGeraveis.length; I ++) {
-            if( I === 0 ) {
-                minValueOfGenerate = mediaDeProdutosGeraveis[I].geravel
-            }
-            else if( mediaDeProdutosGeraveis[I].geravel < minValueOfGenerate) {
-                minValueOfGenerate = mediaDeProdutosGeraveis[I].geravel
-            }
-        }
-        //console.log(' Minimo geravel de cesta nesse modelo: ', minValueOfGenerate)
+        let modelo = modelsBasket[modelName];
+        let minValueOfGenerate;
+        minValueOfGenerate = generateBasket(produtos, modelo);
         setCountBasketGenerate(minValueOfGenerate);
 
     }
@@ -108,6 +123,10 @@ const GenerateBasicFoodBaskets = () => {
         navigate(-1);
     }
 
+
+    useEffect(() => {
+        setProdutos(queryDataOnDB());
+    })
 
     return (
         <div className={styles.GenerateBascketsDiv}>

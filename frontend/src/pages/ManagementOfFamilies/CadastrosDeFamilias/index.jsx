@@ -60,6 +60,7 @@ const CadastrosDeFamilias = () => {
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Adicionar" onClickButton={() => {goToPage('/register-family')}}/>
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Remover" />
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar Cadastro" onClickButton={alterRegister} />
+                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Cadastro de prioridade" onClickButton={() => goToPage('/priority-registration')} />
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" />
                 <input
                     className={styles.inputValue}

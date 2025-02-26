@@ -59,9 +59,10 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     }, [])
 
     const desSelecionarTudo = useCallback(() => {
-        const tabelaBody = document.querySelector('table > tbody');
-        const tabelaHead = document.querySelector('table > thead');
-        tabelaHead.childNodes[0].childNodes[0].childNodes[1].checked = false;
+        const tabelaBody = window.document.querySelector('table > tbody');
+        const tabelaHead = window.document.querySelector('table > thead');
+        console.log('tabelaHead: ', tabelaHead)
+        tabelaHead.childNodes[0].childNodes[1].checked = false;
         for(let index = 0; index < tabelaBody.childNodes.length; index ++) {
             tabelaBody.childNodes[index].childNodes[0].childNodes[1].checked = false;
         }
@@ -213,6 +214,17 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         )
     }, [])
 
+    const removerItensSelecionados = useCallback(() => {
+        const itensSelecionados = listarElementosSelecionados();
+        const tableBody = getTableBody()
+        //console.log(tableBody)
+        for( let I in itensSelecionados ) {
+            //console.log('item: ', itensSelecionados[I])
+            tableBody.removeChild(itensSelecionados[I]);
+        }
+
+    }, [])
+
     useEffect(() => {
         let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
         tableClassRef.current = classN;
@@ -244,6 +256,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
             retornarLinhasDaTabela,
             getTableBody,
             LineBreakForLabel,
+            removerItensSelecionados,
         };
     }, []);
 

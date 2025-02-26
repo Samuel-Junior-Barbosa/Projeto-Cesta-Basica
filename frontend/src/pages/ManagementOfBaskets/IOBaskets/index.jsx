@@ -6,7 +6,8 @@ import styles from './IOBaskets.module.css';
 import LabelTitles from '/src/Components/LabelTitles';
 import SimpleButton from '../../../Components/SimpleButton';
 import { IoBasketSharp as BasketIcon } from "react-icons/io5";
-import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos'
+import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
+import { generateBasket } from '/src/pages/ManagementOfBaskets/GenerateBasicFoodBaskets';
 
 import { useListaDeItensNoBD } from '/src/contexts/ListOfProductsonStock';
 
@@ -40,6 +41,8 @@ const IOBaskets = () => {
     const [ inputIdItem, setInputIdItem ] = useState();
     const [ inputQuantityPerItem, setInputQuantityPerItem ] = useState();
 
+
+    
     const testRef = useCallback((node) => {
         if( node !== null) {
             tabelaRef.current = node;
@@ -199,17 +202,67 @@ const IOBaskets = () => {
         }
     }, [tabelaRef])
 
+    const queryDataOnDB = () => {
+        let data = {
+
+        };
+        let produtos = {}
+
+        for( let I = 0; I < listaDeItensNoBD.length; I ++) {
+            let currentProduct = listaDeItensNoBD[I];
+            let currentNameProduct = currentProduct.produto;
+            Object.assign(produtos, {[currentNameProduct] : {
+                    marca: currentProduct.marca, id : currentProduct.id, quantidade: currentProduct.quantidade,
+                },
+            });
+            Object.assign(data, produtos)
+
+        }
+
+        return data;
+    };
+
     const confirmWithdrawItens = useCallback(() => {
         if( !tabelaRef ) {
             return false;
         }
 
+        var modelo = {
+            modelo1 : {
+                produtos: {}
+            }
+        }
+
+        
         const selectItens = tabelaRef.current.listarElementosSelecionados();
         let msg = '\n';
+        let tmpNameProduct;
+        let tmpQuantityProduct;
+        let produtos = queryDataOnDB();
+        console.log('produtossss: ', produtos)
+        let products = {}
         for(let I = 0; I < selectItens.length; I ++ ) {
-            msg += `${selectItens[I].children[1].textContent} x ${selectItens[I].children[4].children[0].value} unidades \n`
+            tmpNameProduct = selectItens[I].children[1].textContent;
+            tmpQuantityProduct = selectItens[I].children[4].children[0].value;
+            msg += `${tmpNameProduct} x ${tmpQuantityProduct} unidades \n`;
+            
+            Object.assign(modelo.modelo1.produtos, {
+                [tmpNameProduct] : {
+                    marca: 'generica', id: '', quantidade: tmpQuantityProduct,
+                }
+            });
+
+            
+
+            
         }
-        const retorno = confirm(`Desejá tirar esses itens do estoque? ${msg}`);
+        
+    
+        console.log('modelo1 ', modelo);
+        let maxBasketsGenerate = generateBasket(produtos, modelo['modelo1']);
+
+
+        const retorno = confirm(`Desejá tirar esses itens do estoque? ${msg}\n maximo de cestas geradas: ${maxBasketsGenerate}`);
         return retorno;
     }, [tabelaRef]);
 
