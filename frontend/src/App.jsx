@@ -12,7 +12,7 @@ import Layout from './pages/Layout';
 import Options from './pages/Options';
 import NoPage from "./pages/NoPage";
 import NoAuthorized from './pages/NoAuthorized';
-//import Documentacao from '../src/public/Docspage';
+import Documentacao from '../src/public/Docspage';
 import MetaPage from './pages/MetaPage';
 // ------------------------------------------------------------------------------------------------------
 
@@ -51,6 +51,8 @@ import BasketDeliveryOrder from './pages/ManagementOfBaskets/BasketDeliveryOrder
 import { AuthProvider,  } from './contexts/AuthenticateContext/AuthContext';
 import RouteGuard from './contexts/GuardRoutes/RouteGuard';
 import {ProductsDB } from './contexts/ListOfProductsonStock';
+import { ThemeProvider } from './contexts/CurrentTheme';
+import ColorSelectorComp from './Components/ColorSelector';
 
 // ------------------------------------------------------------------------------------------------------
 
@@ -59,17 +61,16 @@ const App = () => {
 
   return (
       <div id="app">
-        
+
+        <ThemeProvider>
         <AuthProvider>
         <ProductsDB>
           <Router>
-            
             <Routes>
-              <Route path="/login" element={<Login />} />
+
+              {/* Paginas que só o ADMIN tem acesso */}
               <Route element={<RouteGuard AllowedRoles={['admin']}/>}>
                 <Route element={<Layout />}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/home" element={<Home />} />
                   <Route path="/gerenciar-produtos" element={<GerenciarProdutos />} />
                   <Route path="/register-family" element={<RegistrarFamilia />} />
                   <Route path="/cadastros-de-familias" element={<CadastroDeFamilias />} />
@@ -83,19 +84,11 @@ const App = () => {
                   <Route path="/change-church-registration" element={ <ChangeChurchRegistration /> } />
                   <Route path="/priority-registration" element={ <PriorityRegistration /> } />
                   <Route path="/adding-priority-register" element={ <AddingPriorityRegister /> } />
-                  <Route path="/alter-priority-register" element={ <AlterPrirotityRegister /> } />
-                  
-                  
-                  
-                  
+                  <Route path="/alter-priority-register" element={ <AlterPrirotityRegister /> } />    
                 </Route>
               </Route>
 
-              <Route element={<RouteGuard AllowedRoles={['operator']}/>}>
-                <Route element={<Layout />}>
-                  <Route path="/home" element={<ChangeBasicBasket />} />
-                </Route>
-              </Route>
+              {/* Paginas que somente o ADMIN e o OPERADOR tem acesso */}
               <Route element={<RouteGuard AllowedRoles={['admin', 'operator']}/>}>
                 <Route element={<Layout />}>
                   <Route path="/register-basic-food-basket" element={ <RegisterBasicFoodBasket /> } />
@@ -106,27 +99,33 @@ const App = () => {
                   <Route path="/input-and-output-baskets" element={ <IOBaskets /> } />
                   <Route path="/history-basic-food-basket" element={ <HistoryBasicFoodBasket /> } />
                   <Route path="/basket-delivery-order" element={ <BasketDeliveryOrder /> } />
-                  
-                  
-                  
-                </Route>
-              </Route>
-              <Route element={<RouteGuard AllowedRoles={['admin', 'operator', 'visit']}/>}>
-                <Route element={<Layout />}>
-                  <Route path="/documentacao" element={ <MetaPage /> } /> {/* Documentacao */}
-                  <Route path="/options" element={ <Options /> } />
-                  <Route path="/suporte" element={<Suporte />} />
-                  <Route path="/logout" element={<Logout/>} />              
                 </Route>
               </Route>
 
-              
+              {/* Paginas que TODOS tem acesso */}
+              <Route element={<RouteGuard AllowedRoles={['admin', 'operator', 'visit']}/>}>
+                <Route element={<Layout />}>
+                  <Route path="/documentacao" element={ <Documentacao /> } /> {/* Documentacao */}
+                  <Route path="/options" element={ <Options /> } />
+                  <Route path="/suporte" element={<Suporte />} />
+                  <Route path="/logout" element={<Logout/>} />              
+                  <Route path="/" element={<Home />} />
+                  <Route path="/home" element={<Home />} />
+
+                </Route>
+              </Route>
+
+              {/* Paginas que não precissam de acesso */}
+              <Route path="/login" element={<Login />} />
               <Route path="nao-autorizado" element={<NoAuthorized />} />
               <Route path="*" element={<NoPage />} />
             </Routes>
           </Router>
+
         </ProductsDB>
         </AuthProvider>
+        </ThemeProvider>
+
         
       </div>
     

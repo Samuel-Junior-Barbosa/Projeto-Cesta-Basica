@@ -5,7 +5,7 @@ import SimpleButton from '/src/Components/SimpleButton'
 import LabelTitles from '../../../Components/LabelTitles';
 import TabelaListaDeProdutos from '../../../Components/TabelaListaDeProdutos';
 import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
-import { data } from 'react-router-dom';
+import { data, useNavigate } from 'react-router-dom';
 
 
 const BasketDeliveryOrder = () => {
@@ -15,7 +15,22 @@ const BasketDeliveryOrder = () => {
     const [ basketDeliveryOrderPendente, setBasketDeliveryOrderPendente ] = useState();
     const [ basketDeliveryOrderEntregue, setBasketDeliveryOrderEntregue ] = useState();
     const [ basketDeliveryOrderCancelados, setBasketDeliveryOrderCancelados ] = useState();
+    const navigate = useNavigate()
 
+    const goToPage = (url, states) => {
+        if( url ) {
+            if( states ) {
+                navigate( url, states )
+            }
+            else {
+                navigate( url )
+            }
+        }
+    }
+
+    const handleGoBack = () => {
+        navigate(-1)
+    }
 
     const queryDataForDB = useCallback(() => {
         
@@ -147,6 +162,14 @@ const BasketDeliveryOrder = () => {
             <div>
                 <LabelTitles text={'Ordem de entregas de cestas basicas'} />
             </div>
+
+            <div>
+                <SimpleButton 
+                    textButton={"Voltar"}
+                    onClickButton={handleGoBack}
+                />
+            </div>
+
 
             <div>
                 <label> Mostrar todas as Cestas </label>

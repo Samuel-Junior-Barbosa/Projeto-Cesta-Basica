@@ -11,7 +11,7 @@ import LabelTitles from '/src/Components/LabelTitles';
 
 // ----- Estilos ----------------
 import styles from './HistoryBasicFoodBasket.module.css';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { data, useLocation, useNavigate } from 'react-router-dom';
 // ------------------------------
 
 const HistoryBasicFoodBasket = () => {
@@ -20,7 +20,7 @@ const HistoryBasicFoodBasket = () => {
     // -------------------------------------------------------------
 
     const [ historicoDeCestas, setHistoricoDeCesta ] = useState(null);
-    const [ listarItensSelecionados, setListarItensSelecionados ] = useState();
+    const [ listarItensSelecionados, setListarItensSelecionados ] = useState(null);
 
     // --------- Funções ---------------------------------------
 
@@ -76,13 +76,20 @@ const HistoryBasicFoodBasket = () => {
         let dataHistory;
 
         dataHistory = queryDataForDB();
-        if( !dataHistory ) {
+        if( dataHistory ) {
+            if( dataHistory.length < 1 ) {
+                return new Error(' Ocorreu um erro ao receber dados para o banco de dados')
+            }
+
+        }
+        else {
             return new Error(' Ocorreu um erro ao receber dados para o banco de dados')
         }
 
+        let itensDaCesta
         for( let I = 0; I < dataHistory.length; I ++ ) {
             let labelListProdutos = '';
-            let itensDaCesta = JSON.parse(dataHistory[I].itensDaCesta);
+            itensDaCesta = JSON.parse(dataHistory[I].itensDaCesta);
 
             for( let II = 0; II < itensDaCesta.length; II ++ ) {
                 labelListProdutos += `[ Produto: ${itensDaCesta[II].produto}; ID: ${itensDaCesta[II].id}; Quant.: ${itensDaCesta[II].quantidade} ]\n`
@@ -103,7 +110,7 @@ const HistoryBasicFoodBasket = () => {
     }, [tabelaRef])
 
 
-    const returnStringToJson = (stringToFormating) => {
+    const returnStringToJson = useCallback((stringToFormating) => {
         let tmp_formating = stringToFormating;
         //console.log('string: ', stringToFormating)
 
@@ -142,7 +149,7 @@ const HistoryBasicFoodBasket = () => {
         //console.log('tmp_formating: ', tmp_formating, ' tmp_formating2: ', tmp_formating2)
         return tmp_formating
 
-    }
+    }, [])
 
     const selectThisBasket = useCallback(() => {
         
@@ -188,7 +195,6 @@ const HistoryBasicFoodBasket = () => {
     
         }
         
-
         //console.log('Produtos: ', produtos)
         navigate('/input-and-output-baskets', { state: { typeAction: 'Saida', dataOfBasket: '', dataProdutosRecived: produtos}});
     }, [tabelaRef]);

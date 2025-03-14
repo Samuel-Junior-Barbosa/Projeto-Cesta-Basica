@@ -3,7 +3,7 @@
     
     width: 100%;
     height: 100%;
-    
+    overflow-y: scroll;
 
     margin: auto;
     padding: 10px;
@@ -16,6 +16,7 @@
     grid-template-rows: minmax(0px, max-content);
     background-color: var(--bg-page3);
     border-radius: 20px;
+    box-shadow: 3px 4px 5px rgba(0, 0, 0, 0.482);
     gap: 10px;
 
     width: 100%;
@@ -37,4 +38,24 @@
 
 .TopTitleDiv {
     margin: 20px 0px;
+}
+
+.TableItensOnBasketDiv {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    box-sizing: 3px 4px 5px rgba(0, 0, 0, 0.544);
+}
+
+.tableItensOnBasket {
+    display: block;
+    width: 100%;
+
+    & > thead {
+        display: block;
+    }
+
+    & > tbody {
+        display: block;
+    }
 }

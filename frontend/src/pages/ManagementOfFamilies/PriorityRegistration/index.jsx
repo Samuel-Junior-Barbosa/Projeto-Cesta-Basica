@@ -15,9 +15,9 @@ const PriorityRegistration = () => {
     const tabelaRef = useRef();
     const navigate = useNavigate();
     const priorityList = [
-        {'prioridade' : 'alta', descricao: 'A familia precisa com antecedência', nivel: 2},
-        {'prioridade' : 'media', descricao: 'A familia tem uma condição de atenção', nivel: 1},
-        {'prioridade' : 'baixa', descricao: 'A familia tem uma condição de menos urgência', nivel: 0},
+        { Prioridade : 'Alta', Descricao: 'A familia precisa com antecedência', Nivel: 2},
+        { Prioridade : 'Media', Descricao: 'A familia tem uma condição de atenção', Nivel: 1},
+        { Prioridade : 'Baixa', Descricao: 'A familia tem uma condição de menos urgência', Nivel: 0},
     ]
 
     

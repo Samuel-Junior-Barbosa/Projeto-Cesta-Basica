@@ -19,20 +19,15 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         setEditableLabel(event.target.textContent);
     }, [])
     
-    
-
-
-    const getTableBody = useCallback(() => {
+    const getTableBody = () => {
         if( !tableClassRef.current ) {
             return;
         }
         let tableClass = tableClassRef.current.replaceAll(' ', '.')
-        
         const tableBody = window.document.querySelector(`.${tableClass} > tbody`)
         
         return tableBody;
-    }, [tableClassRef])
-
+    }
 
         // Função que adiciona o novo item à lista
     const adicionarItem = useCallback((novoItem) => {
@@ -118,14 +113,31 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         }
     }, [columnsTemplate]);
 
-    const retornarLinhasDaTabela = useCallback(() => {
-        let linhas = getTableBody();
-        if( !linhas ) {
+    const retornarLinhasDaTabela = () => {
+        let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
+        let tableClass = classN.replaceAll(' ', '.')
+        let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > tr`)
+        let childList = []
+
+        //console.log(' ( retornarLinhas ) tBody: ', tBody)
+        //console.log(' ( retornarLinhas ) tBody.length: ', tBody.length)
+        //console.log(' ( retornarLinhas ) tBody.child: ', tBody[0].childNodes)
+        if( !tBody || !tBody[0].childNodes || tBody[0].childNodes.length  === 0 ) {
             return null;
         }
-        linhas = linhas.childNodes;
-        return linhas;
-    }, [])
+
+        for( let I = 0; I < tBody.length; I ++ ) {
+            childList.push(tBody[I])
+        }
+
+        return childList;
+            
+        
+    }
+
+    const getCurrentItens = () => {
+        return itens
+    }
 
     const getSelectedElements = useCallback(() => {
         if( tableClassRef ) {
@@ -138,10 +150,10 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         const elementsSelected = window.document.querySelectorAll(`.${tableClass} > tbody > tr > td > input:checked`);
 
         return elementsSelected;
-    }, [tableClassRef])
+    }, [tableClassRef, tableClassName, itens])
 
     // Lista os itens marcados como selecionados na tabela de produtos
-    const listarElementosSelecionados = () => {
+    const listarElementosSelecionados = useCallback(() => {
         const itensSelecionados = getSelectedElements(); 
         if( itensSelecionados ) {
             if( itensSelecionados.length === 0) {
@@ -151,12 +163,13 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         else {
             return [];
         }
+
         let linhaSelecionadas = [];
         for (let linha = 0; linha < itensSelecionados.length; linha ++) {
             linhaSelecionadas.push(itensSelecionados[linha].parentNode.parentNode);
         }
         return linhaSelecionadas;
-    }
+    }, [tableClassName, tableClassRef])
 
     const listarItensSelecionados = useCallback(() => {
         
@@ -225,6 +238,50 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     }, [])
 
+
+    const searchItemOnTable = useCallback((nameItem, column) => {
+        //console.log('pesquisando na tabela: nameItem: ', nameItem, ' column: ', column)
+        if( !nameItem ) {
+            setItens(listaDeItens);
+            return;
+        }
+
+        let listaDeItensPesquisados = []
+        for(let I = 0; I < listaDeItens.length; I ++ ) {
+            //console.log('item atual da pesquisa: ', listaDeItens[I][column])
+            if(listaDeItens[I][column].includes(nameItem) ) {
+                listaDeItensPesquisados.push(listaDeItens[I])
+            }
+        }
+
+        //console.log('listaDeItensPesquisados: ', listaDeItensPesquisados)
+
+        if( listaDeItensPesquisados.length === 0 ) {
+            setItens([]);
+        }
+
+        else {
+            setItens(listaDeItensPesquisados);
+        }
+        
+        return;
+
+    }, [listaDeItens])
+
+    const updateTable = () => {
+        //console.log('itens: ', itens)
+        if( itens) {
+            if( itens.length > 0) {
+                setColumns(Object.keys(itens[0]).length);
+                setTable();
+                setEditableColumnIndex(editableCel);
+            
+            }    
+        }
+
+    }
+
+
     useEffect(() => {
         let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
         tableClassRef.current = classN;
@@ -233,21 +290,37 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     // define uma lista de itens para ser renderizada na tela com base no parametro recebido
     useEffect(() => {
-        if( listaDeItens ) {
-            if( listaDeItens.length > 0 ) {
-                setItens(listaDeItens);
-                setTimeout(() => {
-                    setColumns(Object.keys(listaDeItens[0]).length);
-                    setTable();
-                    setEditableColumnIndex(editableCel);
-                }, 20)
-            }
+        //console.log('(Tabela) listaDeItens: ', listaDeItens)
+        if( !listaDeItens ) {
+            return
+        }
+        if( listaDeItens.length === 0 ) {
+            return
         }
 
-        }, [columnsTemplate, listaDeItens])
+        setItens(listaDeItens);  
+
+        }, [listaDeItens, ]) // columnsTemplate
+
+    useEffect(() => {
+        if( !itens ) {
+            return
+        }
+
+        if( itens.length === 0 ) {
+            return
+        }
+        
+        setTimeout(() => {
+            updateTable();
+            
+        }, 30)
+
+    }, [itens, columnsTemplate])
 
     useImperativeHandle(ref, () => {
         return {
+            getCurrentItens,
             adicionarItem,
             desSelecionarTudo,
             selecionarTudo,
@@ -257,6 +330,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
             getTableBody,
             LineBreakForLabel,
             removerItensSelecionados,
+            searchItemOnTable,
         };
     }, []);
 
@@ -287,7 +361,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                         </tr>
                     </thead>
                     <tbody>
-                        {itens && 
+                        {itens.length > 0 ? (
                             itens.map((item, index) => (
                             <tr 
                                 key={index}
@@ -311,15 +385,17 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                                             contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
                                                             suppressContentEditableWarning={true}
                                                             >
+
                                                                 {item[item2]}
                                                         </label>
                                                      )
                                         ) : (
                                             <label
-                                            contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
-                                            suppressContentEditableWarning={true}
+                                                contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
+                                                suppressContentEditableWarning={true}
                                             >
                                                 {item[item2]}
+                                                
                                             </label>
                                         )}
                                     </td>
@@ -327,7 +403,15 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                     
                                 
                             </tr>
-                        ))}
+                            ))
+                        ): (
+                            <tr 
+                                key={0}
+                                className={styles.warningMessageInsideTable}
+                            >
+                                <td><p> Nenhum item encontrado</p> </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

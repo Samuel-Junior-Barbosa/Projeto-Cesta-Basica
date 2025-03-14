@@ -70,7 +70,7 @@ table {
 .ListaDeProdutosCadastrados > thead {
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 100;
 }
 
 .linhaTabela {
@@ -150,5 +150,20 @@ table {
     & > p {
         display: block;
         margin: 5px;
+    }
+}
+
+
+
+.warningMessageInsideTable {
+    display: block;
+    text-align: center;
+    margin: auto;
+
+    width: max-content;
+
+    & > td > p {
+        text-align: center;
+        margin: auto;
     }
 }

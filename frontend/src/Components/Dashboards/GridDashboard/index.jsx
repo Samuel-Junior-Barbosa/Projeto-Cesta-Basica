@@ -59,7 +59,7 @@ const GridDashboards = () => {
                 <ButtonDashboard 
                     textLabel="Registrar Familia"
                     IconName= "FamilyRegistrationIcon"
-                    to="/registrar-familia"
+                    to="/register-family"
                 />
             </div>
 

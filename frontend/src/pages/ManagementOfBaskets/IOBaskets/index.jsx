@@ -7,7 +7,7 @@ import LabelTitles from '/src/Components/LabelTitles';
 import SimpleButton from '../../../Components/SimpleButton';
 import { IoBasketSharp as BasketIcon } from "react-icons/io5";
 import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
-import { generateBasket } from '/src/pages/ManagementOfBaskets/GenerateBasicFoodBaskets';
+import GenerateBasket from '/src/pages/ManagementOfBaskets/GenerateBasicFoodBaskets/GenerateBasket';
 
 import { useListaDeItensNoBD } from '/src/contexts/ListOfProductsonStock';
 
@@ -35,6 +35,7 @@ const IOBaskets = () => {
     const [ itemIdSearched, setItemIdSearched ] = useState('');
     const [ itemSearchedByID, setItemSearchedByID ] = useState('');
     const [ donationFromOutside, setDonationFromOutside ] = useState(false);
+    const [ tableBody, setTableBody ] = useState(null)
 
     // elementos html
     const [ inputProductName, setInputProductName ] = useState();
@@ -215,9 +216,10 @@ const IOBaskets = () => {
                     marca: currentProduct.marca, id : currentProduct.id, quantidade: currentProduct.quantidade,
                 },
             });
-            Object.assign(data, produtos)
 
         }
+
+        Object.assign(data, produtos)
 
         return data;
     };
@@ -246,7 +248,7 @@ const IOBaskets = () => {
             tmpQuantityProduct = selectItens[I].children[4].children[0].value;
             msg += `${tmpNameProduct} x ${tmpQuantityProduct} unidades \n`;
             
-            Object.assign(modelo.modelo1.produtos, {
+            Object.assign(modelo['modelo1'].produtos, {
                 [tmpNameProduct] : {
                     marca: 'generica', id: '', quantidade: tmpQuantityProduct,
                 }
@@ -259,13 +261,12 @@ const IOBaskets = () => {
         
     
         console.log('modelo1 ', modelo);
-        let maxBasketsGenerate = generateBasket(produtos, modelo['modelo1']);
+        let maxBasketsGenerate = GenerateBasket(produtos.produtos, modelo['modelo1']);
 
 
         const retorno = confirm(`Desejá tirar esses itens do estoque? ${msg}\n maximo de cestas geradas: ${maxBasketsGenerate}`);
         return retorno;
     }, [tabelaRef]);
-
 
     const withdrawItensOfStock = useCallback(() => {
         // Implementar alguma logica que envia uma solicitação para o back pedindo a retirada dos itens
@@ -285,7 +286,7 @@ const IOBaskets = () => {
         resetDataProdutosRecived();
         addBasketWithdrawalToHistory();
         alert('Itens retiados com sucesso.')
-    }, [tabelaRef, confirmWithdrawItens, resetTable, resetDataProdutosRecived])
+    }, [tabelaRef])
 
     const addItemOnStock = useCallback((e) => {
         e.preventDefault();
@@ -311,6 +312,7 @@ const IOBaskets = () => {
     const handleSetType = useCallback((actionSelected) => {
         if( actionSelected ) {
             setTypeOfAction(actionSelected)
+            //setDonationFromOutside(false)
         }
     }, [])
 
@@ -318,51 +320,87 @@ const IOBaskets = () => {
         navigate('/history-basic-food-basket')
     }, [navigate] );
 
-    const selectItemById = useCallback((id) => {
-        if( tabelaRef.current === undefined ) {
+    const selectItemById = (id) => {
+        if( !tabelaRef.current ) {
             //console.log('Saindo do select by id: ', tabelaRef)
             return
         }
         
-        const tableBody = tabelaRef.current.retornarLinhasDaTabela();
-        if( !tableBody ) {
+        //console.log('selectItemById tabelaRef: ', tabelaRef)
+        //console.log('selectItemById tabelaRef ListarItens: ', tabelaRef.current.retornarLinhasDaTabela)
+        
+        let tableBodyChildNodes;
+        tableBodyChildNodes = tabelaRef.current.retornarLinhasDaTabela()
+
+        
+        //console.log(' selectItens: ', tabelaRef.current.getCurrentItens())
+        
+        //console.log('selectItemById tableBody1: ', tableBody)
+        
+        if( !tableBodyChildNodes || tableBodyChildNodes.length === 0 ) {
             return
         }
 
-        if( tableBody ) {
-            for(let I = 0; I < tableBody.length; I ++ ) {
-                if( tableBody[I].childNodes[3].childNodes[0].textContent === id) {
-                    tableBody[I].childNodes[0].children[0].checked = true;
-                }
+        //console.log('selectItemById tableBody2: ', tableBodyChildNodes)
+        //console.log('selectItemById tableBody2.length: ', tableBodyChildNodes.length)
+
+        let row;
+        let checkboxCel;
+        let textContent;
+        for( let I = 0; I < tableBodyChildNodes.length; I ++ ) {
+            row = tableBodyChildNodes[I]
+
+            checkboxCel = row.children[0].children[0]
+            //console.log('checkboxCel: ', checkboxCel)
+    
+            textContent = row.childNodes[3].textContent
+            //console.log('textContent: ', textContent)
+            
+            if( textContent === id) {
+                checkboxCel.checked = true;
             }
+    
         }
-    }, [tabelaRef])
+                
+        
+            
+        
+    
+        
+    }
 
     const changeQuantatityOfItemSelectedById = useCallback((id, value) => {
-        if( tabelaRef.current === undefined ) {
+        if( tabelaRef.current ) {
             //console.log('Saindo do select by id: ', tabelaRef)
             return
         }
         
-        const tableBody = tabelaRef.current.retornarLinhasDaTabela();
+        const tableBody = tabelaRef.current.listarElementosSelecionados();
+
         if( !tableBody ) {
             return
         }
 
+        //console.log('ChangeQuantity tableBody1: ', tableBody)
+
         if( tableBody ) {
-            for(let I = 0; I < tableBody.length; I ++ ) {
-                if( tableBody[I].childNodes[3].childNodes[0].textContent === id) {
-                    tableBody[I].childNodes[4].children[0].value = value;
+            if( tableBody.length > 0 ) {
+                for(let I = 0; I < tableBody.length; I ++ ) {
+                    if( tableBody[I].childNodes[3].childNodes[0].textContent === id) {
+                        tableBody[I].childNodes[4].children[0].value = value;
+                    }
                 }
+    
             }
         }
-    }, [tabelaRef])
+    }, [tabelaRef, dataProdutosRecived])
 
     const handleButtonDonationFromOutside = useCallback((checkValue) => {
         setDonationFromOutside(checkValue);
         let labelsInputsDonations = window.document.querySelectorAll(`.${styles.inputsOfUser} > div > label`)
         let inputsDonations = window.document.querySelectorAll(`.${styles.inputsOfUser} > div > input`)
         const bodyPage = window.getComputedStyle(document.documentElement);
+        /*
         if( checkValue ) {
             for( let I = 0; I < labelsInputsDonations.length; I ++ ) {
                 labelsInputsDonations[I].style.color = bodyPage.getPropertyValue('--bg-page1');
@@ -377,6 +415,7 @@ const IOBaskets = () => {
             }
                 
         }
+        */
 
     }, [])
 
@@ -406,7 +445,7 @@ const IOBaskets = () => {
                     changeQuantatityOfItemSelectedById(dataRecivedOfProducts[I].id, dataRecivedOfProducts[I].quantidade);
                 }
             }
-        }, 20)
+        }, 100)
     }, [dataRecivedOfProducts])
 
     return (
@@ -433,24 +472,60 @@ const IOBaskets = () => {
                         <div>
                             <div className={styles.aboutDiv}>
                                 <label> Sobre o destino da cesta: </label>
-                                <div className={styles.inputsOfUser}>
-                                    <div>
-                                        <label> Congregação: </label>
-                                        <input />
-                                    </div>
-                                    <div>
-                                        <label>
-                                            Endereço: 
-                                        </label>
-                                        <input />
-                                    </div>
-                                    <div>
-                                        <label> Quem pegou a cesta: </label>
-                                        <input 
-                                        
-                                        />
-                                    </div>
+                                <div>
+                                    <label>Doação para fora?: </label>
+                                    <input 
+                                        type='checkbox'
+                                        checked={donationFromOutside}
+                                        onChange={(e) => {handleButtonDonationFromOutside(e.target.checked)}}
 
+                                    />
+                                </div> 
+
+                                <div className={styles.inputsOfUser}>
+                                    { donationFromOutside === false ? (
+                                        <>
+                                            <div>
+                                                <label> Congregação: </label>
+                                                    <input
+                                                        placeholder='Nome da congregação que a familia frequenta'
+                                                    />
+                                                </div>
+                                            <div>
+                                                <label>
+                                                    Endereço: 
+                                                </label>
+                                                <input
+                                                    placeholder='Endereço da congregação que pegou'
+                                                />
+                                            </div>
+                                            <div>
+                                                <label> Quem pegou a cesta: </label>
+                                                <input 
+                                                    placeholder='Para quem que a cesta foi entregue'
+                                                />
+                                            </div>
+
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <label>
+                                                    Nome do representante: 
+                                                </label>
+                                                <input
+                                                    placeholder='Nome do representante da familia'
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                    <div>
+                                        <label> Observação: </label>
+                                        <input 
+                                            placeholder='(Opcional)'
+                                        />
+                                        
+                                    </div>
                                 </div>
                             </div>
                             <label> Itens para a Cesta </label>
@@ -462,12 +537,15 @@ const IOBaskets = () => {
                             </div>
 
                             <div className={styles.divTableListProducts}>
-                                <TabelaListaDeProdutos
-                                    ref={testRef}
-                                    nameClass={styles.listProductsTable}
-                                    listaDeItens= { listaDeItensNoBD }
-                                    limitarMaxNumber={[3]}
-                                />
+                                { listaDeItensNoBD && (
+                                    <TabelaListaDeProdutos
+                                        ref={tabelaRef}
+                                        nameClass={styles.listProductsTable}
+                                        listaDeItens= { listaDeItensNoBD }
+                                        limitarMaxNumber={[3]}
+                                    />
+
+                                )}
                             </div>
                             <div className={styles.buttonsForm}>
                                 <SimpleButton textButton="Confirmar" onClickButton={withdrawItensOfStock} />
@@ -484,26 +562,52 @@ const IOBaskets = () => {
                                     <label>Doação de fora?: </label>
                                     <input 
                                         type='checkbox'
+                                        checked={donationFromOutside}
                                         onChange={(e) => {handleButtonDonationFromOutside(e.target.checked)}}
                                     />
-                                </div>  
+                                </div> 
+
                                 <div className={styles.inputsOfUser}>
-                                    <div>
-                                        <label> Congregação: </label>
-                                        <input
-                                            readOnly={donationFromOutside}
-                                        />
-                                    </div>
+                                    { donationFromOutside == false ? (
+                                        <>
+                                            <div>
+                                                <label> Congregação: </label>
+                                                <input
+                                                    placeholder='Congregação da retirada da cesta'
+                                                    readOnly={donationFromOutside}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label>
+                                                    Endereço: 
+                                                </label>
+                                                <input
+                                                    placeholder='Endereço da congregação'
+                                                    readOnly={donationFromOutside}
+                                                />
+                                            </div>
+                                        </>
+                                    
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <label>
+                                                    Nome do doador (Opcional): 
+                                                </label>
+                                                <input
+                                                    placeholder='Nome do doador de fora'
+                                                />
+                                            </div>
+                                        </>
+                                    )}
                                     <div>
                                         <label>
-                                            Endereço: 
+                                            Observação: 
                                         </label>
-                                        <input
-                                            readOnly={donationFromOutside}
+                                        <input 
+                                            placeholder='(Opcional)'
                                         />
                                     </div>
-
-
                                 </div>
                             </div>
 

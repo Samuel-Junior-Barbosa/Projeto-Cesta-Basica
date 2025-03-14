@@ -7,12 +7,14 @@
 .formDiv {
     display: flex;
     flex-direction: column;
-
+    font-size: 1.5rem;
     background-color: var(--bg-page3);
     
     width: 90%;
 
     border-radius: 20px;
+    box-shadow: 3px 4px 5px rgba(0, 0, 0, 0.52);
+
 
     margin: auto;
     padding: 10px;
@@ -21,4 +23,9 @@
 
 .TitleTopPageDiv {
     margin: 20px 0px;
+}
+
+
+.selectingOptionsDiv {
+    font-size: 1.5rem;
 }

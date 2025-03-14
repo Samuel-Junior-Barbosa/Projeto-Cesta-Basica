@@ -50,7 +50,8 @@ const SideBarMenu = React.memo(() => {
                 onMouseEnter={handleOpenMenu}
                 onMouseLeave={handleCloseMenu}
             >
-                { currentUser && currentUser.role === 'admin' && (
+                { currentUser && 
+                    ((currentUser.role === 'operator' || currentUser.role === 'admin') && (
                     <>
                         <li className={styles.SideBarMenuListItem} >
                             <Link to="/" exact="true" >
@@ -60,11 +61,6 @@ const SideBarMenu = React.memo(() => {
                                 </abbr>
                             </Link>
                         </li>
-                    </>
-                )}
-                { currentUser && 
-                    ((currentUser.role === 'operator' || currentUser.role === 'admin') && (
-                    <>
                         <li className={styles.SideBarMenuListItem}>
                             <Link to="/input-and-output-baskets">
                                 <abbr title="Registrar saida de cestas">

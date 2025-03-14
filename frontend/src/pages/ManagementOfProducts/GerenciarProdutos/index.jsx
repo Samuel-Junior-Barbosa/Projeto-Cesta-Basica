@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import SimpleButton from '/src/Components/SimpleButton';
@@ -13,6 +13,7 @@ import { useRemoveProduct } from '/src/Components/hooks/GerenciarProdutos/Remove
 import styles from './GerenciarProdutos.module.css';
 
 const  GerenciarProdutos = () => {
+    const tabelaRef = useRef();
     const navigate = useNavigate();
 
     // Hooks --------------
@@ -90,7 +91,19 @@ const  GerenciarProdutos = () => {
     }
     
     const pesquisarItem = () => {
-        handleSearchOnDB(itemPesquisa)
+        if( !tabelaRef.current ) {
+            return;
+        }
+
+        if( !itemPesquisa ) {
+            return;
+        }
+        
+        handleSearchOnDB(itemPesquisa);
+        
+        console.log('(GerenciarProdutos) itemPesquisa: ', itemPesquisa);
+        tabelaRef.current.searchItemOnTable(itemPesquisa, 'produto');
+
     }
 
     const alterarItem = () => {
@@ -105,12 +118,13 @@ const  GerenciarProdutos = () => {
         let id = itensSelecionados[0].childNodes[3].innerText;
         let quantidade = itensSelecionados[0].childNodes[4].innerText;
         navigate('/alterar-dados-produtos', { state: { produto: produto, marca: marca, id: id, quantidade: quantidade}});
-
     }
 
     const voltarPagina = () => {
         navigate(-1);
     };
+
+
 
     return (
         <div className={styles.GerenciarProdutosDiv}>
@@ -133,9 +147,14 @@ const  GerenciarProdutos = () => {
                 />
                 
             </div>
-            <TabelaListaDeProdutos listaDeItens={listaDeItens}/>
+            {( (tabelaRef) && (listaDeItens) ) && (
+                <TabelaListaDeProdutos 
+                    listaDeItens={listaDeItens}
+                    ref={tabelaRef}
+                />
+            )}
         </div>
     );
 }
 
-export default GerenciarProdutos;
+export default GerenciarProdutos;  

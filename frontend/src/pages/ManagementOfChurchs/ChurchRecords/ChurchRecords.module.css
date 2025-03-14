@@ -7,10 +7,13 @@
     padding: 30px 20px 0px 20px;
     margin: 0px auto;
     margin-right: 20px;
+    
 }
 
 .divTabelaMeta {
     width: 72dvw;
+    box-shadow: 3px 4px 5px rgba(0, 0, 0, 0.494);
+    border-radius: 20px;
 }
 
 .inputValue {
@@ -23,6 +26,7 @@
     &::selection {
         outline: 0;
         border: 0;
+        background-color: var(--bg-page5);
     }
 }
 

@@ -2,6 +2,7 @@
     display: block;
     background-color: var(--bg-page2);
     width: 76vw;
+    height: 100%;
     padding: 20px;
     padding-top: 30px;
     margin-right: 20px;   

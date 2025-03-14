@@ -4,7 +4,7 @@ import LabelTitles from '../../Components/LabelTitles';
 import SimpleButton from '../../Components/SimpleButton';
 
 import styles from './GerarRelatorios.module.css';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import TabelaListaDeProdutos from '../../Components/TabelaListaDeProdutos';
 
 
@@ -14,6 +14,7 @@ const GerarRelatorios = () => {
     const [ generateType, setGenerateType ] = useState();
     const [ logsType, setLogsType ] = useState();
     const [ typeLogGenered, setTypeLogGenered ] = useState();
+    const navigate = useNavigate();
 
     const ExportarRelatorio = () => {        
         if( logsType ) {
@@ -88,6 +89,10 @@ const GerarRelatorios = () => {
         }
     }
 
+    const handleGoBack = () => {
+        navigate(-1)
+    }
+
     useEffect( () => {
         const optionsOfLogs = window.document.querySelector(`.${styles.escolhaRelatorio}`).value
         handleTypeGenerate(optionsOfLogs);
@@ -111,6 +116,7 @@ const GerarRelatorios = () => {
                 <div className={styles.buttonsDivLogGenerate}>
                     <SimpleButton onClickButton={GenerateLogs} textButton="Gerar" />
                     <SimpleButton onClickButton={ExportarRelatorio} textButton="Exportar" />
+                    <SimpleButton onClickButton={handleGoBack} textButton="Cancelar" />
                 </div>
                 
             </div>

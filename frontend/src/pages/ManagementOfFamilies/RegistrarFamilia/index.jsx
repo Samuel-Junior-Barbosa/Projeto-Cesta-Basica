@@ -20,13 +20,16 @@ const RegistrarFamilia = () => {
         e.preventDefault();
         // Implementar uma função de registro.
         
+
         // Hook para uma função de cadastramento de familia
         handleRegisterFamily(
             e.target[0].value,
             Number(e.target[1].value),
             e.target[2].value,
             e.target[3].value,
-            e.target[4].value
+            e.target[4].value,
+            e.target[5].value,
+            e.target[6].value,
             
         );
     }
@@ -53,13 +56,30 @@ const RegistrarFamilia = () => {
                         placeholder='Insira o numero de membros da familia cadastrada'
                     />
 
-                    <label> Endereço: </label>
+<label> Cidade: </label>
                     <input
-                        name="address"
+                        name="city"
                         required
                         placeholder='Insira o endereço da familia'
                     />
-                    
+                    <label> Bairro: </label>
+                    <input
+                        name="neighborhood"
+                        required
+                    />
+
+                    <label> Rua: </label>
+                    <input
+                        name="street"
+                        required
+                    />
+
+                    <label> Numero da casa: </label>
+                    <input
+                        name="buildingNumber"
+                        required
+                    />
+
                     <label> Numero de telefone: </label>
                     <input
                         name="telephone"
