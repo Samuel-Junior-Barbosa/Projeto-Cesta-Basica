@@ -45,6 +45,7 @@ import GenerateBasicFoodBaskets from './pages/ManagementOfBaskets/GenerateBasicF
 import IOBaskets from './pages/ManagementOfBaskets/IOBaskets';
 import HistoryBasicFoodBasket from './pages/ManagementOfBaskets/HistoryBasicFoodBasket';
 import BasketDeliveryOrder from './pages/ManagementOfBaskets/BasketDeliveryOrder';
+import AlterBasketOrder from './pages/ManagementOfBaskets/AlterBasketOrder'
 // ------------------------------------------------------------------------------------------------------
 
 // ------------------------------------- Outros ---------------------------------------------------------
@@ -99,6 +100,7 @@ const App = () => {
                   <Route path="/input-and-output-baskets" element={ <IOBaskets /> } />
                   <Route path="/history-basic-food-basket" element={ <HistoryBasicFoodBasket /> } />
                   <Route path="/basket-delivery-order" element={ <BasketDeliveryOrder /> } />
+                  <Route path="/alter-basket-order" element={ <AlterBasketOrder /> } />
                 </Route>
               </Route>
 

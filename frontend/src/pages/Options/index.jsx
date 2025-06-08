@@ -11,8 +11,8 @@ import ColorSelectorComp from "../../Components/ColorSelector";
 
 const Options = () => {
     const navigate = useNavigate();
-    const { currentTheme, setCurrentTheme } = useTheme();
-    const { currentThemeData, setCurrentThemeData } = useTheme();
+    const { currentTheme, setCurrentTheme } = useTheme(null);
+    const { currentThemeData, setCurrentThemeData } = useTheme(null);
     const [ themes, setThemes] = useState({})
 
     const goToPage = useCallback((url) => {
@@ -94,7 +94,7 @@ const Options = () => {
                     <label> Tema: </label>
                     <select
                         onChange={(e) => {handleChangeTheme(e.target.value)}}
-                        defaultValue={currentTheme ?? 'dark'}
+                        value={currentTheme}
                         className={styles.selectingOptionsDiv}
                     >
                         {Object.keys(themes).map((theme, index) => (
@@ -103,9 +103,11 @@ const Options = () => {
                     </select>
 
                     {currentTheme === 'personalizado' && (
-                        <></>
+                        <>
+                            <ColorSelectorComp />
+                        </>
                     )}
-                    <ColorSelectorComp />
+                    
 
 
                 </div>

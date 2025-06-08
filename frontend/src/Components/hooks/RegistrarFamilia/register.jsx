@@ -29,7 +29,7 @@ const comparateInformation = (information) => {
 }
 
 // Função para simular um registro de familia
-export async function registerFamily(representative, members, situation, address, telephone) {
+export async function registerFamily(representative, members, city, neighborhood, street, builderNumber, telephone, situation, congregation) {
     if ((comparateInformation(representative) == true) && (comparateInformation(members) == true )) {
         return new Error("Dados duplicados");
     }

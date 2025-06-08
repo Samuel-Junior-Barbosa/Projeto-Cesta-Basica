@@ -152,10 +152,11 @@ const ChurchRecords = () => {
             return
         }
         //console.log('handleSearchChurch: ', searchItem)
+        /*
         if( !searchItem ) {
             alert('Nenhum nome inserido')
-
         }
+        */
 
         tabelaRef.current.searchItemOnTable(searchItem, 'Nome');
     }

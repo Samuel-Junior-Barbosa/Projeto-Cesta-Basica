@@ -1,5 +1,4 @@
 import RegisterBasicFoodBasketOnDB from "./RegisterBasicFoodBasket";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export function useRegisterBasicFoodBasket() {
@@ -7,7 +6,6 @@ export function useRegisterBasicFoodBasket() {
     const [useRegisterBasicFoodBasketLoading, useRegisterBasicFoodBasketSetLoading] = useState(false);
     const [useRegisterBasicFoodBasketMessage, useRegisterBasicFoodBasketSetMessage] = useState(null);
     const [useRegisterBasicFoodBasketRegistred, useRegisterBasicFoodBasketSetRegistred] = useState(false);
-    const navigate = useNavigate();
 
     const handleRegisterBasicFoodBasket = async (dataOfBasicFoodBasket) => {
         useRegisterBasicFoodBasketSetLoading(true);

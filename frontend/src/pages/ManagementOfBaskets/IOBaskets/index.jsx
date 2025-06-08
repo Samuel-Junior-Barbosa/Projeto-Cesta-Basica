@@ -8,7 +8,7 @@ import SimpleButton from '../../../Components/SimpleButton';
 import { IoBasketSharp as BasketIcon } from "react-icons/io5";
 import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 import GenerateBasket from '/src/pages/ManagementOfBaskets/GenerateBasicFoodBaskets/GenerateBasket';
-
+import MessageAlert from '/src/Components/MessageAlert'
 import { useListaDeItensNoBD } from '/src/contexts/ListOfProductsonStock';
 
 import { useBasketOutput } from '../../../Components/hooks/ManageBasicFoodBaskets/BasketOutput/useBasketOutput';
@@ -28,6 +28,13 @@ const IOBaskets = () => {
     const { listaDeItensNoBD } = useListaDeItensNoBD();
     const [ maxQuantityPerItem, setMaxQuantityPerItem ] = useState(0);
     const [ dataBasicFoodBasket, setDataBasicFoodBasket ] = useState();
+    const [ basketWithdrawQuantity, setBasketWithdrawQuantity ] = useState('');
+
+    const [ incrementingQuantityItem, setIncrementingQuantityItem ] = useState(false);
+
+    const [ timeoutId, setTimeoutId ] = useState(null);
+
+    const [isKeyPressed, setIsKeyPressed] = useState(false);
     
     // valores para ser impresso na tela
     const [ typeOfAction, setTypeOfAction ] = useState('Entrada');
@@ -36,11 +43,13 @@ const IOBaskets = () => {
     const [ itemSearchedByID, setItemSearchedByID ] = useState('');
     const [ donationFromOutside, setDonationFromOutside ] = useState(false);
     const [ tableBody, setTableBody ] = useState(null)
+    const [ quantityItemForAdd, setQuantityItemForAdd ] = useState('0')
 
     // elementos html
     const [ inputProductName, setInputProductName ] = useState();
     const [ inputIdItem, setInputIdItem ] = useState();
     const [ inputQuantityPerItem, setInputQuantityPerItem ] = useState();
+    const [ inputBasketWithdrawQuantity, setIinputBasketWithdrawQuantity ] = useState();
 
 
     
@@ -72,7 +81,7 @@ const IOBaskets = () => {
                 setDataBasicFoodBasket( listaDeItensNoBD[I] )
                 setItemSearch( listaDeItensNoBD[I].produto  )
                 inputProductName.value = listaDeItensNoBD[I].produto;
-                setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
+                //setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
                 //console.log(inputProductName.value)
             }
         }
@@ -93,12 +102,7 @@ const IOBaskets = () => {
                     setItemSearch( listaDeItensNoBD[I].produto );
                     setDataBasicFoodBasket(listaDeItensNoBD[I])
                     inputProductName.value = listaDeItensNoBD[I].produto;
-
-
-                    setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
-
-                    
-
+                    //setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
                     itemFind = true;
                 }
             }   
@@ -112,7 +116,7 @@ const IOBaskets = () => {
                     setItemIdSearched( listaDeItensNoBD[I].id );
 
 
-                    setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
+                    //setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
 
                     
 
@@ -140,7 +144,7 @@ const IOBaskets = () => {
                     setItemIdSearched(listaDeItensNoBD[I].id);
                     
                     setDataBasicFoodBasket(listaDeItensNoBD[I])
-                    setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
+                    //setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
                     
                     
                     handleSetSearchById(listaDeItensNoBD[I].id)
@@ -160,7 +164,7 @@ const IOBaskets = () => {
 
                     setDataBasicFoodBasket(listaDeItensNoBD[I])
                     setItemSearch( listaDeItensNoBD[I].produto );
-                    setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
+                    // setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
 
                     inputProductName.value = listaDeItensNoBD[I].produto;
                     
@@ -241,7 +245,8 @@ const IOBaskets = () => {
         let tmpNameProduct;
         let tmpQuantityProduct;
         let produtos = queryDataOnDB();
-        console.log('produtossss: ', produtos)
+        
+        //console.log('produtossss: ', produtos)
         let products = {}
         for(let I = 0; I < selectItens.length; I ++ ) {
             tmpNameProduct = selectItens[I].children[1].textContent;
@@ -253,20 +258,18 @@ const IOBaskets = () => {
                     marca: 'generica', id: '', quantidade: tmpQuantityProduct,
                 }
             });
-
-            
-
             
         }
         
-    
-        console.log('modelo1 ', modelo);
-        let maxBasketsGenerate = GenerateBasket(produtos.produtos, modelo['modelo1']);
-
-
-        const retorno = confirm(`Desejá tirar esses itens do estoque? ${msg}\n maximo de cestas geradas: ${maxBasketsGenerate}`);
+        //console.log('modelo1 ', modelo);
+        let maxBasketsGenerate = GenerateBasket(produtos, modelo['modelo1']);
+        console.log('basketWithdrawQuantity: ', basketWithdrawQuantity)
+        if( maxBasketsGenerate < basketWithdrawQuantity ) {
+            return 1
+        }
+        const retorno = confirm(`Desejá tirar: ${Number(basketWithdrawQuantity)} unidade(s) de cesta com os seguintes itens: ${msg}\n O maximo de cestas à gerar são: ${maxBasketsGenerate}`);
         return retorno;
-    }, [tabelaRef]);
+    }, [tabelaRef, basketWithdrawQuantity, listaDeItensNoBD, inputBasketWithdrawQuantity]);
 
     const withdrawItensOfStock = useCallback(() => {
         // Implementar alguma logica que envia uma solicitação para o back pedindo a retirada dos itens
@@ -278,15 +281,21 @@ const IOBaskets = () => {
             alert(' Nenhum item selecionado.')
             return;
         }
+        const confirmation = confirmWithdrawItens()
+        switch (confirmation) {
+            case 1:
+                alert('Numero de cesta retiradas não condiz com o estoque')
 
-        if( !confirmWithdrawItens() ) {
-            return false;
+            _:
+                return false;
         }
+
+        
         resetTable();
         resetDataProdutosRecived();
         addBasketWithdrawalToHistory();
         alert('Itens retiados com sucesso.')
-    }, [tabelaRef])
+    }, [tabelaRef, listaDeItensNoBD, basketWithdrawQuantity])
 
     const addItemOnStock = useCallback((e) => {
         e.preventDefault();
@@ -316,11 +325,13 @@ const IOBaskets = () => {
         }
     }, [])
 
+
     const handleBasketHistory = useCallback(() => {
         navigate('/history-basic-food-basket')
     }, [navigate] );
 
-    const selectItemById = (id) => {
+
+    const selectItemById = useCallback((id) => {
         if( !tabelaRef.current ) {
             //console.log('Saindo do select by id: ', tabelaRef)
             return
@@ -349,25 +360,26 @@ const IOBaskets = () => {
         let textContent;
         for( let I = 0; I < tableBodyChildNodes.length; I ++ ) {
             row = tableBodyChildNodes[I]
-
+            if( row.children.length < 5 ) {
+                continue
+            }
+            console.log('row: ', row)
+            
             checkboxCel = row.children[0].children[0]
-            //console.log('checkboxCel: ', checkboxCel)
+            console.log('checkboxCel: ', checkboxCel)
     
-            textContent = row.childNodes[3].textContent
-            //console.log('textContent: ', textContent)
+            textContent = row.children[3].children[0].textContent
+            console.log('textContent: ', textContent)
+            console.log('id: ', id)
             
             if( textContent === id) {
                 checkboxCel.checked = true;
             }
     
         }
-                
         
-            
-        
-    
-        
-    }
+    }, [tabelaRef, listaDeItensNoBD])
+
 
     const changeQuantatityOfItemSelectedById = useCallback((id, value) => {
         if( tabelaRef.current ) {
@@ -395,6 +407,7 @@ const IOBaskets = () => {
         }
     }, [tabelaRef, dataProdutosRecived])
 
+
     const handleButtonDonationFromOutside = useCallback((checkValue) => {
         setDonationFromOutside(checkValue);
         let labelsInputsDonations = window.document.querySelectorAll(`.${styles.inputsOfUser} > div > label`)
@@ -419,11 +432,52 @@ const IOBaskets = () => {
 
     }, [])
 
+
+    const handleChangeBasketWithdrawQuantity = useCallback((value) => {
+        console.log('value: ', value)
+        setBasketWithdrawQuantity(value)
+    }, []);
+
+
+
+    const handleIncrementOrDecrementQuantityItemByArrowButton = useCallback((key) => {
+        if( isKeyPressed ) {
+            return
+        }
+
+        console.log('key: ', key)
+
+        setIsKeyPressed(true)
+
+        if( key === 'ArrowUp' ) {
+            handleChangeQuantityItem( quantityItemForAdd + 1 )
+            return
+        }
+        else if( key === 'ArrowDown') {
+            if( quantityItemForAdd <= 0 ) {
+                return
+            }
+            handleChangeQuantityItem( quantityItemForAdd - 1)
+        }    
+
+
+    }, [quantityItemForAdd, isKeyPressed])
+
+
+    const handleKeyUp = () => {
+        setIsKeyPressed(false);
+      };
+
+    const handleChangeQuantityItem = (value) => {
+        setQuantityItemForAdd(Number(value))
+    }
+
     // Captura as entradas do usuario
     useLayoutEffect(() => {
         setInputIdItem( window.document.querySelector(`.${styles.inputIdItem}`) );
         setInputQuantityPerItem( window.document.querySelector(`.${styles.inputQuantityPerItem}`) );
         setInputProductName( window.document.querySelector(`.${styles.inputProductName}`) )
+        setIinputBasketWithdrawQuantity( window.document.querySelector(`.${styles.basketWithdrawQuantityClass}`) )
     }, [])
 
 
@@ -524,8 +578,18 @@ const IOBaskets = () => {
                                         <input 
                                             placeholder='(Opcional)'
                                         />
-                                        
                                     </div>
+                                    <div>
+                                        <label> Quantidade de cesta(s): </label>
+                                        <input 
+                                        className={styles.basketWithdrawQuantityClass}
+                                            required
+                                            placeholder='Insira quantas cestas serão retiradas'
+                                            type='number'
+                                            onChange={(e) => {handleChangeBasketWithdrawQuantity(e.target.value)}}
+                                        />
+                                    </div>
+
                                 </div>
                             </div>
                             <label> Itens para a Cesta </label>
@@ -537,7 +601,7 @@ const IOBaskets = () => {
                             </div>
 
                             <div className={styles.divTableListProducts}>
-                                { listaDeItensNoBD && (
+                                
                                     <TabelaListaDeProdutos
                                         ref={tabelaRef}
                                         nameClass={styles.listProductsTable}
@@ -545,15 +609,16 @@ const IOBaskets = () => {
                                         limitarMaxNumber={[3]}
                                     />
 
-                                )}
+                                
                             </div>
                             <div className={styles.buttonsForm}>
                                 <SimpleButton textButton="Confirmar" onClickButton={withdrawItensOfStock} />
                                 <SimpleButton textButton="Cancelar" onClickButton={handleGoBack} />
                             </div>
                         </div>
-                    ) : (
+                    ) : ( 
                         <div>
+                            {/* Entrada */}
                             <label> Entrada de item ao estoque</label>
     
                             <div className={styles.aboutDiv + ' ' + styles.aboutDonationOrigin}>
@@ -573,6 +638,7 @@ const IOBaskets = () => {
                                             <div>
                                                 <label> Congregação: </label>
                                                 <input
+                                                    required
                                                     placeholder='Congregação da retirada da cesta'
                                                     readOnly={donationFromOutside}
                                                 />
@@ -584,6 +650,7 @@ const IOBaskets = () => {
                                                 <input
                                                     placeholder='Endereço da congregação'
                                                     readOnly={donationFromOutside}
+                                                    required
                                                 />
                                             </div>
                                         </>
@@ -616,6 +683,7 @@ const IOBaskets = () => {
                                 <div>
                                     <label> Nome do item: </label>
                                     <input
+                                        required
                                         className={styles.inputProductName}
                                         list='itemSearchedOption'
                                         value = {itemSearch}
@@ -630,6 +698,7 @@ const IOBaskets = () => {
                                 <div>
                                     <label> Id do item: </label>
                                     <input
+                                        required
                                         type="text"
                                         className={styles.inputIdItem}
                                         value = {itemIdSearched}
@@ -642,12 +711,25 @@ const IOBaskets = () => {
                                 <div>
                                     <label> Quantidade </label>
                                     <input
+                                        required
                                         type="number"
                                         min="0"
-                                        defaultValue={"0"}
+                                        value={quantityItemForAdd}
                                         
                                         className={styles.inputQuantityPerItem}
-                                        onFocus={handleSetQuantityPerItens}
+                                        onChange={(e) => handleChangeQuantityItem(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            // Impede o uso das teclas de seta para incrementar ou decrementar
+                                            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                              e.preventDefault();
+                                              handleIncrementOrDecrementQuantityItemByArrowButton(e.key)
+                                              return
+                                            }
+                                            handleIncrementOrDecrementQuantityItem(e.key)
+                                            
+                                          }}
+                                        onKeyUp={(e) => {handleKeyUp(e.key)}}
+
                                     />
                                 </div>
                                 <div className={styles.buttonsForm}>
@@ -662,10 +744,9 @@ const IOBaskets = () => {
 
                 
                 {useBasketInputMessage && (
-                    <div>
-                        {useBasketInputMessage}
-                    </div>
-                    
+                    <MessageAlert 
+                        text={useBasketInputMessage}
+                    />
                 )}
 
 

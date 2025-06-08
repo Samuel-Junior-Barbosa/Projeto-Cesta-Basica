@@ -3,7 +3,7 @@ import TabelaListaDeProdutos from '../../Components/TabelaListaDeProdutos';
 import SimpleButton from '../../Components/SimpleButton';
 import LabelTitles from '../../Components/LabelTitles';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import AddingItemOnMeta from './AddingItemOnMeta.jsx';
 
 const MetaPage = () => {
@@ -91,12 +91,45 @@ const MetaPage = () => {
         }
     }
 
+    const handleAlterItens = () => {
+        if( !tabelaRef.current ) {
+            return
+        }
+
+        let elementosSelecionados = tabelaRef.current.retornarLinhasDaTabela();
+        console.log('elementosSelecionados: ', elementosSelecionados)
+        for( let i = 0; i < elementosSelecionados.length; i ++ ) {
+            for(let ii = 0; ii < elementosSelecionados[i].childNodes.length; ii ++ ) {
+                if( elementosSelecionados[i].childNodes[ii] !== undefined ) {
+                    console.log(' element ', elementosSelecionados[i].childNodes[3])
+                    elementosSelecionados[i].childNodes[3].contentEditable = 'true'
+                    
+                }
+                
+            }
+            
+        }
+
+        return
+    }
+
     useEffect(() => {
         if( listaDeMetas ) {
             setListaDeMetasAtual(listaDeMetas)
         }
         
     }, [listaDeMetas])
+
+    useEffect(() => {
+        if( tabelaRef.current ) {
+            setTimeout(() => {
+                console.log(tabelaRef.current.retornarLinhasDaTabela())
+                handleAlterItens()
+    
+            }, 50)
+        }
+        
+    }, [listaDeMetasAtual])
 
     return (
 
@@ -108,11 +141,32 @@ const MetaPage = () => {
                 </p>
             </div>
             <div className={styles.topNavBarMetas}>
-                <SimpleButton nameClass={styles.TopNavBarButton} onClickButton={handleSaveMeta} textButton="Salvar" />
-                <SimpleButton nameClass={styles.TopNavBarButton} onClickButton={handleAddItem} textButton="Adicionar"/>
-                <SimpleButton nameClass={styles.TopNavBarButton} onClickButton={handleRemoveItensSelected} textButton="Remover" />
-                <SimpleButton nameClass={styles.TopNavBarButton} onClickButton={() => {goToPage('/manage-churches')}} textButton="Voltar"/>
-                <SimpleButton nameClass={styles.TopNavBarButton} onClickButton={handleSearchItem} textButton="Pesquisar" />
+                <SimpleButton
+                    nameClass={styles.TopNavBarButton}
+                    onClickButton={handleSaveMeta}
+                    textButton="Salvar" 
+                />
+                <SimpleButton
+                    nameClass={styles.TopNavBarButton}
+                    onClickButton={handleAddItem}
+                    textButton="Adicionar"
+                />
+
+                <SimpleButton
+                    nameClass={styles.TopNavBarButton}
+                    onClickButton={handleRemoveItensSelected}
+                    textButton="Remover"
+                />
+                <SimpleButton
+                    nameClass={styles.TopNavBarButton}
+                    onClickButton={() => {goToPage('/manage-churches')}}
+                    textButton="Voltar/cancelar"
+                />
+                <SimpleButton
+                    nameClass={styles.TopNavBarButton}
+                    onClickButton={handleSearchItem}
+                    textButton="Pesquisar"
+                />
                 <input
                     className={styles.inputValue}
                     placeholder='pesquise pelo nome do produto'
@@ -121,7 +175,9 @@ const MetaPage = () => {
                 
             </div>
                 { iframeAddItem === true ? (
-                    <AddingItemOnMeta iframeAddItem={iframeAddItem} setIframeAddItem={setIframeAddItem}/>
+                    <AddingItemOnMeta
+                        iframeAddItem={iframeAddItem}
+                    />
                 ) : (
                     <></>
                 )}

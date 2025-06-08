@@ -19,7 +19,12 @@ const RegisterBasicFoodBasket = () => {
     const [ listarItensSelecionados, setListarItensSelecionados ] = useState(() => () => {});
     const [ desSelecionarTudo, setDesSelecionarTudo ] = useState(() => () => {});
 
-    const {handleRegisterBasicFoodBasket, useRegisterBasicFoodBasketRegistred, useRegisterBasicFoodBasketLoading, useRegisterBasicFoodBasketMessage } = useRegisterBasicFoodBasket();
+    const {
+        handleRegisterBasicFoodBasket,
+        useRegisterBasicFoodBasketRegistred,
+        useRegisterBasicFoodBasketLoading,
+        useRegisterBasicFoodBasketMessage
+    } = useRegisterBasicFoodBasket();
 
     const navigate = useNavigate();
 
@@ -44,9 +49,14 @@ const RegisterBasicFoodBasket = () => {
 
     const onSubmit = (e) => {
         e.preventDefault();
-        console.log(' list, ', listarItensSelecionados)
+        if( !tabelaRef.current ) {
+            return
+        }
+        
+        //console.log(' list, ', listarItensSelecionados)
         // Recebe a lista de itens selecionados para a cesta
-        const listaDeProdutos = listarItensSelecionados();
+        const listaDeProdutos = tabelaRef.current.listarItensSelecionados();
+        //console.log(' onSubmit: ', listaDeProdutos)
         if( listaDeProdutos ) {
             if( listaDeProdutos.length < 1 ) {
                 alert('Selecione pelo menos 1 item')
@@ -63,6 +73,11 @@ const RegisterBasicFoodBasket = () => {
             productsOfBasket: listaDeProdutos,
         }
 
+
+        const getBody = tabelaRef.current.getTableBody();
+        //console.log(' getBody: ', getBody);
+        const currentItens = tabelaRef.current.getCurrentItens();
+        //console.log(' currentItens: ', currentItens);
 
 
         // Pede a confirmação do usuario para a criação de um novo modelo de cesta basica
@@ -87,16 +102,19 @@ const RegisterBasicFoodBasket = () => {
         }
 
         let list = [];
-
+        //console.log(' lista de itens: ', dataListItem)
         if( filtragemDeDicionario ) {
             for( let I = 0; I < dataListItem.length; I ++) {
                 const elementosFiltrados = Object.entries(dataListItem[I]).filter(([chave, valor]) => {
+                    //console.log(`length: ${dataListItem.length} ---  dataListItem[${I}]: `, dataListItem[I])
+                    //console.log(' chave: ', chave, ' valor: ', valor)
                     if(filtragemDeDicionario.includes(chave)) {
                         return valor;
                     }
                 })
-    
+                
                 const dicionarioFiltrado = Object.fromEntries(elementosFiltrados);
+                //console.log('dicionarioFiltrado: ', dicionarioFiltrado)
                 list.push(dicionarioFiltrado);
             }
         }
@@ -134,9 +152,14 @@ const RegisterBasicFoodBasket = () => {
     }
 
     const confirmRegister = (dataBasicBasket) => {
-        let msgListOfProducts = '\n';
-        let ActualityListOfProducts = filterListDicionaryItens(dataBasicBasket['productsOfBasket'], ['produto', 'quantidade']);
+        if( !tabelaRef.current ) {
+            return
+        }
 
+        let msgListOfProducts = '\n';
+        //console.log(' confirmRegister1: dataBasicBasket: ', dataBasicBasket.productsOfBasket)
+        let ActualityListOfProducts = filterListDicionaryItens(dataBasicBasket['productsOfBasket'], ['produto', 'quantidade']);
+        //console.log('ConfirmRegister: ', ActualityListOfProducts)
         for(let I = 0; I < ActualityListOfProducts.length; I ++) {
             msgListOfProducts += `${I}) - ${ActualityListOfProducts[I].produto} : ${ActualityListOfProducts[I].quantidade} unidade(s)\n`
         }
@@ -149,15 +172,13 @@ const RegisterBasicFoodBasket = () => {
     useEffect(() => {
         const fetchData = async () => {
             const itensRecived = await reciveItemData();
-
             setListItemRecived( itensRecived );
-            
         };
 
         fetchData();
         
     }, [])
-
+    /*
     useLayoutEffect(() => {
         setTimeout(() => {
             if( tabelaRef.current ) {
@@ -166,6 +187,7 @@ const RegisterBasicFoodBasket = () => {
             }
         }, 10)
     }, [])
+    */
 
     return (
         <div className={styles.RegisterChurchDiv}>
@@ -190,9 +212,15 @@ const RegisterBasicFoodBasket = () => {
                         </div>
                         <label className={styles.messageInstruct}> Selecione os itens da cesta </label>
                         <div className={styles.divListaDeItensDaCestaBasica}>
-                            {(listItemRecived) && (
-                                <TabelaListaDeProdutos ref={tabelaRef} nameClass={styles.listProductTable} listaDeItens={listItemRecived}/>
-                            )}
+                            { ( listItemRecived ) && (
+                                <TabelaListaDeProdutos
+                                    ref={tabelaRef}
+                                    nameClass={styles.listProductTable}
+                                    listaDeItens={listItemRecived}
+                                />
+                                )
+                            }
+                            
                         </div>
 
                         
@@ -209,7 +237,11 @@ const RegisterBasicFoodBasket = () => {
                 </form>
                 
                     {useRegisterBasicFoodBasketMessage && (
-                        <LabelTitles nameClass={`${styles.registredMessage}`}  text={useRegisterBasicFoodBasketMessage} background="green" />
+                        <LabelTitles
+                            nameClass={`${styles.registredMessage}`}
+                            text={useRegisterBasicFoodBasketMessage}
+                            background="green"
+                        />
                     )}
 
             </div>

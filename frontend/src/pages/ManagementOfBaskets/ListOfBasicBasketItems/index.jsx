@@ -7,9 +7,12 @@ import LabelTitles from '/src/Components/LabelTitles';
 import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 import { useEffect, useRef, useState } from 'react';
 
+import AddingItem from '/src/Components/AddingItem';
+
 const ListOfBasicBasketItems = () => {
     const [ itemSearch, setItemSearch ] = useState('');
-    const [ modelOfBasketName, setModelOfBasketName ] = useState(null)
+    const [ modelOfBasketName, setModelOfBasketName ] = useState(null);
+    const [ addingItemOnList, setAddingItemOnList ] = useState(false)
     const tabelaRef = useRef();
 
     const location = useLocation();
@@ -40,7 +43,7 @@ const ListOfBasicBasketItems = () => {
             return
         }
 
-        tabelaRef.current.searchItemOnTable(itemSearch, 'Nome da cesta')
+        tabelaRef.current.searchItemOnTable(itemSearch, 'Nome do Item')
     }
 
     const listaDeCestas = [
@@ -57,6 +60,16 @@ const ListOfBasicBasketItems = () => {
             navigate( url );
         }
         
+    }
+
+    const handleAddItemOnBasket = () => {
+        if( addingItemOnList ) {
+            setAddingItemOnList(false)
+            return
+        }
+
+        setAddingItemOnList(true)
+        return
     }
 
     const handleSetItemSearch = (nameItem) => {
@@ -80,6 +93,7 @@ const ListOfBasicBasketItems = () => {
             <div className={styles.topNavBarGerenciarProdutos}>
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Salvar" onClickButton={() => {goToPage('/cestas-basicas')}}/>
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Cancelar" onClickButton={() => {goToPage('/cestas-basicas')}} />
+                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Adicionar" onClickButton={() => {handleAddItemOnBasket}} />
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="remover" onClickButton={handleRemoveItemOnTable} />
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" onClickButton={handleSearchItem}/>
                 <input
@@ -88,10 +102,18 @@ const ListOfBasicBasketItems = () => {
                     onChange={(e) => {handleSetItemSearch(e.target.value)}}
                 />
             </div>
-
+            {addingItemOnList === true ? (
+                <AddingItem
+                    iframeAddItem={addingItemOnList}
+                />
+                ) : (
+                    <></>
+                )
+            }
             <div className={styles.divTabelaMeta}>
                 {listaDeCestas && (
                     <TabelaListaDeProdutos
+                        ref={tabelaRef}
                         listaDeItens={listaDeCestas}
                         nameClass={styles.tabelaCestas}
                         editableCel={[2]}

@@ -5,30 +5,33 @@ import { registerFamily } from './register';
 
 // Um hook para chamar e tratar a função de registro de familia
 export function useRegisterFamily() {
-    const [loading, setLoading] = useState(false);
-    const [warning, setWarning] = useState(null);
-    const navigate = useNavigate();
-
-    const handleRegisterFamily = async (representative, members, address, telephone, situation) => {
+    const [RegisterFamilyLoading, setLoading] = useState(false);
+    const [registerFamilyMessage, setMessage] = useState(null);
+    
+    const handleRegisterFamily = async (representative, members, city, neighborhood, street, builderNumber, telephone, situation, congregation) => {
         setLoading(true);
-        setWarning(null);
+        setMessage(null);
+
         try {
-            const response = await registerFamily(representative, members, situation, address, telephone);
+            const response = await registerFamily(representative, members, city, neighborhood, street, builderNumber, telephone, situation, congregation);
             if(response === true) {
-                setWarning('Familia cadastrada com sucesso!');
+                setMessage('Familia cadastrada com sucesso!');
+                setTimeout(() => {
+                    setMessage('')
+                }, 1500)
             }
             else {
-                setWarning(response.message)
+                setMessage(response.message)
             }
         } catch (err) {
-            setWarning(err.message);
+            setMessage(err.message);
         }
         finally {
             setLoading(false);
         }
     };
 
-    return { handleRegisterFamily, loading, warning };
+    return { handleRegisterFamily, RegisterFamilyLoading, registerFamilyMessage };
 }
 
 export default useRegisterFamily;

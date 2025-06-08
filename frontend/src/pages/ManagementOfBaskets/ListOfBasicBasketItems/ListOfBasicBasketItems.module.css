@@ -46,5 +46,6 @@
     &::selection {
         outline: 0;
         border: 0;
+        background-color: var(--bg-page5);
     }
 }

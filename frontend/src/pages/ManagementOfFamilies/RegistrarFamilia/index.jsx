@@ -5,39 +5,58 @@ import SimpleButton from '/src/Components/SimpleButton';
 import { useRegisterFamily } from '/src/Components/hooks/RegistrarFamilia/useRegisterFamily';
 import { useNavigate } from 'react-router-dom';
 
+import MessageAlert from '/src/Components/MessageAlert';
+
 import styles from './RegistrarFamilia.module.css';
+
 
 const RegistrarFamilia = () => {
     const navigate = useNavigate();
+    const { handleRegisterFamily, registerFamilyLoading, registerFamilyMessage  } = useRegisterFamily()
 
     const handleGoBack = () => {
         navigate(-1);
     }
-
-
-    const {handleRegisterFamily, loading, warning } = useRegisterFamily();
     const onSubmit = (e) => {
         e.preventDefault();
         // Implementar uma função de registro.
-        
-
+        let formValues;
+        console.log('registrando: ', e.target.children[0].children[1].value)
+        formValues = e.target.children[0].children
+        console.log('formValues: ',             formValues[1].value,
+            Number(formValues[3].value),
+            formValues[5].value,
+            formValues[7].value,
+            formValues[9].value,
+            formValues[11].value,
+            formValues[13].value,
+            formValues[15].value,
+            formValues[17].value,)
         // Hook para uma função de cadastramento de familia
         handleRegisterFamily(
-            e.target[0].value,
-            Number(e.target[1].value),
-            e.target[2].value,
-            e.target[3].value,
-            e.target[4].value,
-            e.target[5].value,
-            e.target[6].value,
+            formValues[1].value,
+            Number(formValues[3].value),
+            formValues[5].value,
+            formValues[7].value,
+            formValues[9].value,
+            formValues[11].value,
+            formValues[13].value,
+            formValues[15].value,
+            formValues[17].value,
             
         );
+
+        console.log('registrado')
     }
 
     return (
         <div className={styles.RegistrarFamiliaDiv}>
             <LabelTitles nameClass={styles.tituloPaginaAtualDiv} text="Cadastrar Familias"/>
-
+            {registerFamilyMessage && (
+                <MessageAlert
+                    text={registerFamilyMessage}
+                />
+            )}
             <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
                 <div className={styles.entradaDeDados}>
                     <label> Representante: </label>
@@ -56,7 +75,7 @@ const RegistrarFamilia = () => {
                         placeholder='Insira o numero de membros da familia cadastrada'
                     />
 
-<label> Cidade: </label>
+                    <label> Cidade: </label>
                     <input
                         name="city"
                         required
@@ -108,13 +127,19 @@ const RegistrarFamilia = () => {
                 </div>
 
                 <SimpleButton
-                    type="submit"
+                    typeButton="submit"
                     nameClass={styles.buttonRegister}
                     textButton="Cadastrar"
 
                 />
-                <SimpleButton nameClass={styles.buttonRegister} onClickButton={handleGoBack} textButton="Cancelar"/>
-                {warning && <p>{warning}</p>}
+                <SimpleButton
+                    typeButton="button"
+                    nameClass={styles.buttonRegister}
+                    onClickButton={handleGoBack}
+                    textButton="Cancelar"
+                />
+
+
             </form>
         </div>
     );

@@ -1,7 +1,5 @@
 import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEffect, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
-
 import styles from './TabelaListaDeProdutos.module.css'
 
 
@@ -14,6 +12,8 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     const [ tableClassName, setTableClassName ] = useState('');
     const [ lengthOfColumns, setlengthOfColumns ] = useState('')
     const [ linhaSelecionada, setLinhaSelecionada ] = useState([]);
+    const [ inputQuantityValue, setInputQuantityValue ] = useState(0);
+    const [ checkBoxAll, setCheckBoxAll ] = useState(false)
 
     const handleInput = useCallback((event) => {
         setEditableLabel(event.target.textContent);
@@ -44,24 +44,57 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         else {
             desSelecionarTudo();
         }
-    }, [])
+    }, [linhaSelecionada])
 
     const selecionarTudo = useCallback(() => {
-        const tabela = document.querySelector('table > tbody');
-        for(let index = 0; index < tabela.childNodes.length; index ++) {
-            tabela.childNodes[index].childNodes[0].childNodes[1].checked = true;
+
+        const tabela = window.document.querySelector('table > tbody');
+        
+        if( !tabela || tabela.childNodes.length === 0) {
+            return
         }
-    }, [])
+        //console.log(' tabela selecionar: ', tabela, typeof(tabela))
+        setCheckBoxAll(true)
+        
+
+        if( tabela.childNodes[0].childNodes.length === 0 ) {
+            return
+        }
+
+
+        for(let index = 0; index < tabela.childNodes.length; index ++) {
+            //console.log('tabela: ', tabela.childNodes[index].childNodes[0].children[0].checked)
+            tabela.childNodes[index].childNodes[0].children[0].checked = true;
+        }
+        
+        
+    }, [itens, tableClassRef, columnsTemplate])
 
     const desSelecionarTudo = useCallback(() => {
         const tabelaBody = window.document.querySelector('table > tbody');
         const tabelaHead = window.document.querySelector('table > thead');
-        console.log('tabelaHead: ', tabelaHead)
-        tabelaHead.childNodes[0].childNodes[1].checked = false;
-        for(let index = 0; index < tabelaBody.childNodes.length; index ++) {
-            tabelaBody.childNodes[index].childNodes[0].childNodes[1].checked = false;
+        
+
+        //console.log('tabelaHead: ', tabelaHead)
+        //console.log('tabelaBody: ', tabelaBody)
+
+        //tabelaHead.childNodes[0].childNodes[1].checked = false;
+        if( !tabelaBody || !tabelaHead || tabelaBody.childNodes.length === 0 ) {
+            return
         }
-    }, []);
+
+        if( tabelaBody.childNodes[0].childNodes.length === 0) {
+            return
+        }
+
+        setCheckBoxAll(false)
+        
+        for(let index = 0; index < tabelaBody.childNodes.length; index ++) {
+            //console.log('tabelaBody: ', tabelaBody.childNodes[index].childNodes[0].children[0].checked)
+            tabelaBody.childNodes[index].childNodes[0].children[0].checked = false;
+        }
+        
+    }, [itens, tableClassRef, columnsTemplate]);
 
     const selecionarLinha = useCallback((id) => {
         setLinhaSelecionada(id);
@@ -122,8 +155,11 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         //console.log(' ( retornarLinhas ) tBody: ', tBody)
         //console.log(' ( retornarLinhas ) tBody.length: ', tBody.length)
         //console.log(' ( retornarLinhas ) tBody.child: ', tBody[0].childNodes)
-        if( !tBody || !tBody[0].childNodes || tBody[0].childNodes.length  === 0 ) {
+        if( !tBody ) {
             return null;
+        }
+        else if ( !tBody[0].childNodes || tBody[0].childNodes.length  === 0 ) {
+            return null
         }
 
         for( let I = 0; I < tBody.length; I ++ ) {
@@ -135,9 +171,9 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         
     }
 
-    const getCurrentItens = () => {
+    const getCurrentItens = useCallback(() => {
         return itens
-    }
+    },[itens])
 
     const getSelectedElements = useCallback(() => {
         if( tableClassRef ) {
@@ -148,7 +184,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         }
         let tableClass = tableClassRef.current.replace(' ', '.')
         const elementsSelected = window.document.querySelectorAll(`.${tableClass} > tbody > tr > td > input:checked`);
-
+        //console.log('elementos selecionados: ', elementsSelected)
         return elementsSelected;
     }, [tableClassRef, tableClassName, itens])
 
@@ -164,15 +200,17 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
             return [];
         }
 
-        let linhaSelecionadas = [];
+        let linhasSelecionadas = [];
+        let linhaSelecionada;
         for (let linha = 0; linha < itensSelecionados.length; linha ++) {
-            linhaSelecionadas.push(itensSelecionados[linha].parentNode.parentNode);
+            linhaSelecionada = itensSelecionados[linha].parentNode.parentNode
+            linhasSelecionadas.push(linhaSelecionada);
         }
-        return linhaSelecionadas;
+        //console.log(' linhas selecionadas: ', linhasSelecionadas)
+        return linhasSelecionadas;
     }, [tableClassName, tableClassRef])
 
     const listarItensSelecionados = useCallback(() => {
-        
         if( listaDeItens ) {
             if( listaDeItens.length === 0) {
                 return [];
@@ -194,14 +232,18 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         let listaItens = []
         let objeto = {}
         const topTitleTable = Object.keys(listaDeItens[0])
-        
+        //console.log(' elementosSelecionados: ', elementosSelecionados)
+        //console.log(' topTitleTable: ', topTitleTable)
+
         for(let I = 0; I < elementosSelecionados.length; I++) {
             for(let II = 0; II < topTitleTable.length; II ++ ) {
-                objeto[topTitleTable[II]] = elementosSelecionados[I].childNodes[II+1].innerText;
+                //console.log(` elementosSelecionados[${I}].childNodes: `, elementosSelecionados[I].childNodes[II+1].children[0].innerText)
+                objeto[topTitleTable[II]] = elementosSelecionados[I].childNodes[II+1].children[0].innerText;
             }
             listaItens.push(objeto);
+            objeto= {}
         }
-
+        //console.log('listaItens: ', listaItens)
         return listaItens;
 
     }, [listaDeItens]);
@@ -238,6 +280,36 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     }, [])
 
+    const handleChangeInputQuantity = useCallback((key) => {
+        const inputQuantity = key.target
+
+        let inputQuantityValue = Number(inputQuantity.value)
+        
+        if( key.key === 'ArrowUp') {
+            key.preventDefault()
+            inputQuantity.value = inputQuantityValue + 1;
+            
+        }
+        if( key.key === 'ArrowDown' ) {
+            key.preventDefault()
+            if( inputQuantityValue > 0 ) {
+                inputQuantity.value = inputQuantityValue - 1;   
+            }  
+        }
+    }, [])
+
+    const handleCheckedInput = useCallback(() => {
+        const itensSelecionados = listarElementosSelecionados()
+        const linhasTotalDaTabela = retornarLinhasDaTabela()
+        
+        if( (itensSelecionados.length != linhasTotalDaTabela.length) && (checkBoxAll || !checkBoxAll) ) {
+            setCheckBoxAll(false)
+            return
+        }
+
+        setCheckBoxAll(true)
+        return
+    }, [])
 
     const searchItemOnTable = useCallback((nameItem, column) => {
         //console.log('pesquisando na tabela: nameItem: ', nameItem, ' column: ', column)
@@ -245,10 +317,18 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
             setItens(listaDeItens);
             return;
         }
+        if( listaDeItens.length === 0 ) {
+            return
+        }
 
         let listaDeItensPesquisados = []
+        console.log('listaDeItens: ', listaDeItens)
         for(let I = 0; I < listaDeItens.length; I ++ ) {
             //console.log('item atual da pesquisa: ', listaDeItens[I][column])
+            if( !Object.keys(listaDeItens[I]).includes(column) ) {
+                continue
+            }
+
             if(listaDeItens[I][column].includes(nameItem) ) {
                 listaDeItensPesquisados.push(listaDeItens[I])
             }
@@ -268,18 +348,16 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     }, [listaDeItens])
 
-    const updateTable = () => {
+    const updateTable = useCallback(() => {
         //console.log('itens: ', itens)
         if( itens) {
             if( itens.length > 0) {
                 setColumns(Object.keys(itens[0]).length);
                 setTable();
                 setEditableColumnIndex(editableCel);
-            
             }    
         }
-
-    }
+    }, [itens, editableCel, columnsTemplate])
 
 
     useEffect(() => {
@@ -300,7 +378,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
         setItens(listaDeItens);  
 
-        }, [listaDeItens, ]) // columnsTemplate
+        }, [listaDeItens, columnsTemplate]) // columnsTemplate
 
     useEffect(() => {
         if( !itens ) {
@@ -342,21 +420,26 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                 <table className={`${styles.ListaDeProdutosCadastrados} ${nameClass}`}>
                     <thead>
                         <tr className={styles.linhaTabela}>
+                            { listaDeItens && (
+                                <th className={styles.LabelListProdutos}>
+                                    <input
+                                        onChange={selecionarTudoCheckbox}
+                                        type="checkbox"
+                                        className={styles.checkBoxItem + ' ' + ' checkBoxItemPrimary'}
+                                        checked={checkBoxAll}
+                                    />
+                                </th>
+                            )}
+                            { listaDeItens && (
+                                (Object.keys(listaDeItens[0])).map((item, index) => (
+                                <th
+                                    key={index}
+                                    className={styles.LabelListProdutos}
+                                >
+                                    {item}
+                                </th>
+                            )))}
                         
-                        <th className={styles.LabelListProdutos}>
-                            <input onChange={selecionarTudoCheckbox} type="checkbox" className={styles.checkBoxItem + ' ' + ' checkBoxItemPrimary'}/>
-                        </th>
-                        
-                        { listaDeItens && (
-                            (Object.keys(listaDeItens[0])).map((item, index) => (
-                            <th
-                                key={index}
-                                className={styles.LabelListProdutos}
-                            >
-                                {item}
-                            </th>
-                        )))}
-                    
 
                         </tr>
                     </thead>
@@ -368,17 +451,29 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                 onClick={() => selecionarLinha(index)}
                                 className={(styles.linhaTabela) + " " + (linhaSelecionada === index ? (styles.selecionada) : '')}
                             >
-                                <td> <input type="checkbox" className={styles.checkBoxItem}/>  </td>
+                                <td>
+                                    <input
+                                        type="checkbox"
+                                        className={styles.checkBoxItem}
+                                        onChange={handleCheckedInput}
+                                    /> 
+                                
+                                </td>
                                 {item && Object.keys(item).map((item2, index2) => (
                                     <td key={index2}>
                                         {limitarMaxNumber ?
                                             (limitarMaxNumber.includes(index2)? ( 
                                                     <input 
                                                         type={'number'}
-                                                        min={0} 
-                                                        max={Number(item.quantidade)}
+                                                        
+                                                        min={'0'} 
+                                                        max={item.quantidade}
                                                         defaultValue={item.quantidade}
                                                         className={styles.inputTableEditable}
+      
+                                                        key={index}
+                                                        id={`IQ_${index}`}
+                                                        
                                                     />
                                                     ) : (
                                                         <label

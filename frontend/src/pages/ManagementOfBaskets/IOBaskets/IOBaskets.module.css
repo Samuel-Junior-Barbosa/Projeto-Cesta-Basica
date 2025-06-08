@@ -9,6 +9,7 @@
     padding: 10px;
 
     overflow-y: scroll;
+    transition: 0.1s;
 }
 
 .formInputBasket {
@@ -44,6 +45,7 @@
     }
     
 }
+
 
 .changeActionDiv {
     & > label {
@@ -143,6 +145,10 @@
 }
 
 .inputQuantityPerItem {
+
+}
+
+.basketWithdrawQuantityClass {
 
 }
 

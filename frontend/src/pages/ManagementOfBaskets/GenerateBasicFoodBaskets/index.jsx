@@ -43,7 +43,7 @@ const GenerateBasicFoodBaskets = () => {
 
     const onSubmit = (e) => {
         e.preventDefault();
-        console.log('Informação enviada')
+//        console.log('Informação enviada')
         GenerateBasketGetInformations()
         
     }

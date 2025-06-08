@@ -99,7 +99,7 @@ const  GerenciarProdutos = () => {
             return;
         }
         
-        handleSearchOnDB(itemPesquisa);
+        //handleSearchOnDB(itemPesquisa);
         
         console.log('(GerenciarProdutos) itemPesquisa: ', itemPesquisa);
         tabelaRef.current.searchItemOnTable(itemPesquisa, 'produto');
@@ -108,6 +108,7 @@ const  GerenciarProdutos = () => {
 
     const alterarItem = () => {
         const itensSelecionados = listarItensSelecionados();
+        console.log('alterarItem: ', itensSelecionados)
         if( itensSelecionados.length > 1 || itensSelecionados.length < 1) {
             alert('Só é possivel alterar 1 item por vez');
             return;
@@ -147,12 +148,12 @@ const  GerenciarProdutos = () => {
                 />
                 
             </div>
-            {( (tabelaRef) && (listaDeItens) ) && (
-                <TabelaListaDeProdutos 
-                    listaDeItens={listaDeItens}
-                    ref={tabelaRef}
-                />
-            )}
+        
+            <TabelaListaDeProdutos 
+                listaDeItens={listaDeItens}
+                ref={tabelaRef}
+            />
+            
         </div>
     );
 }

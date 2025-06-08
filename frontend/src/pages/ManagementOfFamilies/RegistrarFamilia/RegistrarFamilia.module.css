@@ -6,6 +6,7 @@
     padding: 20px;
     padding-top: 30px;
     margin-right: 20px;   
+    overflow-y: scroll;
 }
 
 .tituloPaginaAtualDiv {

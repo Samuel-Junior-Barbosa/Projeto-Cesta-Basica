@@ -17,7 +17,7 @@
 
 .topNavBarMetas {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 6fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 6fr;
     grid-auto-rows: minmax(0px, 100%);
     width: 100%;
     padding: 5px 50px;

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 // Label com mensagem personalizado
-const LabelTitles = ({text, nameClass, background}) => {
+const LabelTitles = ({text='', nameClass='TitlePage', background=''}) => {
 
     let classDiv = styles.TitlePageDiv
     let classN = styles.TitlePage
@@ -30,17 +30,5 @@ const LabelTitles = ({text, nameClass, background}) => {
         </div>
     );
 }
-
-LabelTitles.prototype = {
-    text: PropTypes.string,
-    nameClass: PropTypes.string,
-    background: PropTypes.string,
-};
-
-LabelTitles.default = {
-    text: "",
-    nameClass: "TitlePage",
-    background: '',
-};
 
 export default LabelTitles;

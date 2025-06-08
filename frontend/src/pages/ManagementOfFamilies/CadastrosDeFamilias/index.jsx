@@ -6,11 +6,15 @@ import { useNavigate } from 'react-router-dom';
 
 import styles from './CadastroDeFamilias.module.css';
 
+
+
+
 const CadastrosDeFamilias = () => {
     const tabelaRef = useRef();
     const [ listarItensSelecionados, setListarItensSelecionados ] = useState(() => () => {});
     const [ itemPesquisa, setItemPesquisa ] = useState();
     const navigate = useNavigate();
+
 
 
     const cadastroDeFamilias = [
@@ -133,6 +137,8 @@ const CadastrosDeFamilias = () => {
                     listaDeItens={cadastroDeFamilias}
                 />
             </div>
+
+
         </div>
     );
 }

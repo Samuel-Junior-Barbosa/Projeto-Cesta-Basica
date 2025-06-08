@@ -17,7 +17,7 @@ export async function BasketOutput( productName, productId, productQuantity ) {
     
     if( (productName !== '') && (productId !== '') && (productQuantity !== '') ) {
         for( let I = 0; I < listaDeItensNoBD.length; I++ ) {
-            if( productName === listaDeItensNoBD[I].produto && productId === listaDeItensNoBD[I].id) {
+            if( ((productName === listaDeItensNoBD[I].produto) && (productId === listaDeItensNoBD[I].id)) ) {
                 return true;
             }
         }

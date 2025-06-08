@@ -151,6 +151,108 @@ const BasketDeliveryOrder = () => {
         }
     }, [basketDeliveryOrderAll, basketDeliveryOrderPendente])
 
+    const formatingData = (data) => {
+        let dataFormated;
+        let tmpData = data.split('/');
+        if( tmpData[2].includes('\n') ) {
+            tmpData[2] = tmpData[2].replaceAll('\n', '')
+        }
+        
+        dataFormated = `${tmpData[2]}-${tmpData[1]}-${tmpData[0]}`;
+        return dataFormated;
+    }
+    
+    const removeLineBreak = (line) => {
+        let lineFormated;
+
+        if( line.includes('\n') ) {
+            lineFormated = line.replaceAll('\n', '')
+        }
+
+        return lineFormated
+    }
+
+    const handleAlterBasketOrder = useCallback(() => {
+        if( !tabelaRef.current ) {
+            return
+        }
+        let itensSelecionados = tabelaRef.current.listarItensSelecionados()
+        if( itensSelecionados.length > 1 || itensSelecionados.length < 1) {
+            alert('Selecione apenas 1 item')
+            return
+        }
+        itensSelecionados = itensSelecionados[0]
+        let statusDeEntrega = removeLineBreak(itensSelecionados.entregue)
+
+        if( statusDeEntrega == 'entregue') {
+            alert('Não é possivel alterar itens entregues')
+            return
+        }
+        
+        
+        //console.log('itensSelecionados: ', itensSelecionados)
+        let itensDaCesta = itensSelecionados.itensDaCesta;
+        let prazo = itensSelecionados['prazo de entrega'];
+        if( prazo ) {
+            prazo = formatingData(prazo)
+        }
+        
+        let dataCriacao = itensSelecionados.data
+        if( dataCriacao ) {
+            dataCriacao = formatingData(dataCriacao)
+        }
+
+        let tmpItensDaCesta = itensDaCesta.replaceAll("] [", ', ')
+        tmpItensDaCesta = tmpItensDaCesta.replaceAll("[ ", '')
+        tmpItensDaCesta = tmpItensDaCesta.replaceAll("]", '')
+
+        tmpItensDaCesta = tmpItensDaCesta.replaceAll("Quants.", 'quantidade')
+        itensDaCesta = tmpItensDaCesta.split(',')
+
+        let tmpItem;
+        let tmpItem2;
+        let tmpObj = {}
+        let tmpListaDeitens2 = []
+        for(let i = 0; i < itensDaCesta.length; i ++) {
+            tmpItem = itensDaCesta[i].split(';');
+            tmpItem2 = tmpItem[0].split(':');
+            tmpObj['produto'] = tmpItem2[1];
+            tmpItem2 = tmpItem[1].split(':');
+            tmpObj['id'] = tmpItem2[1];
+            tmpItem2 = tmpItem[2].split(':');
+            tmpObj['quantidade'] = tmpItem2[1].trim();
+            tmpListaDeitens2.push(tmpObj)
+            tmpObj= {}
+        }
+        itensDaCesta = tmpListaDeitens2
+
+
+        let congrecao = removeLineBreak(itensSelecionados.destino)
+        let paraQuem = removeLineBreak(itensSelecionados.paraQuem)
+        let quemRetirou = removeLineBreak(itensSelecionados.quemRetirou)
+        let enderecoEntrega = removeLineBreak(itensSelecionados.enderecoDeDestino)
+
+        /*
+        console.log('itensSelecionados: ', itensDaCesta)
+        console.log('datas: ', dataCriacao, prazo)
+        console.log('status: ', statusDeEntrega)
+        console.log('quemRetirou: ', quemRetirou)
+        */
+        goToPage('/alter-basket-order', { state: {
+            orderCreatedData: dataCriacao,
+            orderVal: prazo,
+            orderStatus: statusDeEntrega,
+            congregation: congrecao,
+            whoWithdraw : quemRetirou,
+            ofWho: paraQuem,
+            deliveryAddres: enderecoEntrega,
+
+
+            basketProducts : itensDaCesta,
+        }})
+
+    }, []);
+
     useLayoutEffect(() => {
         reciveDataBasketOrder();
     }, [])
@@ -164,6 +266,10 @@ const BasketDeliveryOrder = () => {
             </div>
 
             <div>
+                <SimpleButton 
+                    textButton={"Alterar"}
+                    onClickButton={handleAlterBasketOrder}
+                />
                 <SimpleButton 
                     textButton={"Voltar"}
                     onClickButton={handleGoBack}

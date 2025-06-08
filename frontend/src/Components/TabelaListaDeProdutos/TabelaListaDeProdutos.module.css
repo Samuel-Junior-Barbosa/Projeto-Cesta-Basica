@@ -38,7 +38,7 @@ table {
     height: 60vh;
     overflow-y: scroll;
     list-style: none;
-
+    transition: 0.2s;
     border: 0px solid transparent;
     border-radius: 20px;
     color: var(--color-font);
@@ -55,7 +55,13 @@ table {
     }
 
     & > tbody {
+        display: block;
         border: 0px solid transparent;
+        
+    }
+
+    & > thead {
+        display: block;
     }
 
 }
@@ -156,11 +162,10 @@ table {
 
 
 .warningMessageInsideTable {
-    display: block;
-    text-align: center;
-    margin: auto;
+    display: block !important;
+    text-align: center !important;
+    margin: auto !important;
 
-    width: max-content;
 
     & > td > p {
         text-align: center;
