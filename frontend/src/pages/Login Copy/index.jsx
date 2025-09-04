@@ -1,14 +1,13 @@
 import styles from './Login.module.css';
 import SimpleButton from '../../Components/SimpleButton';
 import { useAuthenticator } from '../../Components/hooks/Authenticator/useAuthenticator';
-import { useState, useEffect, useLayoutEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
 
 import SwitchProfiles from '../../Components/SwitchUsersLogin';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../contexts/AuthenticateContext/AuthContext';
-import { getCurrentUser, setCurrentUser } from "../../Components/hooks/Authenticator/auth";
+import { getCurrentUser } from "../../Components/hooks/Authenticator/auth";
 
 const Login = () => {
     const {handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorError } = useAuthenticator();
@@ -40,65 +39,25 @@ const Login = () => {
         }
     }, [useAutenticatorAuthenticated])
 
-    const authentication = async (username, password) => {
-        try {
-            const response = await axios.post("http://localhost:8080/authentication", {
-                username,
-                password,
-            });
-            return response.data.status;
-        } catch (error) {
-            console.error("Erro na autenticação:", error);
-            return "fail";
-        }
-    }
-
-    const onSubmit = async (e) => {
+    const onSubmit = (e) => {
         e.preventDefault();
         // Implementar uma logica de login
         let use = getUserName();
         let pass = password;
-        console.log(`User: (${use}) -- Password: (${pass})`);
+        //console.log('User: ', use, 'Password: ', pass);
 
         // Hook que "valida" o login do usuario
-        //let returnOfLogin = handleLogin(use, pass);
-        let returnOfLogin = await authentication(use, pass)
-        if( returnOfLogin === 0) {
-            setCurrentUser(use)
-            const currentUser = getCurrentUser()
-            login()
-            console.log("CurrentUser: ", currentUser, currentUser.role, use)
-            if( currentUser.role === 'admin') {
-                navigate('/home');
-            }   
-            else if( currentUser.role === 'operator' ) {
-                navigate('/input-and-output-baskets')
-            }
-            else if( currentUser.role === 'visit' ) {
-                navigate('/suporte')
-            }
-            else {
-                navigate('/login')
-            }
-            clearUsername()
-        }
-        console.log("returnOfOrigin: ", returnOfLogin)
+        let returnOfLogin = handleLogin(use, pass);
 
     }
 
     const getUserName = () => {
-        //let userName = window.document.querySelector(`select.selectCurrentUser`);
-        let userName = localStorage.getItem("userSelected")
-        userName = String(userName);
+        let userName = window.document.querySelector(`.position-1 > .labelLoginUserName > .loginUserName`);
+        userName = String(userName.innerText);
         setUsername(userName);
         return userName;
     }
     
-    const clearUsername = () => {
-        localStorage.setItem("userSelected", "")
-        setUsername("")
-        
-    }
     
     return (
         <form onSubmit={onSubmit}>

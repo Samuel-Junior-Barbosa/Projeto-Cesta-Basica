@@ -74,6 +74,17 @@
     box-shadow: 3px 4px 5px rgba(0, 0, 0, 0.494);
 }
 
+.divInputListProducts {
+    margin-top: 20px;
+    border-radius: 20px;
+    animation-name: fade-in;
+    animation-duration: 0.1s;
+    animation-timing-function: ease;
+    animation-fill-mode: forwards;
+    padding: 20px;
+}
+
+
 .currentAmountOfBaskets {
     display: inline-block;
 }
@@ -109,7 +120,7 @@
     padding: 10px;
     border-radius: 20px;
     gap: 10px;
-    
+    animation: aparecer 0.7s ease forwards;
 
     & > div {
         display: grid;
@@ -164,4 +175,26 @@
 
 .historyTableOfBaskets {
     font-size: 1rem;
+}
+
+.congregationNameInput {
+    
+}
+
+.addressInput {
+
+}
+
+.observationInput {
+
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }

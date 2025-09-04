@@ -1,29 +1,51 @@
 .SwitchProfileContainer {
     display: flex;
     position: relative;
+    flex-direction: column;
     justify-content: center;
     cursor: pointer;
     align-items: center;
-    width: 400px;
-    height: 300px;
     overflow: hidden;
     margin: auto;
+    border-radius: 15px;
+    background-color: gray;
+
+    width: 20vw;
+    height: 30vh;
+    padding: 10px;
+
 }
 
 .userIconLogin {
     display: block;
-    width: 50px;
-    height: 50px;
-    margin: auto;
+    width: 80%;
+    height: 80%;
+    margin: 0px;
     color: white;
     cursor: pointer;
+    
 }
+
+
+.divLabelName {
+    display: flex;
+}
+
 
 .labelLoginUserName {
     display: block;
     cursor: pointer;
+    font-size: 2rem;
+}
+
+
+.selectCurrentUser {
+    border-radius: 10px;
+    border: 0px solid transparent;
+    text-align: center;
 
 }
+
 
 .profiles {
     display: block;
@@ -43,98 +65,25 @@
 
 }
 
-.position-0 {
-    transform: translateX(-150px) translateY(-100%);
-    z-index: 1;
-}
 
-.position-1 {
-    transform: translateX(0px) scale(1.2);
-    z-index: 2;
-}
 
-.position-2 {
-    transform: translateX(150px) translateY(-100%);
-    z-index: 3;
-}
-
-.animating-left.position-0 {
-    animation: move-left-to-center 0.5s forwards;
-}
-
-.animating-left.position-1 {
-    animation: move-center-to-right 0.5s forwards;
-}
-
-.animating-left.position-2 {
-    animation: move-right-to-left 0.5s forwards;
-}
-
-.animating-right.position-0 {
-    animation: move-left-to-right 0.5s forwards;
-}
-
-.animating-right.position-1 {
-    animation: move-center-to-left 0.5s forwards;
-}
-
-.animating-right.position-2 {
-    animation: move-right-to-center 0.5s forwards;
-}
-
-@keyframes move-left-to-center {
-    from {
-        transform: translateX(-150px) translateY(-100%);
+@media screen and (max-width: 1000px) {
+    .SwitchProfileContainer {
+        width: 30vw;
+        height: 20vh;
     }
-
-    to {
-        transform: translateX(0px) translateY(0%) scale(1.2);
+    .labelLoginUserName {
+        font-size: 1.5rem;
     }
 }
 
-@keyframes move-center-to-right {
-    from {
-        transform: translateX(0) scale(1.2);
-    }
-    
-    to {
-        transform: translateX(150px) translateY(-100%);
-    }
-}
 
-@keyframes move-right-to-left {
-    from {
-        transform: translateX(150px) translateY(-100%);
+@media screen and (max-width: 500px) {
+    .SwitchProfileContainer {
+        width: 40vw;
+        height: 20vh;
     }
-
-    to {
-        transform: translateX(-150px) translateY(-100%);
-    }
-}
-
-@keyframes move-left-to-right {
-    from {
-        transform: translateX(-150px) translateY(-100%);
-    }
-    to {
-        transform: translateX(150px) translateY(-100%);
-    }
-}
-
-@keyframes move-center-to-left {
-    from {
-        transform: translateX(0) translateY(0%) scale(1.2);
-    }
-    to {
-        transform: translateX(-150px) translateY(-100%);
-    }
-}
-
-@keyframes move-right-to-center {
-    from {
-        transform: translateX(150px) translateY(-100%);
-    }
-    to {
-        transform: translateX(0) translateY(0%) scale(1.2);
+    .labelLoginUserName {
+        font-size: 1.5rem;
     }
 }

@@ -48,6 +48,7 @@ const RegistrarFamilia = () => {
 
         console.log('registrado')
     }
+    
 
     return (
         <div className={styles.RegistrarFamiliaDiv}>

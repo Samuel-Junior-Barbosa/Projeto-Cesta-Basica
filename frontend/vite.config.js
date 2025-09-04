@@ -1,14 +1,21 @@
 const { defineConfig } = require('vite');
 const react = require('@vitejs/plugin-react');
 const nodePolyfills = require('rollup-plugin-node-polyfills');
-
+const ReactCompilerConfig = {}
 
 const path = require('path');
+const { plugins } = require('chart.js');
 
 module.exports = defineConfig({
   base: './',
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins : [
+          ["babel-plugin-react-compiler", ReactCompilerConfig],
+        ]
+      }
+    }),
     
 
   ],

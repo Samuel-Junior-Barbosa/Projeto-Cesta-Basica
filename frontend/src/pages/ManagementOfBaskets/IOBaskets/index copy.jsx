@@ -13,7 +13,6 @@ import { useListaDeItensNoBD } from '/src/contexts/ListOfProductsonStock';
 
 import { useBasketOutput } from '../../../Components/hooks/ManageBasicFoodBaskets/BasketOutput/useBasketOutput';
 import { useBasketInput } from '../../../Components/hooks/ManageBasicFoodBaskets/BasketInput/useBasketInput';
-import { element } from 'prop-types';
 
 const IOBaskets = () => {
     const tabelaRef = useRef();
@@ -51,42 +50,9 @@ const IOBaskets = () => {
     const [ inputIdItem, setInputIdItem ] = useState();
     const [ inputQuantityPerItem, setInputQuantityPerItem ] = useState();
     const [ inputBasketWithdrawQuantity, setIinputBasketWithdrawQuantity ] = useState();
-    const [ donorsName, setDonorsName ] = useState();
-    const [ congregationName, setCongregationName ] = useState();
-    const [ inputAddress, setInputAddress ] = useState();
-    const [ observationInput, setObservationInput ] = useState();
-    const [ whoRecivedBasicBasketFood, setWhoRecivedBasicBasketFood ] = useState();
-    const [ familyRepresentative, setFamilyRepresentative ] = useState();
-    
 
-    const handleDonorsName = ( name ) => {
-        setDonorsName( name )
-    }
 
-    const handleCongregationName = ( name ) => {
-        setCongregationName( name )
-    }
-
-    const handleInputAddress = ( address ) => {
-        setInputAddress( address )
-    }
-
-    const handleObservationInput = ( value ) => {
-        setObservationInput( value )
-    }
     
-    
-    const handleWhoRecivedBasicBasketFood = ( value ) => {
-        setWhoRecivedBasicBasketFood( value )
-    }
-    
-    const handleFamilyRepresentative = ( value ) => {
-        setFamilyRepresentative( value )
-    }
-    
-    
-    
-
     const testRef = useCallback((node) => {
         if( node !== null) {
             tabelaRef.current = node;
@@ -219,11 +185,9 @@ const IOBaskets = () => {
         handleSetQuantityPerItens();
     }, [dataBasicFoodBasket, inputQuantityPerItem]);
 
-
     const handleSetQuantityPerItens = useCallback((e) => {
         inputQuantityPerItem.max = dataBasicFoodBasket.quantidade;
     }, [inputQuantityPerItem, dataBasicFoodBasket]);
-
 
     const handleGoBack = useCallback(() => {
         navigate(-1);
@@ -381,6 +345,7 @@ const IOBaskets = () => {
 
         
         //console.log(' selectItens: ', tabelaRef.current.getCurrentItens())
+        
         //console.log('selectItemById tableBody1: ', tableBody)
         
         if( !tableBodyChildNodes || tableBodyChildNodes.length === 0 ) {
@@ -445,15 +410,27 @@ const IOBaskets = () => {
 
     const handleButtonDonationFromOutside = useCallback((checkValue) => {
         setDonationFromOutside(checkValue);
-        setInputAddress('')
-        setCongregationName('')
-        setDonorsName('')
-        setObservationInput('')
         let labelsInputsDonations = window.document.querySelectorAll(`.${styles.inputsOfUser} > div > label`)
         let inputsDonations = window.document.querySelectorAll(`.${styles.inputsOfUser} > div > input`)
         const bodyPage = window.getComputedStyle(document.documentElement);
-        
-    }, [inputAddress, congregationName, donorsName, observationInput, donationFromOutside])
+        /*
+        if( checkValue ) {
+            for( let I = 0; I < labelsInputsDonations.length; I ++ ) {
+                labelsInputsDonations[I].style.color = bodyPage.getPropertyValue('--bg-page1');
+                inputsDonations[I].style.backgroundColor = bodyPage.getPropertyValue('--bg-page1');
+            }    
+        }
+
+        else {
+            for( let I = 0; I < labelsInputsDonations.length; I ++ ) {
+                labelsInputsDonations[I].style.color = bodyPage.getPropertyValue('--color-font');
+                inputsDonations[I].style.backgroundColor = bodyPage.getPropertyValue('--color-font');
+            }
+                
+        }
+        */
+
+    }, [])
 
 
     const handleChangeBasketWithdrawQuantity = useCallback((value) => {
@@ -501,9 +478,6 @@ const IOBaskets = () => {
         setInputQuantityPerItem( window.document.querySelector(`.${styles.inputQuantityPerItem}`) );
         setInputProductName( window.document.querySelector(`.${styles.inputProductName}`) )
         setIinputBasketWithdrawQuantity( window.document.querySelector(`.${styles.basketWithdrawQuantityClass}`) )
-
-        
-
     }, [])
 
 
@@ -513,7 +487,6 @@ const IOBaskets = () => {
         setDataOfBasketRecived(dataOfBasket);
         setTypeOfAction(typeAction);
     }, [])
-
 
     // Depois de receber informações da pagina de historico,
     // Seleciona os itens recebidos conforme seus IDs
@@ -528,7 +501,6 @@ const IOBaskets = () => {
             }
         }, 100)
     }, [dataRecivedOfProducts])
-
 
     return (
         <div className={styles.IOBasketsDivMain}>
@@ -570,11 +542,6 @@ const IOBaskets = () => {
                                             <div>
                                                 <label> Congregação: </label>
                                                     <input
-                                                        value={congregationName}
-                                                        onChange={ (e) => {
-                                                            handleCongregationName(e.target.value)
-                                                            }
-                                                        }
                                                         placeholder='Nome da congregação que a familia frequenta'
                                                     />
                                                 </div>
@@ -583,22 +550,12 @@ const IOBaskets = () => {
                                                     Endereço: 
                                                 </label>
                                                 <input
-                                                    value={inputAddress}
-                                                    /*onChange={ (e) => {
-                                                        handleInputAddress(e.target.value)
-                                                        }
-                                                    }*/
-                                                   readOnly={true}
                                                     placeholder='Endereço da congregação que pegou'
                                                 />
                                             </div>
                                             <div>
                                                 <label> Quem pegou a cesta: </label>
-                                                <input
-                                                    onChange={ (e) => {
-                                                        handleWhoRecivedBasicBasketFood( e.target.value )
-                                                    }}
-                                                    value={whoRecivedBasicBasketFood}
+                                                <input 
                                                     placeholder='Para quem que a cesta foi entregue'
                                                 />
                                             </div>
@@ -611,10 +568,6 @@ const IOBaskets = () => {
                                                     Nome do representante: 
                                                 </label>
                                                 <input
-                                                    value={familyRepresentative}
-                                                    onChange={ (e) => {
-                                                        handleFamilyRepresentative(e.target.value)
-                                                    }}
                                                     placeholder='Nome do representante da familia'
                                                 />
                                             </div>
@@ -647,17 +600,17 @@ const IOBaskets = () => {
                                 />
                             </div>
 
-                            { ( (congregationName && whoRecivedBasicBasketFood) || donorsName  ) && (
-                                    <div className={styles.divTableListProducts}>
-                                        <TabelaListaDeProdutos
-                                            ref={tabelaRef}
-                                            nameClass={styles.listProductsTable}
-                                            listaDeItens= { listaDeItensNoBD }
-                                            limitarMaxNumber={[3]}
-                                        />
-                                    </div>        
-                                )
-                            }
+                            <div className={styles.divTableListProducts}>
+                                
+                                    <TabelaListaDeProdutos
+                                        ref={tabelaRef}
+                                        nameClass={styles.listProductsTable}
+                                        listaDeItens= { listaDeItensNoBD }
+                                        limitarMaxNumber={[3]}
+                                    />
+
+                                
+                            </div>
                             <div className={styles.buttonsForm}>
                                 <SimpleButton textButton="Confirmar" onClickButton={withdrawItensOfStock} />
                                 <SimpleButton textButton="Cancelar" onClickButton={handleGoBack} />
@@ -675,9 +628,7 @@ const IOBaskets = () => {
                                     <input 
                                         type='checkbox'
                                         checked={donationFromOutside}
-                                        onChange={(e) => {
-                                            handleButtonDonationFromOutside(e.target.checked)
-                                        }}
+                                        onChange={(e) => {handleButtonDonationFromOutside(e.target.checked)}}
                                     />
                                 </div> 
 
@@ -687,14 +638,19 @@ const IOBaskets = () => {
                                             <div>
                                                 <label> Congregação: </label>
                                                 <input
-                                                    className={styles.congregationNameInput}
-                                                    value={congregationName}
-                                                    onChange={(e) => {
-                                                        handleCongregationName(e.target.value)
-                                                    }}
                                                     required
                                                     placeholder='Congregação da retirada da cesta'
                                                     readOnly={donationFromOutside}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label>
+                                                    Endereço: 
+                                                </label>
+                                                <input
+                                                    placeholder='Endereço da congregação'
+                                                    readOnly={donationFromOutside}
+                                                    required
                                                 />
                                             </div>
                                         </>
@@ -707,25 +663,6 @@ const IOBaskets = () => {
                                                 </label>
                                                 <input
                                                     placeholder='Nome do doador de fora'
-                                                    value={donorsName}
-                                                    onChange={(e) => {
-                                                        handleDonorsName(e.target.value)
-                                                        }
-                                                    }
-                                                />
-                                            </div>
-                                            <div>
-                                                <label>
-                                                    Endereço: 
-                                                </label>
-                                                <input
-                                                    className={styles.addressInput}
-                                                    value={inputAddress}
-                                                    onChange={(e) => {
-                                                        handleInputAddress(e.target.value)
-                                                    }}
-                                                    placeholder='Endereço da congregação'
-                                                    required
                                                 />
                                             </div>
                                         </>
@@ -734,35 +671,73 @@ const IOBaskets = () => {
                                         <label>
                                             Observação: 
                                         </label>
-                                        <input
-                                            className={styles.observationInput}
+                                        <input 
                                             placeholder='(Opcional)'
-                                            value={observationInput}
-                                            onChange={(e) =>{
-                                                handleObservationInput(e.target.value)
-                                            }}
                                         />
                                     </div>
                                 </div>
                             </div>
-                            {/* Lista de produtos para entrar */}
-                            { ( congregationName || ( donorsName && inputAddress )) && (
-                                    <div className={styles.divInputListProducts}>
-                                        <TabelaListaDeProdutos
-                                            ref={tabelaRef}
-                                            nameClass={styles.listProductsTable}
-                                            listaDeItens= { listaDeItensNoBD }
-                                            limitarMaxNumber={[3]}
-                                            >
-                                        </TabelaListaDeProdutos>
+                            
+                            <form className={styles.formInputBasket} onSubmit={addItemOnStock}>
+                                <label> Sobre o item doado</label>
+                                <div>
+                                    <label> Nome do item: </label>
+                                    <input
+                                        required
+                                        className={styles.inputProductName}
+                                        list='itemSearchedOption'
+                                        value = {itemSearch}
+                                        onChange={(e) => handleSetItemSearch(e.target.value)}
+                                        onFocus={(e) => handleFocusItemSearch(e.target.value)}
+                                    />
 
-                                        <div className={styles.buttonsForm}>
-                                            <SimpleButton typeButton="submit" textButton="Confirmar"  />
-                                            <SimpleButton textButton="Cancelar" onClickButton={handleGoBack} />
-                                        </div>
-                                    </div>
-                                ) 
-                            }
+                                    <datalist id="itemSearchedOption">
+                                        <option value={itemSearchedByID}>{itemSearchedByID}</option>
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label> Id do item: </label>
+                                    <input
+                                        required
+                                        type="text"
+                                        className={styles.inputIdItem}
+                                        value = {itemIdSearched}
+                                        
+                                        onChange={(e) => {handleSetSearchById(e.target.value)}}
+                                        onFocus={handleFocusIdItem}
+
+                                    />
+                                </div>
+                                <div>
+                                    <label> Quantidade </label>
+                                    <input
+                                        required
+                                        type="number"
+                                        min="0"
+                                        value={quantityItemForAdd}
+                                        
+                                        className={styles.inputQuantityPerItem}
+                                        onChange={(e) => handleChangeQuantityItem(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            // Impede o uso das teclas de seta para incrementar ou decrementar
+                                            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                              e.preventDefault();
+                                              handleIncrementOrDecrementQuantityItemByArrowButton(e.key)
+                                              return
+                                            }
+                                            handleIncrementOrDecrementQuantityItem(e.key)
+                                            
+                                          }}
+                                        onKeyUp={(e) => {handleKeyUp(e.key)}}
+
+                                    />
+                                </div>
+                                <div className={styles.buttonsForm}>
+                                    <SimpleButton typeButton="submit" textButton="Confirmar"  />
+                                    <SimpleButton textButton="Cancelar" onClickButton={handleGoBack} />
+                                </div>
+                            </form>
+                            
                         </div>
                     )
                 }

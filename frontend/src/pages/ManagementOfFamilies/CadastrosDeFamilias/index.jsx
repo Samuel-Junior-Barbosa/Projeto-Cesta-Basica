@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import LabelTitles from '/src/Components/LabelTitles';
 import SimpleButton from '/src/Components/SimpleButton';
-import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
+import TabelaCadastroDeItens from '/src/Components/TabelaCadastroDeItens';
 import { useNavigate } from 'react-router-dom';
 
 import styles from './CadastroDeFamilias.module.css';
@@ -111,7 +111,7 @@ const CadastrosDeFamilias = () => {
         tabelaRef.current.removerItensSelecionados();
     }
 
-    
+
     return (
 
         <div className={styles.CadastrosDeFamiliasDiv}>
@@ -131,7 +131,7 @@ const CadastrosDeFamilias = () => {
             </div>
 
             <div>
-                <TabelaListaDeProdutos
+                <TabelaCadastroDeItens
                     ref={tabelaRef}
                     nameClass={styles.tabelaCadastroFamilia}
                     listaDeItens={cadastroDeFamilias}

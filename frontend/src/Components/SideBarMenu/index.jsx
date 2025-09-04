@@ -52,9 +52,8 @@ const SideBarMenu = React.memo(() => {
             >
                 { currentUser && 
                     ((currentUser.role === 'operator' || currentUser.role === 'admin') && (
-                    <>
-                        <li className={styles.SideBarMenuListItem} >
-                            <Link to="/" exact="true" >
+                    <><li className={styles.SideBarMenuListItem} ><Link to="/" exact="true" >
+                        
                                 <abbr title="Pagina principal">
                                     <HomeIcon />
                                     <label> Home </label>
