@@ -5,6 +5,8 @@ import TabelaCadastroDeItens from '/src/Components/TabelaCadastroDeItens';
 import { useNavigate } from 'react-router-dom';
 
 import styles from './CadastroDeFamilias.module.css';
+import getFamilyData from '../../../Functions/Family/getFamilyData';
+import searchForFamily from '../../../Functions/Family/SearchForFamily';
 
 
 
@@ -12,22 +14,13 @@ import styles from './CadastroDeFamilias.module.css';
 const CadastrosDeFamilias = () => {
     const tabelaRef = useRef();
     const [ listarItensSelecionados, setListarItensSelecionados ] = useState(() => () => {});
-    const [ itemPesquisa, setItemPesquisa ] = useState();
+    const [ representativeName, setRepresentativeName ] = useState('');
     const navigate = useNavigate();
 
 
 
-    const cadastroDeFamilias = [
-        {
-            Representante: "Roberto da Silva Ribeiro Pinhais", Membros: 6, Cidade: "Ubatuba", Bairro: "Estufa II", Rua: "Rua madureira", "Numero Da Casa": "39",
-            Telefone: "(12) 9900-0000", Prioridade: "Alta", Congregação: "Estufa II",
-        },
-        {
-            Representante: "Marcela Ribeiro Da Penha Carneiro", Membros: 3, Cidade: "Ubatuba", Bairro: "Estufa II", Rua: "Rua Santa Cruz", "Numero Da Casa": "339",
-            Telefone: "(12) 91111-1111", Prioridade: "Media", Congregação: "Estufa II",
-        }
-
-    ]
+    const [ cadastroDeFamilias, setCadastroDeFamilias ] = useState([])
+    const [ registerList, setRegisterList ] = useState([])
 
     
     const goToPage = (url, states) => {
@@ -95,12 +88,37 @@ const CadastrosDeFamilias = () => {
     }
 
 
-    const handleSearchItem = () => {
+    const searchItemOnTable = (representativeRecive, column = "Representante", limit=-1) => {
+        async function search_function() {
+            //console.log("REPRESENTATIVE: ", representativeRecive, column)
+            const response = await searchForFamily(representativeRecive, column, limit)
+            //console.log("SEARCH RESPONSE: ", response)
+            if( response.status === 0 ) {
+                setCadastroDeFamilias(response.content)
+                //setRegisterList(response.content)
+            }
+        }
+        search_function()
+
+    }
+
+    const handleSearchFamily = () => {
         if( !tabelaRef.current ) {
             return
         }
 
-        tabelaRef.current.searchItemOnTable(itemPesquisa, 'Representante')
+        if( !representativeName ) {
+            setRepresentativeName("")
+        }
+
+        searchItemOnTable(representativeName, "Representante")
+        tabelaRef.current.updateData(cadastroDeFamilias)
+    }
+
+    const handleSearch = (key) => {
+        if( key == "Enter" ) {
+            handleSearchFamily()
+        }
     }
 
     const handleRemoveItemOnTable = () => {
@@ -111,7 +129,38 @@ const CadastrosDeFamilias = () => {
         tabelaRef.current.removerItensSelecionados();
     }
 
+    useEffect(() => {
+        //console.log("CADASTROS", cadastroDeFamilias)
+        async function get_family_data() {
+            const response = await getFamilyData()
+            setCadastroDeFamilias(response.content)
+        }
+        if( cadastroDeFamilias.length === 0) {
+            get_family_data()
+        }
+       
+        
+    }, [])
 
+    useEffect(() => {
+        if( !tabelaRef ) {
+            return
+        }
+
+        tabelaRef.current.updateData(cadastroDeFamilias)
+    }, [cadastroDeFamilias])
+
+    /*
+    useEffect(() => {
+        async function update_data() {
+            setRegisterList([])
+            setRegisterList(cadastroDeFamilias)            
+        }
+        if( (!registerList || !cadastroDeFamilias) && representativeName ) {
+            update_data()
+        }
+    })
+    */
     return (
 
         <div className={styles.CadastrosDeFamiliasDiv}>
@@ -121,10 +170,16 @@ const CadastrosDeFamilias = () => {
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Remover" onClickButton={handleRemoveItemOnTable} />
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar Cadastro" onClickButton={alterRegister} />
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Cadastro de prioridade" onClickButton={() => goToPage('/priority-registration')} />
-                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" onClickButton={handleSearchItem} />
+                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" onClickButton={handleSearchFamily} />
                 <input
                     className={styles.inputValue}
-                    onChange={(e) => {setItemPesquisa(e.target.value)}}
+                    value={representativeName}
+                    onChange={(e) => {
+                        setRepresentativeName(e.target.value.toUpperCase())
+                    }}
+                    onKeyDown={(e) => {
+                        handleSearch( e.key )
+                    }}
                     placeholder='Pesquisar por nome do representante'
                 />
                 

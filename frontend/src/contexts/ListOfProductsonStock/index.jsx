@@ -10,6 +10,7 @@ export const useListaDeItensNoBD = () => {
 
 export const ProductsDB = ({children}) => {
     // Lista para simular um banco de dados com itens cadastrados
+    /*
     const [ listaDeItensNoBD, setListaDeItensNoBD ] = useState(
         [
             {produto: 'Açucar 1kg', marca: 'generica', id: 'PDV0', quantidade: 3},
@@ -25,7 +26,8 @@ export const ProductsDB = ({children}) => {
             {produto: 'Óleo 1L', marca: 'generica', id: 'PDV10', quantidade: 7},
         ]
     );
-
+    */
+    const [ listaDeItensNoBD, setListaDeItensNoBD ] = useState([])
     return (
         <contextListaDeProdutosNoBD.Provider value={{listaDeItensNoBD}}>
             {children}

@@ -1,72 +1,38 @@
 import styles from './Login.module.css';
 import SimpleButton from '../../Components/SimpleButton';
-import { useAuthenticator } from '../../Components/hooks/Authenticator/useAuthenticator';
 import { useState, useEffect, useLayoutEffect } from 'react';
-import axios from 'axios';
 
 import SwitchProfiles from '../../Components/SwitchUsersLogin';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from '../../contexts/AuthenticateContext/AuthContext';
+import axios from 'axios';
 import { getCurrentUser, setCurrentUser } from "../../Components/hooks/Authenticator/auth";
+import { useAuth } from "../../contexts/AuthenticateContext/AuthContext"
+import { useAuthenticator } from "../../Components/hooks/Authenticator/useAuthenticator"
 
 const Login = () => {
-    const {handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorError } = useAuthenticator();
     const navigate = useNavigate();
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const { login } = useAuth();
-    
+    const { handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorError } = useAuthenticator()
+    const [currentUsername, setCurrentUsername] = useState('');
+    const [currentePassword, setCurrentPassword] = useState('');
+    const [userLogged, setUserLogged] = useState(false);
+    const { login } = useAuth()
 
-    useEffect(() => {
-        if(useAutenticatorAuthenticated === true) {
-            login();
-            const currentUser = getCurrentUser();
-
-            if( currentUser.role === 'admin') {
-                navigate('/home');
-            }   
-            else if( currentUser.role === 'operator' ) {
-                navigate('/input-and-output-baskets')
-            }
-            else if( currentUser.role === 'visit' ) {
-                navigate('/suporte')
-            }
-            else {
-                navigate('/login')
-            }
-            
-            
-        }
-    }, [useAutenticatorAuthenticated])
-
-    const authentication = async (username, password) => {
-        try {
-            const response = await axios.post("http://localhost:8080/authentication", {
-                username,
-                password,
-            });
-            return response.data.status;
-        } catch (error) {
-            console.error("Erro na autenticação:", error);
-            return "fail";
-        }
-    }
 
     const onSubmit = async (e) => {
         e.preventDefault();
         // Implementar uma logica de login
         let use = getUserName();
-        let pass = password;
-        console.log(`User: (${use}) -- Password: (${pass})`);
+        let pass = currentePassword;
 
         // Hook que "valida" o login do usuario
         //let returnOfLogin = handleLogin(use, pass);
-        let returnOfLogin = await authentication(use, pass)
-        if( returnOfLogin === 0) {
-            setCurrentUser(use)
-            const currentUser = getCurrentUser()
+        let returnOfLogin = await handleLogin(use, pass)
+
+        if( returnOfLogin === true ) {
             login()
+            const currentUser = getCurrentUser()
+    
             console.log("CurrentUser: ", currentUser, currentUser.role, use)
             if( currentUser.role === 'admin') {
                 navigate('/home');
@@ -87,16 +53,16 @@ const Login = () => {
     }
 
     const getUserName = () => {
-        //let userName = window.document.querySelector(`select.selectCurrentUser`);
+        //let userName = window.document.querySelector(`select.selectCurrentUser`).value;
         let userName = localStorage.getItem("userSelected")
         userName = String(userName);
-        setUsername(userName);
+        setCurrentUsername(userName);
         return userName;
     }
     
     const clearUsername = () => {
         localStorage.setItem("userSelected", "")
-        setUsername("")
+        setCurrentUsername("")
         
     }
     
@@ -109,10 +75,10 @@ const Login = () => {
             <input
                 type="password"
                 className={`${styles.inputPassword}`}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setCurrentPassword(e.target.value)}
             />
             <SimpleButton onClickButton={onSubmit} textButton="Entrar" />
-            {useAutenticatorError && <p> {useAutenticatorError} </p>}
+            { useAutenticatorError && <p> {useAutenticatorError} </p>}
         </form>
     );
 }

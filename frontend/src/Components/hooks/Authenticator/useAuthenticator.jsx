@@ -11,26 +11,30 @@ export function useAuthenticator() {
     const handleLogin = async (username, password) => {
         useAutenticatorSetLoading(true);
         useAutenticatorSetError(null);
-
+        let response = null
         try {
-            const response = await authenticator(username, password);
+            response = await authenticator(username, password);
             if (response === true) {
                 useAutenticatorSetAuthenticated(true)
                 useAutenticatorSetError('Logado com sucesso');
                 useAutenticatorSetLoading(false);
-    
+                return response
             }
             else {
-                useAutenticatorSetError(response.message)
+                useAutenticatorSetAuthenticated(false)
+                useAutenticatorSetError(`${response.message}`)
+                useAutenticatorSetLoading(false);
             }
             
             
         } catch (err) {
-            useAutenticatorSetError(err.message);
+            useAutenticatorSetAuthenticated(false)
+                useAutenticatorSetError(`${err.message}`)
+                useAutenticatorSetLoading(false);
             
         } finally {
             useAutenticatorSetLoading(false);
-            
+            return response
         } 
     }
 

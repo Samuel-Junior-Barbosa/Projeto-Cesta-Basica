@@ -311,6 +311,7 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         return
     }, [])
 
+    /*
     const searchItemOnTable = useCallback((nameItem, column) => {
         //console.log('pesquisando na tabela: nameItem: ', nameItem, ' column: ', column)
         if( !nameItem ) {
@@ -347,6 +348,7 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         return;
 
     }, [listaDeItens])
+    */
 
     const updateTable = useCallback(() => {
         //console.log('itens: ', itens)
@@ -359,6 +361,9 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         }
     }, [itens, editableCel, columnsTemplate])
 
+    const updateData = (item_list) => {
+        setItens(item_list)
+    }
 
     useEffect(() => {
         let classN = `${styles.ListaDeItensCadastrados} ${nameClass}`;
@@ -408,7 +413,7 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
             getTableBody,
             LineBreakForLabel,
             removerItensSelecionados,
-            searchItemOnTable,
+            updateData
         };
     }, []);
 
@@ -420,7 +425,7 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
                 <table className={`${styles.ListaDeItensCadastrados} ${nameClass}`}>
                     <thead>
                         <tr className={styles.linhaTabela}>
-                            { listaDeItens && (
+                            { ( Array.isArray(listaDeItens) && listaDeItens.length > 0 ) && (
                                 <th className={styles.LabelListProdutos}>
                                     <input
                                         onChange={selecionarTudoCheckbox}
@@ -430,7 +435,7 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
                                     />
                                 </th>
                             )}
-                            { listaDeItens && (
+                            { ( Array.isArray(listaDeItens) && listaDeItens.length > 0 ) && (
                                 (Object.keys(listaDeItens[0])).map((item, index) => (
                                 <th
                                     key={index}
@@ -444,7 +449,7 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
                         </tr>
                     </thead>
                     <tbody>
-                        {itens.length > 0 ? (
+                         { ( Array.isArray(itens) && itens.length > 0 ) ? (
                             itens.map((item, index) => (
                             <tr 
                                 key={index}

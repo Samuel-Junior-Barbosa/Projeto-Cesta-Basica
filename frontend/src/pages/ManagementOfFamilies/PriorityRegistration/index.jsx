@@ -1,5 +1,4 @@
-import React, { useRef } from 'react';
-import { useState } from 'react-dom';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -8,17 +7,14 @@ import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 import LabelTitles from '/src/Components/LabelTitles';
 
 import styles from './PriorityRegistration.module.css';
+import getPriorityRegistration from '../../../Functions/Family/GetPriorityRegistration/Index';
 
 
 
 const PriorityRegistration = () => {
     const tabelaRef = useRef();
     const navigate = useNavigate();
-    const priorityList = [
-        { Prioridade : 'Alta', Descricao: 'A familia precisa com antecedência', Nivel: 2},
-        { Prioridade : 'Media', Descricao: 'A familia tem uma condição de atenção', Nivel: 1},
-        { Prioridade : 'Baixa', Descricao: 'A familia tem uma condição de menos urgência', Nivel: 0},
-    ]
+    const [ priorityList, setPriorityList ] = useState([])
 
     
 
@@ -36,11 +32,11 @@ const PriorityRegistration = () => {
         navigate(-1);
     }
 
-    const handleAlterPriority = () => {
+    const handleAlterPriority = async () => {
         if(!tabelaRef.current) {
             return
         }
-        const itensSelecionados = tabelaRef.current.listarElementosSelecionados()
+        const itensSelecionados = await tabelaRef.current.listarElementosSelecionados()
         if( itensSelecionados.length > 1 || itensSelecionados.length < 1) {
             alert('selecione somente 1 item')
             return
@@ -64,6 +60,16 @@ const PriorityRegistration = () => {
 
         tabelaRef.current.removerItensSelecionados()
     }
+
+    const get_priority_data = async() => {
+        const response = await getPriorityRegistration()
+        setPriorityList(response.content)
+        return response
+    }
+
+    useEffect(() => {
+        get_priority_data()
+    }, [])
 
     return(
         <div className={styles.priorityRegistrationDiv}>

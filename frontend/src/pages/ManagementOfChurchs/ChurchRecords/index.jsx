@@ -2,9 +2,12 @@
 import LabelTitles from '/src/Components/LabelTitles';
 import SimpleButton from '/src/Components/SimpleButton';
 import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
-import { useNavigate } from 'react-router-dom';
+import { data, useNavigate } from 'react-router-dom';
 import styles from './ChurchRecords.module.css';
 import { useEffect, useRef, useState } from 'react';
+import getChurchData from '../../../Functions/Church/GetChurchData';
+import searchForChurch from '../../../Functions/Church/SearchForChurch';
+import getChurchGoalsList from '../../../Functions/Church/GetGoalsList';
 
 const ChurchRecords = () => {
     const [ dataListChurches, setDataListChurches ] = useState();
@@ -15,29 +18,7 @@ const ChurchRecords = () => {
     const navigate = useNavigate();
     const tabelaRef = useRef();
 
-    const cadastrosDeIgrejas = [
-        {
-            Nome: "Assembleia de Deus ministerios de Santos Estufa II",
-            Representante: "Fulano de Tal",
-            Membros: 150,
-            Cidade: "Ubatuba",
-            Bairro: "Estufa II",
-            Rua: "Rua Sicrano da silva",
-            Numero: "39",
-            "Meta Mensal": 'Pendente',
-        },
-        {
-            Nome: "Assembleia de Deus ministerios de Santos Estufa I",
-            Representante: "Sicrano da Silva",
-            Membros: 100,
-            Cidade: "Ubatuba",
-            Bairro: "Estufa I",
-            Rua: "Rua Filado da silva",
-            Numero: "13",
-            "Meta Mensal": 'Concluida',
-        },
-            
-    ]
+    const [ cadastrosDeIgrejas, setCadastrosDeIgrejas ] = useState([])
     
     const goToPage = (url) => {
         if (url) {
@@ -45,25 +26,32 @@ const ChurchRecords = () => {
         }
     }
 
-    const existOneItemSelected = () => {
+    const existOneItemSelected = async () => {
+        //console.log("existe itens selecionados?...")
         if( !tabelaRef.current ) {
             return
         }
 
 
-        const itensSelecionados = tabelaRef.current.listarItensSelecionados()
+        const itensSelecionados = await tabelaRef.current.listarItensSelecionados()
         if( itensSelecionados.length > 1 || itensSelecionados.length < 1) {
+            //console.log("NÃO")
             return false;
         }
+        if( itensSelecionados.length === 0 ) {
+            console.log("NÃO")
+            return false
+        }
+        //console.log("SIM")
         return true
     }
 
-    const alterChurch = () => {
+    const alterChurch = async () => {
         if( !tabelaRef.current ) {
             return
         }
 
-        if(!existOneItemSelected() ) {
+        if( await existOneItemSelected() === false ) {
             alert('Só é possivel alterar 1 igreja por vez');
             return
         }
@@ -93,72 +81,76 @@ const ChurchRecords = () => {
                                                 }})
     }
 
-    const listGoals = () => {
+    const listGoals = async () => {
         if( !tabelaRef.current ) {
             return
         }
 
-        if( !existOneItemSelected() ) {
+        if( await existOneItemSelected() === false ) {
             alert('Só é possivel alterar 1 igreja por vez');
             return
         }
 
-        const itensSelecionados = tabelaRef.current.listarElementosSelecionados();
+        async function getTableLines() {
+            const response = await tabelaRef.current.listarElementosSelecionados();
+            return response
+        }
 
+        const itensSelecionados = await getTableLines()
+
+        //console.log("itensSelecionados", itensSelecionados)
         let churchName = itensSelecionados[0].childNodes[1].innerText;
         let representative = itensSelecionados[0].childNodes[2].innerText;
         
 
         // Implementar uma logica de requisição ao banco de dados
         // Para resgatar as metas das igrejas.
-        const getGoals = [
-                {
-                    produto : "Macarrao 150g",
-                    id: 'PDV6',
-                    quantidade: '6',
-                }, {
-                    produto : "Arroz 5kg",
-                    id: 'PDV1',
-                    quantidade: '10',
-                }, {
-                    produto : "feijão 1kg",
-                    id: 'PDV2',
-                    quantidade: '15',
-                }, {
-                    produto : "Oleo 1l",
-                    id: 'PDV10',
-                    quantidade: '5',
-                }, {
-                    produto : "Café 250g",
-                    id: 'PDV5',
-                    quantidade: '10',
-                }, {
-                    produto : "Açucar 1kg",
-                    id: 'PDV0',
-                    quantidade: '10',
-                }
-        ]
+        const response = await getChurchGoalsList()
+        const getGoals = response.content
 
         navigate('/metas', {state : {churchName: churchName, representative: representative, listaDeMetas : getGoals}})
     }
 
-    const handleSetSearchItem = (item) => {
-        //console.log('handleSetSearchItem: ', item)
-        setSearchItem(item)
+    const handleSetSearchItem = ( value ) => {
+        value = value.toUpperCase()
+        setSearchItem(value)
+    }
+
+    const handleSearchInput = ( keypressed ) => {
+        if( keypressed === "Enter" ) {
+            handleSearchChurch()
+        }
+    }
+    const searchItemOnTable = (itemName, column, limit=-1) => {
+        async function search_function() {
+            
+            const response = await searchForChurch(itemName, column, limit)
+            console.log("SEARCH RESPONSE: ", response)
+            if( response.status === 0 ) {
+                setCadastrosDeIgrejas(response.content)
+                setDataListChurches(response.content)
+                //setItens(response.content)
+                return response.content
+            }
+        }
+        const response = search_function()
+        return response
     }
 
     const handleSearchChurch = () => {
         if( !tabelaRef.current ) {
             return
         }
-        //console.log('handleSearchChurch: ', searchItem)
-        /*
+        
+        
         if( !searchItem ) {
-            alert('Nenhum nome inserido')
+            setSearchItem("")
         }
-        */
-
-        tabelaRef.current.searchItemOnTable(searchItem, 'Nome');
+        
+        const response = searchItemOnTable(searchItem, "Nome")
+        //console.log('handleSearchChurch: ', searchItem)
+        //tabelaRef.current.searchItemOnTable(searchItem, 'Nome');
+        tabelaRef.current.updateItens(response.content)
     }
     
     const handleRemoveItemOnTable = () => {
@@ -177,9 +169,16 @@ const ChurchRecords = () => {
 
 
     useEffect(() => {
-        if( cadastrosDeIgrejas ) {
-            setDataListChurches(cadastrosDeIgrejas)
+        async function get_data() {
+            const response = await getChurchData()
+            setCadastrosDeIgrejas(response.content)
+            setDataListChurches(response.content)
         }
+
+        if( cadastrosDeIgrejas.length === 0 ) {
+            get_data()
+        }
+        
         
     }, [])
 
@@ -197,7 +196,13 @@ const ChurchRecords = () => {
                 <input
                     className={styles.inputValue}
                     placeholder='Pesquisar a igreja pelo nome'
-                    onChange={(e) => handleSetSearchItem(e.target.value)}
+                    value={searchItem}
+                    onChange={(e) => {
+                        handleSetSearchItem(e.target.value)
+                    }}
+                    onKeyDown={(e) =>{
+                        handleSearchInput(e.key)
+                    }}
 
                 />
             </div>

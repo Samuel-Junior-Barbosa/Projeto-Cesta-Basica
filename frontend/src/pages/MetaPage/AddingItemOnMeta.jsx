@@ -3,20 +3,16 @@ import styles from './AddingItemOnMeta.module.css'
 import LabelTitles from '../../Components/LabelTitles';
 import SimpleButton from '../../Components/SimpleButton';
 
-const AddingItemOnMeta = (iframeAddItem) => {
+const AddingItemOnMeta = ({setIframeAddItem}) => {
 
     const handleAddItemOnMeta = (e) => {
         e.preventDefault()
         alert('item adicionado')
-        if( iframeAddItem ) {
-            iframeAddItem.setIframeAddItem(false)
-        }
+        setIframeAddItem(false)
     }
 
     const handleCancelAddingItem = () => {
-        if( iframeAddItem ) {
-            iframeAddItem.setIframeAddItem(false)
-        }
+        setIframeAddItem(false)
         
     }
 

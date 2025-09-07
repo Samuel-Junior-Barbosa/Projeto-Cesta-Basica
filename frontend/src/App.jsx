@@ -65,7 +65,6 @@ const App = () => {
 
         <ThemeProvider>
         <AuthProvider>
-        <ProductsDB>
           <Router>
             <Routes>
 
@@ -124,7 +123,6 @@ const App = () => {
             </Routes>
           </Router>
 
-        </ProductsDB>
         </AuthProvider>
         </ThemeProvider>
 

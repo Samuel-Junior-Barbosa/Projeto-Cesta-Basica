@@ -14,6 +14,7 @@ import { useListaDeItensNoBD } from '/src/contexts/ListOfProductsonStock';
 import { useBasketOutput } from '../../../Components/hooks/ManageBasicFoodBaskets/BasketOutput/useBasketOutput';
 import { useBasketInput } from '../../../Components/hooks/ManageBasicFoodBaskets/BasketInput/useBasketInput';
 import { element } from 'prop-types';
+import get_stock_itens from '../../../Functions/Stock/GetStockItens';
 
 const IOBaskets = () => {
     const tabelaRef = useRef();
@@ -26,7 +27,7 @@ const IOBaskets = () => {
     const { handleBasketOutput, useBasketOutputWithdrawal, useBasketOutputLoading, useBasketOutputMessage } = useBasketOutput();
     const { handleBasketInput, useBasketInputWithdrawal, useBasketInputLoading, useBasketInputMessage } = useBasketInput();
 
-    const { listaDeItensNoBD } = useListaDeItensNoBD();
+    const [ listaDeItensNoBD, setListaDeItensNoBD ] = useState([])
     const [ maxQuantityPerItem, setMaxQuantityPerItem ] = useState(0);
     const [ dataBasicFoodBasket, setDataBasicFoodBasket ] = useState();
     const [ basketWithdrawQuantity, setBasketWithdrawQuantity ] = useState('');
@@ -63,13 +64,16 @@ const IOBaskets = () => {
         setDonorsName( name )
     }
 
+
     const handleCongregationName = ( name ) => {
         setCongregationName( name )
     }
 
+
     const handleInputAddress = ( address ) => {
         setInputAddress( address )
     }
+
 
     const handleObservationInput = ( value ) => {
         setObservationInput( value )
@@ -80,10 +84,10 @@ const IOBaskets = () => {
         setWhoRecivedBasicBasketFood( value )
     }
     
+
     const handleFamilyRepresentative = ( value ) => {
         setFamilyRepresentative( value )
     }
-    
     
     
 
@@ -243,6 +247,7 @@ const IOBaskets = () => {
         }
     }, [tabelaRef])
 
+    /*
     const queryDataOnDB = () => {
         let data = {
 
@@ -263,6 +268,16 @@ const IOBaskets = () => {
 
         return data;
     };
+    */
+
+    const queryDataOnDB = () => {
+        async function get_data_on_db() {
+            const response = await get_stock_itens()
+            return response
+        }
+
+        return get_data_on_db()
+    }
 
     const confirmWithdrawItens = useCallback(() => {
         if( !tabelaRef ) {
@@ -514,6 +529,15 @@ const IOBaskets = () => {
         setTypeOfAction(typeAction);
     }, [])
 
+    useEffect(() => {
+        async function get_data_on_db() {
+            const response = await get_stock_itens()
+            setListaDeItensNoBD( response.content )
+        }
+        if( listaDeItensNoBD.length === 0 ) {
+                get_data_on_db()
+            }
+    }, [])
 
     // Depois de receber informações da pagina de historico,
     // Seleciona os itens recebidos conforme seus IDs
@@ -746,7 +770,7 @@ const IOBaskets = () => {
                                 </div>
                             </div>
                             {/* Lista de produtos para entrar */}
-                            { ( congregationName || ( donorsName && inputAddress )) && (
+                            { ( congregationName || ( inputAddress )) && (
                                     <div className={styles.divInputListProducts}>
                                         <TabelaListaDeProdutos
                                             ref={tabelaRef}

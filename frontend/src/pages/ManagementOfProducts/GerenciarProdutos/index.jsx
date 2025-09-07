@@ -1,9 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import SimpleButton from '/src/Components/SimpleButton';
 import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 import LabelTitles from '/src/Components/LabelTitles';
+import get_stock_itens from '../../../Functions/Stock/GetStockItens';
+import searchOnStock from '../../../Functions/Stock/SearchOnStock';
 
 // Hooks
 import { useSearchOnDB } from '/src/Components/hooks/GerenciarProdutos/PesquisarProdutos/useSearchOnBD'
@@ -11,8 +13,10 @@ import { useRemoveProduct } from '/src/Components/hooks/GerenciarProdutos/Remove
 
 // Styles
 import styles from './GerenciarProdutos.module.css';
+import { func } from 'prop-types';
 
-const  GerenciarProdutos = () => {
+
+const GerenciarProdutos = () => {
     const tabelaRef = useRef();
     const navigate = useNavigate();
 
@@ -22,27 +26,14 @@ const  GerenciarProdutos = () => {
     // -------------------
     
     const [itemPesquisa, setItemPesquisa] = useState('');
+    const [listaDeItens, setListaDeItens] = useState([]);
 
     const [itens, setItens] = useState([]);
+
     // Estado para armazenar o novo item que será adicionado
-    const [novoItem, setNovoItem] = useState("");
-  
-    // Lista para simular um banco de dados com itens cadastrados
-    
-    const listaDeItens = [
-        {produto: 'Açucar 1kg', marca: 'generica', id: 'PD0', quantidade: 1},
-        {produto: 'Arroz 5kg', marca: 'generica', id: 'PD1', quantidade: 1},
-        {produto: 'Feijão 1kg',marca: 'generica', id: 'PD2', quantidade: 1},
-        {produto: 'Manteiga 500g', marca: 'generica', id: 'PD3', quantidade: 1},
-        {produto: 'Abobora conservada em lata com a marca TAL DA SILVA com 5kg e Valido até amanhã', marca: 'teste de nome gigante generica marca', id: 'PD4', quantidade: 1},
-        {produto: 'Leite 5L', marca: 'generica', id: 'PD5', quantidade: 1},
-        {produto: "Macarrão", marca: 'generica', id: 'PD6', quantidade: 1},
-        {produto: 'café 500g', marca: 'generica', id: 'PD7', quantidade: 1},
-        {produto: 'café 250g',marca: 'generica', id: 'PD8', quantidade: 1},
-        {produto: 'pão sovado', marca: 'generica', id: 'PD9', quantidade: 1},
-    ]
-    
-    
+    const [novoItem, setNovoItem] = useState([]);
+
+
     // Função que adiciona o novo item à lista
     const adicionarItem = () => {
         if (novoItem.trim()) { // Verifica se o campo não está vazio
@@ -56,10 +47,7 @@ const  GerenciarProdutos = () => {
        navigate('/registrar-produtos')
     }
 
-    listaDeItens.map((item, index) => {
-        itens.push(item)
-    })
-
+    
     // Lista os itens marcados como selecionados na tabela de produtos
     const listarItensSelecionados = () => {
         const itensSelecionados = document.querySelectorAll('table > tbody > tr > td > input:checked');
@@ -89,20 +77,45 @@ const  GerenciarProdutos = () => {
             handleRemoveProduct(idDoProdutoAtual)
         }
     }
-    
+
+
+    const handlerSetItemPesquisa = ( key ) => {
+        setItemPesquisa(key.toUpperCase())
+    }
+
+
+    const handleSearchInput = (keypressed) => {
+        if( keypressed === "Enter" ) {
+            pesquisarItem()
+        }
+    }
+
+
+    const searchItemOnTable = (itemName, column, limit=-1) => {
+        async function search_function() {
+            
+            const response = await searchOnStock(itemName, column, limit)
+            //console.log("SEARCH RESPONSE: ", response)
+            if( response.status === 0 ) {
+                setListaDeItens(response.content)
+                setItens(response.content)
+                return response
+            }
+        }
+        const response = search_function()
+        return response
+    }
+
     const pesquisarItem = () => {
         if( !tabelaRef.current ) {
             return;
         }
-
+        
         if( !itemPesquisa ) {
-            return;
+            setItemPesquisa("")
         }
-        
-        //handleSearchOnDB(itemPesquisa);
-        
-        console.log('(GerenciarProdutos) itemPesquisa: ', itemPesquisa);
-        tabelaRef.current.searchItemOnTable(itemPesquisa, 'produto');
+        const response = searchItemOnTable(itemPesquisa, 'produto')
+        tabelaRef.current.updateItens(response.content);
 
     }
 
@@ -126,6 +139,32 @@ const  GerenciarProdutos = () => {
     };
 
 
+    //Atualiza a lista de produtos na tela
+    useEffect(() => {
+        async function get_stock() {
+            const response = await get_stock_itens()
+            setListaDeItens(response.content)
+        }
+        
+        if( listaDeItens.length === 0 ) {
+            get_stock();
+        }
+
+
+        
+    }, []);
+    
+    useEffect(() => {
+        async function update_itens () {
+           setItens([])
+           setItens(listaDeItens)
+        }
+
+        if( (!itens || !listaDeItens) && itemPesquisa === "") {
+            update_itens()
+        }
+        
+    }, [listaDeItens, itens]);
 
     return (
         <div className={styles.GerenciarProdutosDiv}>
@@ -143,16 +182,24 @@ const  GerenciarProdutos = () => {
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" onClickButton={pesquisarItem} />
                 <input
                     className={styles.inputValue}
-                    onChange={(e) => {setItemPesquisa(e.target.value)}}
+                    value={itemPesquisa}
+                    onChange={(e) => {
+                        handlerSetItemPesquisa(e.target.value)
+                    }}
                     placeholder='Pesquisar o item pelo nome'
+                    onKeyDown={(e) => {
+                        handleSearchInput(e.key)
+                    }}
                 />
                 
             </div>
-        
+            
+                                    
             <TabelaListaDeProdutos 
                 listaDeItens={listaDeItens}
                 ref={tabelaRef}
             />
+
             
         </div>
     );

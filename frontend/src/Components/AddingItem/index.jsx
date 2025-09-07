@@ -3,21 +3,18 @@ import styles from './AddingItem.module.css'
 import LabelTitles from '../../Components/LabelTitles';
 import SimpleButton from '../../Components/SimpleButton';
 
-const AddingItem = (iframeAddItem) => {
+const AddingItem = ({iframeAddItem, setAddingItemOnList}) => {
 
     const handleAddItemOnMeta = (e) => {
         e.preventDefault()
         alert('item adicionado')
-        if( iframeAddItem ) {
-            iframeAddItem.setIframeAddItem(false)
-        }
+        
+        setAddingItemOnList(false)
+        
     }
 
     const handleCancelAddingItem = () => {
-        if( iframeAddItem ) {
-            iframeAddItem.setIframeAddItem(false)
-        }
-        
+        setAddingItemOnList(false)
     }
 
     return (
@@ -56,7 +53,9 @@ const AddingItem = (iframeAddItem) => {
                     <SimpleButton 
                         textButton="Cancelar"
                         typeButton="button"
-                        onClickButton={handleCancelAddingItem}
+                        onClickButton={
+                            handleCancelAddingItem
+                        }
                     />
 
                 </form>

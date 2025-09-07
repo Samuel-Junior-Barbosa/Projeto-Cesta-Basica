@@ -1,14 +1,13 @@
+import axios from "axios";
 
-export const users = [
-    { username: "Admin", password: "admin", role: "admin" },
-    { username: "Operador", password: "operador", role: "operator"},
-    { username: "Visitante", password: "visitante", role: "visit"},
-]
+//esse trecho simula um pequeno banco de dados
 
 export async function authenticator(username, password) {
-    const user = users.find( u => u.username === username && u.password === password);
-    if( user ) {
-        //localStorage.setItem("user", JSON.stringify(user));
+    //Essa linha simula um retorno de uma api com validação
+    //const user = users.find( u => u.username === username && u.password === password);
+    const users = await axios.post("http://localhost:8080/authentication", {username, password})
+    if( users.data.status === 0) {
+        setCurrentUser(users.data.credential)
         localStorage.setItem("isAuthenticated", "true")
         return true;
     }
@@ -18,11 +17,9 @@ export async function authenticator(username, password) {
    
 }
 
-export function setCurrentUser(username) {
-    console.log("Setting current user")
-    const user = users.find( u => u.username === username);
-    if( user ) {
-        localStorage.setItem("user", JSON.stringify(user));
+export function setCurrentUser(credential) {
+    if( credential ) {
+        localStorage.setItem("user", JSON.stringify(credential));
         return true
     }
     
