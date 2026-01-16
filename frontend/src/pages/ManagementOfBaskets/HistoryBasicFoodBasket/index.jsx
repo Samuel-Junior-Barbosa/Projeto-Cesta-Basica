@@ -1,10 +1,11 @@
 
 // ----- Modules do NPM ---------
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import TabelaListaDeProdutos from '../../../Components/TabelaListaDeProdutos';
-// ------------------------------
+
 
 // ----- Modulos internos -------
+import GetHistoryBasketModelsData from '../../../Functions/Basket/GetHistoryModelData';
+import TabelaListaDeProdutos from '../../../Components/TabelaListaDeProdutos';
 import SimpleButton from '/src/Components/SimpleButton';
 import LabelTitles from '/src/Components/LabelTitles';
 // ------------------------------
@@ -12,75 +13,44 @@ import LabelTitles from '/src/Components/LabelTitles';
 // ----- Estilos ----------------
 import styles from './HistoryBasicFoodBasket.module.css';
 import { data, useLocation, useNavigate } from 'react-router-dom';
+import GetHistoryBasketModel from '../../../Functions/Basket/GetHistoryBasketModel';
 // ------------------------------
 
 const HistoryBasicFoodBasket = () => {
     const tabelaRef = useRef();
     const navigate = useNavigate();
+    
     // -------------------------------------------------------------
 
-    const [ historicoDeCestas, setHistoricoDeCesta ] = useState(null);
-    const [ listarItensSelecionados, setListarItensSelecionados ] = useState(null);
+    const [ dataRecived, setDataRecived ] = useState(null)
+    const [ historicoDeCestas, setHistoricoDeCesta ] = useState([]);
+    const [ listarItensSelecionados, setListarItensSelecionados ] = useState([]);
 
     // --------- Funções ---------------------------------------
-
+    
     const testRef = useCallback((node) => {
         if( node !== null) {
             tabelaRef.current = node;    
         }
     }, [tabelaRef])
 
-    const queryDataForDB = useCallback(() => {
-        let data;
-        data = [
-            {
-                data: '01/01/2025',
-                destino: 'Congregação do Itaguá',
-                enderecoDeDestino: 'R. Criada agora, N16',
-                itensDaCesta: JSON.stringify([{
-                                            produto: 'Arroz 5kg', id: "PDV1", quantidade: 1, 
-                                        },{
-                                            produto: 'Feijão 1kg', id: "PDV2", quantidade: 3, 
-                                        }, {
-                                            produto: 'Óleo 1L', id: "PDV10", quantidade: 1, 
-                                        }, {
-                                            produto: 'Macarrão 150g', id: "PDV6", quantidade: 4
-                                        }
-                ]),
-                quemRetirou: 'Fulano da silva',
 
-            },
-            {
-                data: '06/02/2025',
-                destino: 'Congregação do Estufa 2',
-                enderecoDeDestino: 'R. Rua teste, N32',
-                itensDaCesta: JSON.stringify([{
-                                        produto: 'Açucar 1kg', id: "PDV0", quantidade: 1,
-                                    },{
-                                        produto: 'Pão Sovado', id: "PDV9", quantidade: 3, 
-                                    }, {
-                                        produto: 'Café 500g', id: "PDV7", quantidade: 1, 
-                                    }, {
-                                        produto: 'Macarrão 150g', id: "PDV6", quantidade: 4
-                                    }
-                                ]),
-                quemRetirou: 'Sicrano de Oliveira',
-            },
+    const getHistoryModelDataFunction = async () => {
+        //console.log("RESPONSING... ")
+        const response = await GetHistoryBasketModelsData()
+        //console.log("RESPONSE : ", response)
+        setHistoricoDeCesta(response.content)
+        reciveDataHistory(response.content)
+    }
 
-        ]
-
-        return data;
-    }, [])
-
-    const reciveDataHistory = useCallback(() => {
+    const reciveDataHistory = (dataRecived) => {
         let dataHistory;
 
-        dataHistory = queryDataForDB();
+        dataHistory = dataRecived
         if( dataHistory ) {
             if( dataHistory.length < 1 ) {
                 return new Error(' Ocorreu um erro ao receber dados para o banco de dados')
             }
-
         }
         else {
             return new Error(' Ocorreu um erro ao receber dados para o banco de dados')
@@ -89,34 +59,33 @@ const HistoryBasicFoodBasket = () => {
         let itensDaCesta
         for( let I = 0; I < dataHistory.length; I ++ ) {
             let labelListProdutos = '';
-            itensDaCesta = JSON.parse(dataHistory[I].itensDaCesta);
-
+            itensDaCesta = dataHistory[I].itensDaCesta;
             for( let II = 0; II < itensDaCesta.length; II ++ ) {
                 labelListProdutos += `[ Produto: ${itensDaCesta[II].produto}; ID: ${itensDaCesta[II].id}; Quant.: ${itensDaCesta[II].quantidade} ]\n`
             }
-
+            
             if( !tabelaRef.current ) {
                 dataHistory[I].itensDaCesta = labelListProdutos
             }
             else {
-                
                 dataHistory[I].itensDaCesta = tabelaRef.current.LineBreakForLabel(labelListProdutos)
             }
-
+            
+            
         }
-        
+        //console.log("DATA-HISTORY: ", dataHistory)
         return dataHistory;
 
-    }, [tabelaRef])
+    }
 
 
-    const returnStringToJson = useCallback((stringToFormating) => {
+    const returnStringToJson = (stringToFormating) => {
         let tmp_formating = stringToFormating;
         //console.log('string: ', stringToFormating)
 
-        tmp_formating = tmp_formating.trim()        
-
-        tmp_formating = tmp_formating.split('] [')
+        tmp_formating = tmp_formating.trim()
+        tmp_formating = tmp_formating.replaceAll('\n\n', '')
+        tmp_formating = tmp_formating.split('][')
         
         let tmp_formating2 = [];
         let tmp_formating3 = {};
@@ -149,24 +118,17 @@ const HistoryBasicFoodBasket = () => {
         //console.log('tmp_formating: ', tmp_formating, ' tmp_formating2: ', tmp_formating2)
         return tmp_formating
 
-    }, [])
+    }
 
-    const selectThisBasket = useCallback(() => {
-        
-        if( tabelaRef ) {
-            if( tabelaRef.current.length === 0) {
-                return [];
-            }   
+    const selectThisBasket = async () => {
+        if( !tabelaRef.current ) {
+            return []
         }
         
-        else {
-            return [];
-        }
-
-
+        tabelaRef.current.updateItens(historicoDeCestas)
         let inputsProdutosSelecionados = tabelaRef.current.listarItensSelecionados();
-
-        if( inputsProdutosSelecionados) {
+        //console.log("inputsReturns ", inputsProdutosSelecionados, inputsProdutosSelecionados[0])
+        if( (inputsProdutosSelecionados && inputsProdutosSelecionados[0]) ) {
             if( inputsProdutosSelecionados.length > 1 || inputsProdutosSelecionados.length < 1) {
                 alert('Selecione apenas 1 item do historio por vez')
                 return;
@@ -175,48 +137,35 @@ const HistoryBasicFoodBasket = () => {
         else {
             return;
         }
+        const idHistoryModel = String(inputsProdutosSelecionados[0].id)
+    
 
-        let produtos = [];
-        let tmp_produto;
-        let tmp_id;
-        let tmp_quantidade;
-        let formatingLabelReturned;
-        
-        formatingLabelReturned = returnStringToJson(inputsProdutosSelecionados[0].itensDaCesta)
-        for( let I = 0; I < formatingLabelReturned.length; I ++ ) {
-            tmp_produto = formatingLabelReturned[I].produto;
-            tmp_id = formatingLabelReturned[I].id;
-            tmp_quantidade = formatingLabelReturned[I].quantidade;
-            produtos.push({
-                produto: tmp_produto,
-                id: tmp_id,
-                quantidade: tmp_quantidade,
-            })
+        //console.log('idHistoryModel: ', idHistoryModel)
+        localStorage.setItem("modelLoaded", false)
+        navigate('/input-and-output-baskets', { state: { typeAction: 'Saida', dataOfBasket: '', dataProdutosRecived: [], idHistoryModel : idHistoryModel}});
+    };
     
-        }
-        
-        //console.log('Produtos: ', produtos)
-        navigate('/input-and-output-baskets', { state: { typeAction: 'Saida', dataOfBasket: '', dataProdutosRecived: produtos}});
-    }, [tabelaRef]);
-    
-    const handleGoBack = useCallback(() => {
+    const handleGoBack = () => {
         navigate(-1);
-    }, []);
+    };
 
     // ------------------------------------------------------
 
-    useLayoutEffect(() => {
-        const dataRecived = reciveDataHistory()
-        setHistoricoDeCesta(dataRecived);
+    useEffect(() => {
         
-    }, [tabelaRef])
-    
-    useLayoutEffect(() => {
-        setTimeout(() => {
-            setListarItensSelecionados(() => tabelaRef.current.listarItensSelecionados);
-        }, 10)
-    }, [tabelaRef])
+        //console.log('data: ', historicoDeCestas)
+
+        if( Array.isArray( historicoDeCestas ) ) {
+            if( historicoDeCestas.length === 0 ) {
+                getHistoryModelDataFunction()
+                //console.log('historicoDeCestas: ', historicoDeCestas)
+            }
+        }
         
+        
+        
+    }, [historicoDeCestas])
+
 
     return(
         
@@ -227,17 +176,13 @@ const HistoryBasicFoodBasket = () => {
                 <SimpleButton textButton='Voltar' onClickButton={handleGoBack} />
             </div>
             <div>
-                
-                { historicoDeCestas && (
-                    <TabelaListaDeProdutos
-                        ref={tabelaRef}
-                        nameClass={styles.historyTableOfBaskets}
-                        listaDeItens={historicoDeCestas}
-                        lengthColumns={'1fr 1fr 1fr 3fr 1fr'}
-                    />
+                <TabelaListaDeProdutos
+                    ref={tabelaRef}
+                    nameClass={styles.historyTableOfBaskets}
+                    listaDeItens={historicoDeCestas}
+                    lengthColumns={'1fr 1fr 1fr 1fr 3fr 1fr'}
+                />
 
-                )}
-                
             </div>
         </div>
     );

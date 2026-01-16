@@ -13,7 +13,6 @@
 
 table, th ,td {
     border: 2px solid var(--bg-page1);
-    
     padding: 10px;
     width: 100%;
     margin: 0px;
@@ -42,13 +41,20 @@ table {
     border-radius: 20px;
     color: var(--color-font);
     font-size: 0.8rem;
+    
+
+    & > tbody > tr {
+        width: 100%;
+        min-width: 50%;
+    }
 
     & > tbody > tr > td {
         display: flex;
         text-align: center;
         justify-content: center;
         align-items: center;
-
+        width: 100%;
+        min-width: 50%;
         & > label {
             height: max-content;
         }
@@ -56,7 +62,8 @@ table {
 
     & > tbody {
         display: block;
-        border: 0px solid transparent;    
+        border: 0px solid transparent;
+        
     }
 
     & > thead {
@@ -64,9 +71,23 @@ table {
     }
 
     & > thead > tr > th {
+        display: flex;
+        min-width: 50%;
+        word-wrap: anywhere;
+        justify-content: center;
         background-color: white;
         color: black;
     }
+
+    & > thead > tr > th > label {
+        display: block;
+        width: 100%;
+        height: max-content;
+        margin: auto;
+        padding: 10px;
+    }
+    
+
 }
 
 

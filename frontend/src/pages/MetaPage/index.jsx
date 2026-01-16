@@ -4,8 +4,9 @@ import SimpleButton from '../../Components/SimpleButton';
 import LabelTitles from '../../Components/LabelTitles';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import AddingItemOnMeta from './AddingItemOnMeta.jsx';
+//import AddingItemOnMeta from './AddingItemOnMeta.jsx';
 import searchForChurchGoalItem from '../../Functions/Church/SearchForChurchGoalItem/index.jsx';
+const { AddingItemOnMeta } = await import(`./AddingItemOnMeta.jsx`);
 
 const MetaPage = () => {
     const tabelaRef = useRef()
@@ -96,12 +97,8 @@ const MetaPage = () => {
                         elementosSelecionados[i].childNodes[3].contentEditable = 'true'
                     }
                     //console.log(' element ', elementosSelecionados[i].childNodes[3])
-                    
-                    
                 }
-                
             }
-            
         }
 
         return
@@ -124,7 +121,7 @@ const MetaPage = () => {
         }
         
     }, [listaDeMetasAtual])
-
+    return;
     return (
 
         <div className={styles.MetasDiv}>
@@ -175,9 +172,11 @@ const MetaPage = () => {
                 
             </div>
                 { iframeAddItem === true ? (
+                    {/*
                     <AddingItemOnMeta
                         setIframeAddItem={setIframeAddItem}
                     />
+                    */}
                 ) : (
                     <></>
                 )}

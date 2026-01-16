@@ -28,8 +28,8 @@ const Login = () => {
         // Hook que "valida" o login do usuario
         //let returnOfLogin = handleLogin(use, pass);
         let returnOfLogin = await handleLogin(use, pass)
-
-        if( returnOfLogin === true ) {
+        console.log("RETURN ORIGIN: ", returnOfLogin)
+        if( returnOfLogin && returnOfLogin.status === 0 ) {
             login()
             const currentUser = getCurrentUser()
     

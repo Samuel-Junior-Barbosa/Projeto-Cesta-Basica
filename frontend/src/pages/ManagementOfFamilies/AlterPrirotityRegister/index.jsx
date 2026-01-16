@@ -1,17 +1,24 @@
+
+
+
 import SimpleButton from '/src/Components/SimpleButton';
 import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 import LabelTitles from '../../../Components/LabelTitles';
 
 import styles from './AlterPrirotityRegister.module.css';
 import { useLocation, useNavigate } from 'react-router-dom';
-
-
+import { useAlterPriority } from '../../../Components/hooks/ManageFamily/AlterRegisterPriority/useAlterRegisterPriority';
+import MessageAlert from '../../../Components/MessageAlert';
+import { useEffect } from 'react';
 
 const AlterPrirotityRegister = () => {
     const navigate = useNavigate('');
     const location = useLocation('');
 
-    const { namePriority, descriptionPriority, priorityLevel } = location.state || { namePriority: 'teste', descriptionPriority: 'lorem', priorityLevel: '' }
+    const { idPriority, descriptionPriority, priorityLevel } = location.state || { idPriority: '0', descriptionPriority: 'lorem', priorityLevel: '' }
+
+    const { handleAlterRegistrationPriority, AlterPriorityLoading, AlterPriorityMessage } = useAlterPriority()
+
 
     const handleGoBack = () => {
         navigate(-1);
@@ -19,8 +26,23 @@ const AlterPrirotityRegister = () => {
 
     const onSubmit = (e) => {
         e.preventDefault();
+        const priorityId = e.target[0].value
+        const priorityDescription = e.target[1].value
+        const priorityLevel = e.target[2].value
+
+        const priorityData = {
+            "priorityId" : priorityId,
+            "priorityDescription" : priorityDescription,
+            "priorityLevel" : priorityLevel
+        }
+
+        handleAlterRegistrationPriority(priorityData)
 
     }
+
+    useEffect(() => {
+        console.log(" DATA RECIVED: ", idPriority, descriptionPriority, priorityLevel )
+    }, [])
 
     return (
         <div className={styles.AlterPrirotityRegisterDiv}>
@@ -33,10 +55,11 @@ const AlterPrirotityRegister = () => {
             <form onSubmit={onSubmit} className={styles.formPriorities}>
                 <div>
                     <label>
-                        Nome: 
+                        ID: 
                     </label>
                     <input
-                        defaultValue={namePriority || ''}
+                        defaultValue={idPriority}
+                        readOnly={true}
                     />
                 </div>
                 <div>
@@ -68,6 +91,11 @@ const AlterPrirotityRegister = () => {
                     onClickButton={handleGoBack}
                 />
             </form>
+            { AlterPriorityMessage && (
+                <MessageAlert
+                    text={AlterPriorityMessage}
+                />
+            )}
         </div>
     );
 }

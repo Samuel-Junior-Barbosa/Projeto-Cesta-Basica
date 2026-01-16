@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { AlterProducts } from ".";
+
+import AlterProductOnStock from '../../../../Functions/Stock/AlterProductOnStock';
+
 
 export function useAlterProduct() {
     const [AlterProductLoading, setLoading] = useState(false);
     const [AlterProductMessage, setMessage] = useState(null);
     
-    const handleAlterProduct = async (nameProduct, marcaProduct, idProduct, quantProducts) => {
+    const handleAlterProduct = async (idProduct, nameProduct, marcaProduct, quantProducts, registerStatus) => {
         setLoading(true);
         setMessage(null);
 
         try {
-            const response = await AlterProducts(nameProduct, marcaProduct, idProduct, quantProducts);
+            const response = await AlterProductOnStock(idProduct, nameProduct, marcaProduct, quantProducts, registerStatus);
             if (response === true) {
                 setMessage('Alterado com sucesso')
                 const timer = setTimeout(() => {

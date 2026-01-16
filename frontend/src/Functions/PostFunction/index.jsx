@@ -16,7 +16,7 @@ const postFunction = async (url, params = null) => {
     //console.log("POST FUNCTION: ", response)
     if( response.status === 200 ) {
         return {
-            "status" : 0,
+            "status" : response.data.status,
             "content" : response.data.content
         }
     }

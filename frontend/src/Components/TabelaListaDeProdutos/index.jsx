@@ -1,9 +1,8 @@
-import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEffect, useRef, useCallback, useReducer} from 'react';
 import PropTypes from 'prop-types';
 import styles from './TabelaListaDeProdutos.module.css'
-import axios from 'axios';
 
-const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref}) => {
+const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList}) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -11,10 +10,18 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     const tableClassRef = useRef('');
     const [ tableClassName, setTableClassName ] = useState('');
     const [ lengthOfColumns, setlengthOfColumns ] = useState('')
-    const [ linhaSelecionada, setLinhaSelecionada ] = useState([]);
+    const [ linhaSelecionada, setLinhaSelecionada ] = useState(-1);
     const [ inputQuantityValue, setInputQuantityValue ] = useState(0);
     const [ checkBoxAll, setCheckBoxAll ] = useState(false)
     const [ headerNames, setHeaderNames ] = useState([])
+    const [ tableLines, setTableLines ] = useState([])
+    const [ listLinesChecked, setListLinesChecked ] = useState([])
+
+    
+    const currentItens = useRef(itens)
+    const currentSeletedLine = useRef(-1)
+    const currentListLineChecked = useRef([])
+    const [, forceUpdate] = useReducer(x => x + 1, 0);
 
     const handleInput = useCallback((event) => {
         setEditableLabel(event.target.textContent);
@@ -40,71 +47,80 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     const selecionarTudoCheckbox = useCallback(() => {
         const checkBox = document.querySelector('.checkBoxItemPrimary');
+        //console.log("CheckBox: ", checkBox)
         if (checkBox.checked == true) {
             selecionarTudo();
         }
         else {
             desSelecionarTudo();
         }
-    }, [linhaSelecionada])
+    }, [linhaSelecionada, itens])
 
 
-    const selecionarTudo = useCallback(() => {
-
-        const tabela = window.document.querySelector('table > tbody');
-        
-        if( !tabela || tabela.childNodes.length === 0) {
-            return
+    const selecionarTudo = () => {
+        let copyChecekdList = [...listLinesChecked]
+        for(let I = 0; I < listLinesChecked.length; I ++ ) {
+            copyChecekdList[I].checked = true
         }
-        //console.log(' tabela selecionar: ', tabela, typeof(tabela))
+        //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
+        setCheckedList(copyChecekdList)
         setCheckBoxAll(true)
-        
+        forceUpdate()
 
-        if( tabela.childNodes[0].childNodes.length === 0 ) {
-            return
-        }
-
-
-        for(let index = 0; index < tabela.childNodes.length; index ++) {
-            //console.log('tabela: ', tabela.childNodes[index].childNodes[0].children[0].checked)
-            tabela.childNodes[index].childNodes[0].children[0].checked = true;
-        }
-        
-        
-    }, [itens, tableClassRef, columnsTemplate])
+    } //, [itens, tableClassRef, columnsTemplate, listLinesChecked, listaDeItens])
 
 
     const desSelecionarTudo = useCallback(() => {
-        const tabelaBody = window.document.querySelector('table > tbody');
-        const tabelaHead = window.document.querySelector('table > thead');
-        
-
-        //console.log('tabelaHead: ', tabelaHead)
-        //console.log('tabelaBody: ', tabelaBody)
-
-        //tabelaHead.childNodes[0].childNodes[1].checked = false;
-        if( !tabelaBody || !tabelaHead || tabelaBody.childNodes.length === 0 ) {
-            return
+        let copyChecekdList = [...listLinesChecked]
+        for(let I = 0; I < listLinesChecked.length; I ++ ) {
+            copyChecekdList[I].checked = false
         }
-
-        if( tabelaBody.childNodes[0].childNodes.length === 0) {
-            return
-        }
-
+        //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
+        setCheckedList(copyChecekdList)
         setCheckBoxAll(false)
-        
-        for(let index = 0; index < tabelaBody.childNodes.length; index ++) {
-            //console.log('tabelaBody: ', tabelaBody.childNodes[index].childNodes[0].children[0].checked)
-            tabelaBody.childNodes[index].childNodes[0].children[0].checked = false;
+
+
+    }, [itens, tableClassRef, columnsTemplate, listLinesChecked]);
+
+
+    const selecionarLinha = (index) => {
+        currentSeletedLine.current = index
+        setLinhaSelecionada(index);
+        //console.log("itens: ", itens[index])
+        //selectProductById(itens[index].id)
+
+    }
+
+    const selectProductById = (id) => {
+        let copyIndexList = getCheckedList()
+        let tmpLinhaSelecionada = []
+        let checkingCount = 0
+        //console.log("SELECIONANDO: ", id)
+        id = String(id)
+        for( let i = 0; i < copyIndexList.length; i ++ ) {
+            if( copyIndexList[i].id === id ) {
+                if( copyIndexList[i].checked === true) {
+                    copyIndexList[i].checked = false
+                }
+                else {
+                    copyIndexList[i].checked = true
+                    checkingCount += 1
+                }
+            }
+            tmpLinhaSelecionada = copyIndexList[i]
+            //console.log("COPY: ", copyIndexList[i].id, copyIndexList[i].checked)
         }
-        
-    }, [itens, tableClassRef, columnsTemplate]);
 
-
-    const selecionarLinha = useCallback((id) => {
-        setLinhaSelecionada(id);
-    }, [])
-
+        //console.log("RETURN ", copyIndexList)
+        if( checkingCount === copyIndexList.length ) {
+            setCheckBoxAll( true )
+        }
+        else if( checkingCount <= copyIndexList.length && checkBoxAll === true ) {
+            setCheckBoxAll( false )
+        }
+        setCheckedList(copyIndexList)
+        forceUpdate()
+    } //, [itens, listaDeItens, listLinesChecked])
 
     const setColumns = useCallback((tamanho) => {
     
@@ -122,17 +138,6 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     
         }
         setColumnsTemplate(colunasTemplate);
-        
-        /*
-        let colunaCorpo  = `max-content`;
-        colunaCorpo += ' 1fr';
-        for (let i = 2; i < (tamanho); i++) {
-            colunaCorpo += ` 1fr`;;
-        }
-
-        colunaCorpo += ' 1fr';
-        */
-
 
     }, []);
 
@@ -154,37 +159,85 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     }, [columnsTemplate]);
 
 
-    const retornarLinhasDaTabela = () => {
+    const retornarLinhasDaTabela = async () => {
         let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
         let tableClass = classN.replaceAll(' ', '.')
-        let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > tr`)
-        let childList = []
+        let tBody = window.document.querySelector(`.${tableClass} > tbody`)
+        //let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > tr`)
+        //let childList = []
 
-        //console.log(' ( retornarLinhas ) tBody: ', tBody)
-        //console.log(' ( retornarLinhas ) tBody.length: ', tBody.length)
-        //console.log(' ( retornarLinhas ) tBody.child: ', tBody[0].childNodes)
-        if( !tBody ) {
+        console.log(' ( retornarLinhas ) tBody: ', tBody)
+        console.log(' ( retornarLinhas ) tBody.length: ', tBody.childNodes.length)
+        console.log(' ( retornarLinhas ) tBody.child: ', tBody.childNodes)
+        if( !tBody && !Array.isArray(tBody.childNodes) ) {
+            console.log("RETURNING not array or not object valid")
             return null;
         }
-        else if ( !tBody[0].childNodes || tBody[0].childNodes.length  === 0 ) {
+        else if ( !tBody.childNodes ) {
+            console.log("RETURNING without childnodes")
             return null
         }
 
-        for( let I = 0; I < tBody.length; I ++ ) {
-            childList.push(tBody[I])
+        else if ( tBody.childNodes.length  === 0 ) {
+            console.log("RETURNING length invalid")
+            return null
         }
 
-        return childList;
-            
-        
+        return tBody.childNodes;
+    }
+
+    const retornarDadosDeLinhasDaTabela = async () => {
+        let response = []
+        let linesFromTable = await retornarLinhasDaTabela()
+
+        console.log(" RETURN LINES OF TABLE")
+
+        /*if( columnList ) {
+            console.log(" COLUMNLIST: ", columnList)
+            for( let i = 0; i < linesFromTable.length; i ++ ) {
+                for( let ii = 0; ii < columnList.length; ii ++ ) {
+                    response.push( { 
+                            [`${columnList[ii]}`] : linesFromTable[i].childNodes[ii+1].textContent
+                        }
+                    )
+                }
+            }
+            console.log(" response: ", linesFromTable)
+        } else { */
+        for( let i = 0; i < linesFromTable.length; i ++ ) {
+            let tmp_line = []
+            for( let ii = 1; ii < linesFromTable[i].childNodes.length; ii ++ ) {
+                tmp_line.push( linesFromTable[i].childNodes[ii].textContent )
+            }
+
+            response.push( tmp_line )
+        }
+    
+
+        console.log(" LINES OF TABLE: ", response)
+        return response
+
     }
 
 
-    const getCurrentItens = useCallback(() => {
-        return itens
-    },[itens])
+    const getCheckedList = () => {
+        //console.log("RETORNANDO LISTA DE LINHA SELECIONADA ", listLinesChecked)
+        //return listLinesChecked
+        return currentListLineChecked.current
+    }
 
-    const getSelectedElements = async () => {
+    const setCheckedList = (listLines) => {
+        currentListLineChecked.current = listLines
+        setListLinesChecked(listLines)
+        //console.log("SETANDO LINHAS MARCADAS: ", listLines)
+        forceUpdate()
+    }
+
+    const getCurrentItens = () => {
+        return currentItens.current
+    }
+
+    const getSelectedElements = () => {
         if( tableClassRef ) {
             if( !tableClassRef.current ) {
                 return;
@@ -197,8 +250,8 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     }
 
     // Lista os itens marcados como selecionados na tabela de produtos
-    const listarElementosSelecionados = async () => {
-        const itensSelecionados = await getSelectedElements(); 
+    const listarElementosSelecionados = () => {
+        const itensSelecionados = getSelectedElements(); 
 
         let linhasSelecionadas = [];
         let linhaSelecionada;
@@ -210,15 +263,18 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         return linhasSelecionadas;
     }
 
-    const listarItensSelecionados = async () => {
+
+    const listarItensSelecionados = () => {
         //console.log('listaItens1: ', await listarElementosSelecionados())
-        const elementosSelecionados = await listarElementosSelecionados();
+        const elementosSelecionados = listarElementosSelecionados();
         //console.log('elementosSelecionados: ', elementosSelecionados)
 
         let listaItens = []
         let objeto = {}
-        //const topTitleTable = Object.keys(listaDeItens[0])
-        const topTitleTable = headerNames
+        //console.log("lista de itens[]: ", currentItens.current)
+        //const topTitleTable = currentItens.current
+        //updateHeaders()
+        const topTitleTable = Object.keys(currentItens.current[0])
         //console.log(' topTitleTable: ', headerNames)
         //console.log(' elementosSelecionados: ', elementosSelecionados)
         
@@ -227,6 +283,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
             for(let II = 0; II < topTitleTable.length; II ++ ) {
                 //console.log(` elementosSelecionados[${I}].childNodes: `, elementosSelecionados[I].childNodes[II+1].children[0].innerText)
                 objeto[topTitleTable[II]] = elementosSelecionados[I].childNodes[II+1].children[0].innerText;
+                //console.log('objeto : ', elementosSelecionados[I].childNodes[II+1].children[0].innerText)
             }
             listaItens.push(objeto);
             objeto= {}
@@ -236,13 +293,6 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     };
 
-
-    const listarColuna = useCallback(() => {
-    }, [])
-
-
-    const listarValoresDeUmaColuna = useCallback(() => {
-    }, [])
 
 
     const LineBreakForLabel = useCallback((texto) => {
@@ -289,52 +339,85 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     }, [])
 
     
-    const handleCheckedInput = useCallback(() => {
+    const handleCheckedInput = (id) => {
         const itensSelecionados = listarElementosSelecionados()
         const linhasTotalDaTabela = retornarLinhasDaTabela()
-        
-        if( (itensSelecionados.length != linhasTotalDaTabela.length) && (checkBoxAll || !checkBoxAll) ) {
-            setCheckBoxAll(false)
+        //console.log("HANDLE INPUT: ", id)
+        //console.log("ITENS SELECIONADOS: ", itensSelecionados, linhasTotalDaTabela)
+        if( !Array.isArray( itensSelecionados ) || !Array.isArray( linhasTotalDaTabela ) ) {
             return
         }
-
-        setCheckBoxAll(true)
-        return
-    }, [])
-
-    /*
-    const searchItemOnTable = (itemName, column, limit=-1) => {
-        async function search_function() {
-            
-            const response = await searchOnStock(itemName, column, limit)
-            console.log("SEARCH RESPONSE: ", response)
-            if( response.status === 0 ) {
-                setItens(response.content)
-            }
+        if( (itensSelecionados.length != linhasTotalDaTabela.length) && (checkBoxAll || !checkBoxAll) ) {
+            setCheckBoxAll(false)
+            selectProductById(id)
+            forceUpdate()
+            return
         }
-        search_function()
+        
+        //selectProductById(id)
+        selecionarTudo()
+        setCheckBoxAll(true)
+        forceUpdate()
+        return
+    }
+
+    const handleChangeCheckInputLine = (comp) => {
+        console.log(comp)
+    }
+
+
+    const handleContentChange = async(lineIndex, columnIndex, value) => {
+        console.log(" HANDLE CONTENT: ", lineIndex, columnIndex, value)
+        listaDeItens[lineIndex][columnIndex] = value
+
+        console.log("HANDLE CONTENT: ", listaDeItens[lineIndex][columnIndex])
 
     }
-    */
 
-    const updateItens = ( item_list ) => {
-        setItens(item_list)
+
+    const updateItens = ( itemList ) => {
+        //console.log("UPDATE ITEM: ", itemList)
+        setItens(itemList)
+        currentItens.current = itemList
+        forceUpdate()
     }
 
     const updateItemList = ( itemList ) => {
+        //console.log("UPDATE ITEM LIST : ", itemList)
         listaDeItens = itemList
+        forceUpdate()
+    }
+
+    const updateHeaders = () => {
+        if( Array.isArray(currentItens.current) ) {
+            if( currentItens.current.length > 0) {
+                let tmp_headers = Object.keys(currentItens.current[0])
+                setHeaderNames(tmp_headers)
+                //console.log("HEADERS: ", tmp_headers)
+            }
+        }
     }
 
     const updateTable = useCallback(() => {
         //console.log('itens: ', itens)
-        if( itens && Array.isArray(itens) ) {
+        if( Array.isArray(itens) ) {
             if( itens.length > 0) {
                 setColumns(Object.keys(itens[0]).length);
                 setTable();
                 setEditableColumnIndex(editableCel);
-            }    
+            }
+            else {
+                setColumns([])
+                setTable()
+                setEditableColumnIndex(editableCel)
+            }
         }
-    }, [itens, editableCel, columnsTemplate])
+    }, [itens, editableCel, columnsTemplate, listLinesChecked])
+
+
+    const getTableHeader = () => {
+        return headerNames
+    }
 
     useEffect(() => {
         //console.log("LISTA DE ITENS: ", listaDeItens)
@@ -345,33 +428,88 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     // define uma lista de itens para ser renderizada na tela com base no parametro recebido
     useEffect(() => {
-        //console.log('(Tabela) listaDeItens: ', listaDeItens)
-        if( !listaDeItens ) {
+        
+        if( !Array.isArray(listaDeItens) ) {
             return
         }
-        if( listaDeItens.length === 0 ) {
-            return
+        
+        //console.log("{COMPONENT} LISTA DE ITENS: ", listaDeItens)
+        let tmpLinesChecked = []
+        for( let I = 0; I < listaDeItens.length; I++ ) {
+            let tmp_id = listaDeItens[I].id
+            if( !tmp_id ) {
+                tmp_id = listaDeItens[I][0]
+            }
+            tmpLinesChecked.push({
+                "id" : `${tmp_id}`,
+                "checked" : false
+            })
+            //console.log(" TMP ID: ", tmp_id)
         }
-        //console.log('(Tabela) listaDeItens: ', listaDeItens)
-        setItens(listaDeItens);  
+        //console.log(tmpLinesChecked)
+        setCheckedList(tmpLinesChecked)
+        setItens(listaDeItens);
+        currentItens.current = listaDeItens
 
-        }, [listaDeItens, columnsTemplate]) // columnsTemplate
+        }, [listaDeItens, columnsTemplate, itens]) // columnsTemplate
 
     useEffect(() => {
+        
         if( !itens ) {
             return
         }
-
+        
+        
         if(itens.length === 0 ) {
             return
         }
-
         
+
+        //console.log('(Tabela) itens: ', listaDeItens)
         setTimeout(() => {
             updateTable();
         }, 30)
 
-    }, [itens, columnsTemplate])
+    }, [itens, columnsTemplate, listLinesChecked])
+
+    useEffect(() => {
+        updateHeaders()
+    }, [itens, listaDeItens, listLinesChecked])
+    
+    useEffect(() => {
+
+        if( !Array.isArray(listaDeItens) ) {
+            return
+        }
+
+        if( !listaDeItens.length ) {
+            return
+        }
+
+        if( columnList ) {
+
+
+            let tabela_itens = window.document.querySelector(`.${styles.ListaDeProdutosCadastrados}.${nameClass} > thead > tr.${styles.linhaTabela}`)
+            tabela_itens.style.gridTemplateColumns = `repeat(${columnList.length+1}, 1fr)`
+            console.log(" TABELA: ", tabela_itens.style)
+            return
+        }
+
+        try {
+            if( !Array.isArray( columnList[0]) ) {
+                columnList = Object.keys(listaDeItens[0])    
+            }
+            
+        } catch (error) {
+            columnList = []
+            for( let i = 0; i < listaDeItens.length; i ++ ) {
+                columnList.push( "Column" + i )
+            }
+        }
+
+
+        }, [columnList, listaDeItens])
+
 
     useImperativeHandle(ref, () => {
         return {
@@ -386,46 +524,45 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
             LineBreakForLabel,
             removerItensSelecionados,
             updateItens,
-            updateItemList
+            updateItemList,
+            updateHeaders,
+            getCheckedList,
+            setCheckedList,
+            selectProductById,
+            updateTable,
+            getTableHeader,
+            retornarDadosDeLinhasDaTabela
         };
     }, []);
-
-    useEffect(() => {
-        if( Array.isArray(listaDeItens) ) {
-            if( listaDeItens.length > 0 ) {
-                setHeaderNames(Object.keys(listaDeItens[0]))
-            }
-            
-        }
-        
-    }, [listaDeItens])
-    
 
     return (
         <>
             <div className={styles.ListaDeProdutosCadastradosDiv}>
                 <table className={`${styles.ListaDeProdutosCadastrados} ${nameClass}`}>
                     <thead>
-                        <tr className={styles.linhaTabela}>
-                            { ( Array.isArray(listaDeItens) && listaDeItens.length > 0 ) && (
+                        <tr className={styles.linhaTabela} >
+
+
+                            { ( Array.isArray(columnList) && columnList.length > 0 ) && (
                                 <th className={styles.LabelListProdutos}>
                                     <input
-                                        onChange={selecionarTudoCheckbox}
+                                        onChange={ selecionarTudoCheckbox }
                                         type="checkbox"
-                                        className={styles.checkBoxItem + ' ' + ' checkBoxItemPrimary'}
-                                        checked={checkBoxAll}
+                                        className={ styles.checkBoxItem + ' ' + ' checkBoxItemPrimary' }
+                                        checked={ checkBoxAll }
                                     />
                                 </th>
                             )}
-                            { (Array.isArray(listaDeItens) && listaDeItens.length > 0) && (
-                                (Object.keys(listaDeItens[0])).map((item, index) => (
-                                <th
-                                    key={index}
-                                    className={styles.LabelListProdutos}
-                                >
-                                    {item}
-                                </th>
-                            )))}
+                            { ( Array.isArray(columnList) && columnList.length > 0 ) && (
+                                columnList.map((item, index) => (
+                                    <th
+                                        key={index}
+                                        className={styles.LabelListProdutos}
+                                    >
+                                        <label> {item} </label>
+                                    </th>
+                                ))
+                            )}
                         
 
                         </tr>
@@ -436,15 +573,33 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                             <tr 
                                 key={index}
                                 onClick={() => selecionarLinha(index)}
-                                className={(styles.linhaTabela) + " " + (linhaSelecionada === index ? (styles.selecionada) : '')}
+                                onDoubleClick={() => {
+                                    let tmp_id = itens[index].id
+                                    if( !tmp_id ) {
+                                        tmp_id = itens[index][0]
+                                    }
+                                    selectProductById(tmp_id)
+                                }}
+                                className={(styles.linhaTabela) + " "  + (linhaSelecionada === index ? (styles.selecionada) : '')}
                             >
                                 <td>
                                     <input
                                         type="checkbox"
                                         className={styles.checkBoxItem}
-                                        onChange={handleCheckedInput}
+                                        onChange={() => {
+                                            let tmp_id = item.id
+                                            if( !tmp_id ) {
+                                                tmp_id = item[0]
+                                            }
+                                            selectProductById( tmp_id );
+                                        }}
+                                        checked={
+                                            listLinesChecked.length > 0 ?
+                                                listLinesChecked[index]['checked'] :
+                                                false
+                                        }
                                     /> 
-                                
+                                    
                                 </td>
                                 {item && Object.keys(item).map((item2, index2) => (
                                     <td key={index2}>
@@ -452,12 +607,13 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                             (limitarMaxNumber.includes(index2)? ( 
                                                     <input 
                                                         type={'number'}
-                                                        
                                                         min={'0'} 
                                                         max={item.quantidade}
-                                                        defaultValue={item.quantidade}
+                                                        value={item.quantidade}
                                                         className={styles.inputTableEditable}
-      
+                                                        onChange={(e) => {
+                                                            handleChangeCheckInputLine(e.target.value)
+                                                        }}
                                                         key={index}
                                                         id={`IQ_${index}`}
                                                         
@@ -466,6 +622,9 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                                         <label
                                                             contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
                                                             suppressContentEditableWarning={true}
+                                                            onInput={(e) =>(
+                                                                handleContentChange(index, index2, e.target.textContent)
+                                                            )}
                                                             >
 
                                                                 {item[item2]}
@@ -475,6 +634,9 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                             <label
                                                 contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
                                                 suppressContentEditableWarning={true}
+                                                onInput={(e) =>(
+                                                    handleContentChange(index, index2, e.target.textContent)
+                                                )}
                                             >
 
                                                 {item[item2]}

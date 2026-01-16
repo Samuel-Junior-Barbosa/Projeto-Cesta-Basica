@@ -4,18 +4,30 @@ import LabelTitles from '/src/Components/LabelTitles';
 import SimpleButton from '/src/Components/SimpleButton';
 import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 import { useRegisterBasicFoodBasket } from '/src/Components/hooks/ManageBasicFoodBaskets/RegisterBasicFoodBasket/useRegisterBasicFoodBasket';
+import GetStockItens from '/src/Functions/Stock/GetStockItens';
+import searchOnStock from "/src/Functions/Stock/SearchOnStock";
 
-import { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect, useReducer } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CiHardDrive } from 'react-icons/ci';
+import registerItemOnBasketModelFunction from '../../../Functions/Basket/RegisterItemOnBasketModel';
+
 
 const RegisterBasicFoodBasket = () => {
     const tabelaRef = useRef();
     const [ listItemRecived, setListItemRecived ] = useState(null);
+    const [ productNameForSearch, setProductNameForSearch ] = useState('');
     const [ dataForm, setDataForm ] = useState({
         nameOfModel: '',
     });
 
+    const columnList = [
+        'ID',
+        'NOME DO PRODUTO',
+        'MARCA',
+        'ESTOQUE'
+    ]
+    
     const [ listarItensSelecionados, setListarItensSelecionados ] = useState(() => () => {});
     const [ desSelecionarTudo, setDesSelecionarTudo ] = useState(() => () => {});
 
@@ -29,26 +41,13 @@ const RegisterBasicFoodBasket = () => {
     const navigate = useNavigate();
 
     const reciveItemData = async () => {
-        const data =  [
-            {produto: 'Açucar 1kg', marca: 'generica', id: 'PD0', quantidade: 1},
-            {produto: 'Arroz 5kg', marca: 'generica', id: 'PD1', quantidade: 1},
-            {produto: 'Feijão 1kg',marca: 'generica', id: 'PD2', quantidade: 1},
-            {produto: 'Manteiga 500g', marca: 'generica', id: 'PD3', quantidade: 1},
-            {produto: 'Abobora conservada em lata com a marca TAL DA SILVA com 5kg e Valido até amanhã', marca: 'teste de nome gigante generica marca', id: 'PD4', quantidade: 1},
-            {produto: 'Leite 5L', marca: 'generica', id: 'PD5', quantidade: 1},
-            {produto: "Macarrão", marca: 'generica', id: 'PD6', quantidade: 1},
-            {produto: 'café 500g', marca: 'generica', id: 'PD7', quantidade: 1},
-            {produto: 'café 250g',marca: 'generica', id: 'PD8', quantidade: 1},
-            {produto: 'pão sovado', marca: 'generica', id: 'PD9', quantidade: 1},
-        ]
-    
-        return data;
 
+        const data = await GetStockItens()
+        return data;
     }
     
 
-    const onSubmit = (e) => {
-        e.preventDefault();
+    const onSubmit = async () => {
         if( !tabelaRef.current ) {
             return
         }
@@ -70,14 +69,14 @@ const RegisterBasicFoodBasket = () => {
         // Guarda informações da cesta como: Nome do modelo, Itens que à compoem.
         const dataBasket = { 
             nameBasicFoodBasket: dataForm.nameOfModel,
-            productsOfBasket: listaDeProdutos,
+            //productsOfBasket: listaDeProdutos,
         }
 
-
+        let itemList = []
         const getBody = tabelaRef.current.getTableBody();
         //console.log(' getBody: ', getBody);
         const currentItens = tabelaRef.current.getCurrentItens();
-        //console.log(' currentItens: ', currentItens);
+        
 
 
         // Pede a confirmação do usuario para a criação de um novo modelo de cesta basica
@@ -88,7 +87,30 @@ const RegisterBasicFoodBasket = () => {
         // Se o usuario confirmar, será definido o novo valor das informações da cesta, com a que acabou de ser criada
         // E irá enviar uma solicitação para o banco de dados para registrar ela
         
-        handleRegisterBasicFoodBasket(dataBasket);
+
+
+
+        let registerBasket = await handleRegisterBasicFoodBasket(dataBasket);
+        if( registerBasket.status !== 0 ) {
+            return
+        }
+
+
+
+        for( let i = 0; i < currentItens.length; i ++ ) {
+            let tmp_item = {}
+            tmp_item["id"] = currentItens[i][0]
+            tmp_item["idBasket"] = registerBasket["content"][0]
+            tmp_item["produto"] = currentItens[i][1]
+            tmp_item['quantidade'] = currentItens[i][3]
+
+            console.log(' currentItens: ', currentItens[i]);
+            console.log(' tmp_item: ', tmp_item);
+            
+            
+            registerItemOnBasketModelFunction(tmp_item)
+        }
+
         setDataForm({nameOfModel: ''})
 
         desSelecionarTudo();
@@ -146,9 +168,37 @@ const RegisterBasicFoodBasket = () => {
         navigate(-1);
     }
 
-    const handleChangeDataForm = (e) => {
-        setDataForm({ ...dataForm, 'nameOfModel' : e.target.value} )
+    const handleChangeDataForm = ( name ) => {
+        const nameTrated = name.toUpperCase()
+        setDataForm({ ...dataForm, 'nameOfModel' : nameTrated} )
 
+    }
+
+    const handleSetProdutctNameToSearch = ( name ) => {
+        let nameTrated = name.toUpperCase()
+        setProductNameForSearch(nameTrated)
+    }
+
+    const handleSearchOnStockKeyDown = ( key ) => {
+        if( key === "Enter" || key === "NumpadEnter" ) {
+            handleSearchOnStock()
+        }
+    }
+
+    const handleSearchOnStock = () => {
+        if( !tabelaRef.current ) {
+            return
+        }
+        const SearchOnStockFunc = async () => {
+            const response = await searchOnStock(productNameForSearch, "produto")
+            if( response.status === 0 ) {
+                //console.log("RESPONSE: ", response, tabelaRef.current)
+                setListItemRecived(response.content)
+                tabelaRef.current.updateTable(response.content)
+            }
+        }
+
+        SearchOnStockFunc()
     }
 
     const confirmRegister = (dataBasicBasket) => {
@@ -169,32 +219,28 @@ const RegisterBasicFoodBasket = () => {
         return true;
     }
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const fetchData = async () => {
             const itensRecived = await reciveItemData();
-            setListItemRecived( itensRecived );
+            //console.log("ITENS RECIVED: ", itensRecived)
+            setListItemRecived( itensRecived.content );
         };
 
         fetchData();
         
     }, [])
-    /*
-    useLayoutEffect(() => {
-        setTimeout(() => {
-            if( tabelaRef.current ) {
-                setListarItensSelecionados(() => tabelaRef.current.listarItensSelecionados);
-                setDesSelecionarTudo(() => tabelaRef.current.desSelecionarTudo);
-            }
-        }, 10)
-    }, [])
-    */
+
 
     return (
         <div className={styles.RegisterChurchDiv}>
-            <LabelTitles nameClass={styles.tituloPaginaAtualDiv} text="Registrar Cesta Basica"/>
-
+            <LabelTitles
+                nameClass={styles.tituloPaginaAtualDiv}
+                text="Registrar Cesta Basica"
+            />
+            
             <div className={styles.RegisterChurchDivMain}>
-                <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
+                
+                <div className={styles.entradaDeDadosDivMain}>
                     <div className={styles.entradaDeDados}>
                         <div>
                             <label className={styles.labelNameBaskets} > Nome do modelo da Cesta Basica: </label>
@@ -205,18 +251,56 @@ const RegisterBasicFoodBasket = () => {
                                 required
                                 placeholder='Insira o nome do modelo'
                                 autoComplete='off'
-                                onChange={handleChangeDataForm}
+                                onChange={(e) => {
+                                    handleChangeDataForm(e.target.value)
+                                }}
                                 
                             />
 
                         </div>
-                        <label className={styles.messageInstruct}> Selecione os itens da cesta </label>
+                        <label
+                            className={styles.messageInstruct}
+                        >
+                                Selecione os itens da cesta
+                        </label>
+                        <div>
+                            <input
+                                placeholder='Pesquise um produto pelo nome'
+                                value={productNameForSearch}
+                                onChange={(e) => {
+                                    handleSetProdutctNameToSearch(e.target.value)
+                                }}
+                                onKeyDown={(e) => {
+                                    handleSearchOnStockKeyDown(e.code)
+                                }}
+                            />
+                            <SimpleButton
+                                textButton={"Pesquisar"}
+                                onClickButton={handleSearchOnStock}
+                                typeButton="button"
+                            />
+                        </div>
+                        <div>
+                            <SimpleButton
+                                type="submit"
+                                nameClass={styles.buttonRegister}
+                                textButton="Cadastrar"
+                                onClickButton={onSubmit}
+
+                            />
+                            <SimpleButton
+                                nameClass={styles.buttonRegister}
+                                onClickButton={handleGoBack}
+                                textButton="Cancelar"
+                            />
+                        </div>
                         <div className={styles.divListaDeItensDaCestaBasica}>
-                            { ( listItemRecived ) && (
+                            { ( Array.isArray(listItemRecived) ) && (
                                 <TabelaListaDeProdutos
                                     ref={tabelaRef}
                                     nameClass={styles.listProductTable}
                                     listaDeItens={listItemRecived}
+                                    columnList={ columnList }
                                 />
                                 )
                             }
@@ -226,15 +310,8 @@ const RegisterBasicFoodBasket = () => {
                         
                     </div>
 
-                    <SimpleButton
-                        type="submit"
-                        nameClass={styles.buttonRegister}
-                        textButton="Cadastrar"
 
-                    />
-                    <SimpleButton nameClass={styles.buttonRegister} onClickButton={handleGoBack} textButton="Cancelar"/>
-
-                </form>
+                </div>
                 
                     {useRegisterBasicFoodBasketMessage && (
                         <LabelTitles

@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { RemoveProducts } from ".";
+import deleteProductFromStock from '../../../../Functions/Stock/DeleteProductFromStock';
+//import { RemoveProducts } from ".";
+
+
 
 export function useRemoveProduct() {
     const [RemoveProductLoading, setLoading] = useState(false);
@@ -10,8 +13,8 @@ export function useRemoveProduct() {
         setMessage(null);
 
         try {
-            const response = await RemoveProducts(idProduct);
-            if (response === true) {
+            const response = await deleteProductFromStock(idProduct);
+            if (response.status === 0) {
                 setMessage('removido com sucesso')
                 const timer = setTimeout(() => {
                     setMessage('')

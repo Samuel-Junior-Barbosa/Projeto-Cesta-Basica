@@ -7,6 +7,7 @@ const path = require('path');
 const { plugins } = require('chart.js');
 
 module.exports = defineConfig({
+  
   base: './',
   plugins: [
     react({
@@ -42,5 +43,9 @@ module.exports = defineConfig({
     },
       chunkSizeWarningLimit: 1600,
   },
-
+  server: {
+    headers: {
+      'Cache-Control': 'no-store',
+    },
+  },
 });

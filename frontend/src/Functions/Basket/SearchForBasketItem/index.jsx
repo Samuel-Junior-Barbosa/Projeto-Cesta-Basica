@@ -1,10 +1,11 @@
 import getFunction from "../../GetFunction";
 import postFunction from "../../PostFunction";
 
-const searchForBasketItem = async (basketItemName, columnName) => {
+// Obtem uma lista de itens que tem para cada modelo de cesta cadastrada
+const searchForBasketItem = async (searchValue, columnName) => {
     const url = "http://localhost:8080/search-for-basket-item"
     const params = {
-        basketItemName,
+        searchValue,
         columnName
     }
 

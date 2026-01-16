@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mui/material": "^7.3.6",
     "@wailsapp/runtime": "^1.1.1",
     "axios": "^1.7.9",
     "jwt-decode": "^4.0.0",
@@ -30,7 +31,7 @@
     "eslint-plugin-react-hooks": "^6.0.0-rc.1",
     "html-loader": "^5.1.0",
     "raw-loader": "^4.0.2",
-    "vite": "^6.0.11",
+    "vite": "^6.4.1",
     "vite-plugin-html": "^3.2.2",
     "vite-plugin-node-polyfills": "^0.23.0",
     "vite-plugin-string": "^1.2.3"

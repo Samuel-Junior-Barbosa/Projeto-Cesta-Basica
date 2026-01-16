@@ -1,18 +1,42 @@
 import axios from "axios";
+import postFunction from "../../../Functions/PostFunction";
 
 //esse trecho simula um pequeno banco de dados
+
+async function authenticator_get_credentials(username, password) {
+    const params = {
+        username,
+        password
+    }
+    const url = "http://localhost:8080/authentication"
+    const response = await postFunction(url, params)
+    return {
+        "status" : response.status,
+        "content" : response.content
+    }
+
+}
+
 
 export async function authenticator(username, password) {
     //Essa linha simula um retorno de uma api com validação
     //const user = users.find( u => u.username === username && u.password === password);
-    const users = await axios.post("http://localhost:8080/authentication", {username, password})
-    if( users.data.status === 0) {
-        setCurrentUser(users.data.credential)
+
+    const users = await authenticator_get_credentials(username, password)
+    //console.log("authenticator: ", users)
+    if( users.status === 0) {
+        setCurrentUser(users.content)
         localStorage.setItem("isAuthenticated", "true")
-        return true;
+        return {
+            "status" : 0,
+            "message" : "ok"
+        };
     }
     localStorage.setItem("isAuthenticated", "false")
-    return new Error(`Ocorreu um erro ao autenticar o usuario: Nome ou senha incorretos`)
+    return {
+        "status" : 90,
+        "message" : `Ocorreu um erro ao autenticar o usuario: Nome ou senha incorretos`
+    }
     // Aqui seria uma futura logica de autenticação, por enquanto tá só essa simples para testes
    
 }

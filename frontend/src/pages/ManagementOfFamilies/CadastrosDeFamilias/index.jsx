@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect, useReducer } from 'react';
 import LabelTitles from '/src/Components/LabelTitles';
 import SimpleButton from '/src/Components/SimpleButton';
 import TabelaCadastroDeItens from '/src/Components/TabelaCadastroDeItens';
@@ -7,17 +7,23 @@ import { useNavigate } from 'react-router-dom';
 import styles from './CadastroDeFamilias.module.css';
 import getFamilyData from '../../../Functions/Family/getFamilyData';
 import searchForFamily from '../../../Functions/Family/SearchForFamily';
+import TabelaListaDeProdutos from '../../../Components/TabelaListaDeProdutos';
+import searchForFamilyById from '../../../Functions/Family/SearchForFamilyByIdFamily';
+import deleteFamilyDataFunction from '../../../Functions/Family/DeleteFamilyData';
 
 
 
 
 const CadastrosDeFamilias = () => {
-    const tabelaRef = useRef();
+    const tabelaRef = useRef('');
     const [ listarItensSelecionados, setListarItensSelecionados ] = useState(() => () => {});
     const [ representativeName, setRepresentativeName ] = useState('');
     const navigate = useNavigate();
-
-
+    const [, forceUpdate] = useReducer(x => x + 1, 0);
+    const columnList = [
+        'id' , 'Representante', 'Membros', 'Cidade', 'Bairro', 'Rua',
+        'Numero Da Casa', 'Numero De Telefone', 'Prioridade', 'Congregação'
+    ]
 
     const [ cadastroDeFamilias, setCadastroDeFamilias ] = useState([])
     const [ registerList, setRegisterList ] = useState([])
@@ -50,7 +56,7 @@ const CadastrosDeFamilias = () => {
         return true
     }
 
-    const alterRegister = () => {
+    const alterRegister = async () => {
         if( !tabelaRef.current ) {
             return
         }
@@ -61,8 +67,10 @@ const CadastrosDeFamilias = () => {
             return
         }
 
-
-
+        const idFamily        = itensSelecionados[0]["0"]
+        let get_data = await searchForFamilyById( idFamily )
+        console.log('cadastroDeFamilias: ', itensSelecionados, get_data)
+        const idChurch = get_data["content"][9]
         const churchName      = itensSelecionados[0]["Congregação"]
         const representative  = itensSelecionados[0]["Representante"]
         const members         = itensSelecionados[0]["Membros"]
@@ -71,35 +79,42 @@ const CadastrosDeFamilias = () => {
         const street          = itensSelecionados[0]["Rua"]
         const buildingNumber  = itensSelecionados[0]["Numero Da Casa"]
         const telephoneNumber = itensSelecionados[0]["Telefone"]
-        console.log('cadastroDeFamilias: ', itensSelecionados, churchName)
+        const priorityLevel   = get_data["content"][8]
         
-        goToPage('/alterar-cadastro-familia', { state: {
-                                                    churchNameRecive      : churchName,
-                                                    representativeRecive  : representative,
-                                                    membersRecive         : members,
-                                                    cityRecive            : city,
-                                                    neighborhoodRecive    : neighborhood,
-                                                    streetRecive          : street,
-                                                    buildingNumberRecive  : buildingNumber,
-                                                    telephoneNumberRecive : telephoneNumber,
-                                                    dataRecived: true,
-
-        }})
+        
+        
+        goToPage('/alterar-cadastro-familia', {
+            state: {
+                    idFamilyRecive        : idFamily,
+                    idChurchRecived       : idChurch,
+                    churchNameRecive      : churchName,
+                    representativeRecive  : representative,
+                    membersRecive         : members,
+                    cityRecive            : city,
+                    neighborhoodRecive    : neighborhood,
+                    streetRecive          : street,
+                    buildingNumberRecive  : buildingNumber,
+                    telephoneNumberRecive : telephoneNumber,
+                    priorityLevelRecive   : priorityLevel,
+                    dataRecived: true,
+                }
+            }
+        )
     }
 
 
-    const searchItemOnTable = (representativeRecive, column = "Representante", limit=-1) => {
+    const searchItemOnTable = async (representativeRecive, column = "Representante", limit=-1) => {
         async function search_function() {
             //console.log("REPRESENTATIVE: ", representativeRecive, column)
             const response = await searchForFamily(representativeRecive, column, limit)
-            //console.log("SEARCH RESPONSE: ", response)
+            console.log("SEARCH RESPONSE: ", response)
             if( response.status === 0 ) {
                 setCadastroDeFamilias(response.content)
                 //setRegisterList(response.content)
             }
         }
-        search_function()
-
+        const response = await search_function()
+        return response
     }
 
     const handleSearchFamily = () => {
@@ -111,8 +126,18 @@ const CadastrosDeFamilias = () => {
             setRepresentativeName("")
         }
 
-        searchItemOnTable(representativeName, "Representante")
-        tabelaRef.current.updateData(cadastroDeFamilias)
+        const response = searchItemOnTable(representativeName, "Representante")
+
+        
+        if( !response.content ) {
+            response.content = []
+        }
+
+        console.log("RESPONSE: ", response.content)
+        setCadastroDeFamilias(response.content)
+
+        tabelaRef.current.updateItens(response.content)
+        forceUpdate()
     }
 
     const handleSearch = (key) => {
@@ -126,17 +151,30 @@ const CadastrosDeFamilias = () => {
             return
         }
 
-        tabelaRef.current.removerItensSelecionados();
+        //tabelaRef.current.removerItensSelecionados();
+
+        let family_selected = tabelaRef.current.listarItensSelecionados()
+        for( let I = 0; I < family_selected.length; I ++ ) {
+            family_selected[I] = Object.values( family_selected[I] )
+        }
+
+        for( let I = 0; I < family_selected.length; I ++ ) {
+            deleteFamilyDataFunction( family_selected[I][0])
+        }
+        
+
     }
 
     useEffect(() => {
-        //console.log("CADASTROS", cadastroDeFamilias)
+        
         async function get_family_data() {
-            const response = await getFamilyData()
+            const response = await getFamilyData( true)
             setCadastroDeFamilias(response.content)
+            //console.log("CADASTROS", response.content)
         }
-        if( cadastroDeFamilias.length === 0) {
+        if( Array.isArray(cadastroDeFamilias)) {
             get_family_data()
+            
         }
        
         
@@ -147,20 +185,10 @@ const CadastrosDeFamilias = () => {
             return
         }
 
-        tabelaRef.current.updateData(cadastroDeFamilias)
+        tabelaRef.current.updateTable(cadastroDeFamilias)
+        forceUpdate()
     }, [cadastroDeFamilias])
 
-    /*
-    useEffect(() => {
-        async function update_data() {
-            setRegisterList([])
-            setRegisterList(cadastroDeFamilias)            
-        }
-        if( (!registerList || !cadastroDeFamilias) && representativeName ) {
-            update_data()
-        }
-    })
-    */
     return (
 
         <div className={styles.CadastrosDeFamiliasDiv}>
@@ -168,7 +196,9 @@ const CadastrosDeFamilias = () => {
             <div className={styles.topNavbarCadastroFamiliaDiv}>
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Adicionar" onClickButton={() => {goToPage('/register-family')}}/>
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Remover" onClickButton={handleRemoveItemOnTable} />
-                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar Cadastro" onClickButton={alterRegister} />
+                <SimpleButton nameClass={styles.TopNavBarButton} textButton="Alterar Cadastro" onClickButton={ async () => (
+                                                                                                            alterRegister()
+                                                                                                            )} />
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Cadastro de prioridade" onClickButton={() => goToPage('/priority-registration')} />
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Pesquisar" onClickButton={handleSearchFamily} />
                 <input
@@ -186,10 +216,11 @@ const CadastrosDeFamilias = () => {
             </div>
 
             <div>
-                <TabelaCadastroDeItens
+                <TabelaListaDeProdutos
                     ref={tabelaRef}
                     nameClass={styles.tabelaCadastroFamilia}
                     listaDeItens={cadastroDeFamilias}
+                    columnList = { columnList }
                 />
             </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import LabelTitles from '/src/Components/LabelTitles';
 import SimpleButton from '/src/Components/SimpleButton';
@@ -8,6 +8,8 @@ import PropTypes from 'prop-types';
 // Hooks 
 //import { useAddProduct } from '../../Components/hooks/GerenciarProdutos/AdicionarProduto/useAddProduct';
 import { useRegisterProducts } from '/src/Components/hooks/GerenciarProdutos/RegistrarProduto/useRegisterProducts';
+import MessageAlert from '/src/Components/MessageAlert'
+
 
 // Estilos 
 import styles from './RegistrarProdutos.module.css';
@@ -21,6 +23,13 @@ const RegistrarProdutos = () => {
     const { handleRegisterProduct, RegisterProductLoading, RegisterProductMessage } = useRegisterProducts();
     const { produto, marca, id, quantidade } = location.state || { produto: '', marca: '', id: '', quantidade: 0 };
     
+    const [ productName, setProductName ] = useState('')
+    const [ marchName, setMarchName ] = useState('')
+    const [ quantity, setQuantity ] = useState('')
+    const [ idProduct, setIdProduct ] = useState(0)
+
+    const [ selectId, setSelectId ] = useState(false)
+
     const voltarPagina = () => {
         navigate(-1);
     };
@@ -29,12 +38,31 @@ const RegistrarProdutos = () => {
         e.preventDefault();
 
         handleRegisterProduct(
-            e.target[0].value,
-            e.target[1].value,
-            e.target[2].value,
-            e.target[3].value
+            idProduct,
+            productName,
+            marchName,
+            quantity
         )
     }
+
+    useEffect(() => {
+        if( produto ) {
+            setProductName( produto )
+        }
+
+        if( id ) {
+            setIdProduct( id )
+        }
+
+        if( marca ) {
+            setMarchName( marca )
+        }
+
+        if( quantidade ) {
+            setQuantity( quantidade )
+        }
+
+    }, [produto, id, marca, quantidade])
 
     return (
 
@@ -43,30 +71,46 @@ const RegistrarProdutos = () => {
             <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
 
                 <div className={styles.entradaDeDados}>
+                    { selectId && (
+                        <>
+                            <label> ID: </label>
+                            <input
+                                type='number'
+                                value={idProduct}
+                                required
+                                onChange={(e) => (
+                                    setIdProduct( Number( e.target.value) )
+                                )}
+                            />
+                        </>
+                    )}
                     <label> Nome: </label>
                     <input
                         type='text'
-                        defaultValue={produto}
+                        value={productName}
                         required
+                        onChange={(e) => (
+                            setProductName( e.target.value.toUpperCase() )
+                        )}
                     />
                     <label> Marca: </label>
                     <input
                         type='text'
-                        defaultValue={marca}
+                        value={marchName}
                         required
-                    />
-                    <label> ID: </label>
-                    <input
-                        type='text'
-                        defaultValue={id}
-                        required
+                        onChange={(e) => (
+                            setMarchName( e.target.value.toUpperCase() )
+                        )}
                     />
                     <label> Quantidade: </label>
                     <input
                         min="0"
                         required
                         type='number'
-                        defaultValue={quantidade}
+                        value={quantity}
+                        onChange={(e) => (
+                            setQuantity( Number( e.target.value))
+                        )}
                     />
                 </div>
 
@@ -74,7 +118,11 @@ const RegistrarProdutos = () => {
                 <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
             </form>
             {RegisterProductMessage && (
-                <p> {RegisterProductMessage} </p>
+                <MessageAlert
+                    text={RegisterProductMessage}
+                >
+
+                </MessageAlert>
             )}
         </div>
     );

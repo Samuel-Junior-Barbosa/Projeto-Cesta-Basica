@@ -14,7 +14,7 @@ export function useAuthenticator() {
         let response = null
         try {
             response = await authenticator(username, password);
-            if (response === true) {
+            if (response.status === 0) {
                 useAutenticatorSetAuthenticated(true)
                 useAutenticatorSetError('Logado com sucesso');
                 useAutenticatorSetLoading(false);

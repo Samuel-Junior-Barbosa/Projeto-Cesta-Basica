@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useReducer, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import GenerateBasket from './GenerateBasket.jsx';
@@ -10,36 +10,24 @@ import TabelaListaDeProdutos from '../../../Components/TabelaListaDeProdutos';
 
 import styles from './GenerateBasicFoodBaskets.module.css';
 
+import get_stock_itens from '/src/Functions/Stock/GetStockItens'
+import getBasketData from '../../../Functions/Basket/GetBasketData';
+import searchForBasketItem from '../../../Functions/Basket/SearchForBasketItem/index.jsx';
+import getBasketItemsList from '../../../Functions/Basket/GetBasketItems/index.jsx';
 
 
 
 const GenerateBasicFoodBaskets = () => {
-    const [ modelName, setModelName ] = useState('Modelo1');
+    const [ modelId, setModelId ] = useState('1');
     const [ currentModel, setCurrentModel ] = useState('')
     const [ countBasketGenerate, setCountBasketGenerate] = useState('0');
     const [ produtosDoEstoque, setProdutosDoEstoque ] = useState();
 
-    const { listaDeItensNoBD } = useListaDeItensNoBD();
+    const [, forceUpdate] = useReducer(x => x + 1, 0);
+    const [ modelsBasket, setModelBasket ] = useState([])
 
-    const modelsBasket = {
-        'Modelo1' : { 
-            produtos: {
-                'Feijão 1kg' : {marca: 'generica', id: 'PDV2', quantidade: 1},
-                'Açucar 1kg' : {marca: 'generica', id: 'PDV0', quantidade: 1},
-                'Arroz 5kg' : {marca: 'generica', id: 'PDV1', quantidade: 5},
-            }
 
-        }, 
-        'Modelo2' : { 
-            produtos: {
-                'café 250g' : { marca: 'generica', id: 'PDV8', quantidade: 1 },
-                'Leite 5L': { marca: 'generica', id: 'PDV5', quantidade:1 },
-                'Óleo 1L' : { marca: 'generica', id: 'PDV10', quantidade: 1 },
-            }
-
-        }
-    }
-
+    
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -50,45 +38,47 @@ const GenerateBasicFoodBaskets = () => {
 
 
 
-    const queryDataOnDB = () => {
-        let data;
-
-        data = {
-            produtos: {
-                'Açucar 1kg': { marca: 'generica', id: 'PDV0', quantidade: 3 },
-                'Arroz 5kg' : { marca: 'generica', id: 'PDV1', quantidade: 25 },
-                'Feijão 1kg': { marca: 'generica', id: 'PDV2', quantidade: 10 },
-                'Manteiga 500g': { marca: 'generica', id: 'PDV3', quantidade: 5 },
-                'Abobora conservada em lata com a marca TAL DA SILVA com 5kg e Valido até amanhã': { marca: 'teste de nome gigante generica marca', id: 'PDV4', quantidade: 10 },
-                'Leite 5L': { marca: 'generica', id: 'PDV5', quantidade: 7 },
-                "Macarrão 150g": {  marca: 'generica', id: 'PDV6', quantidade: 4 },
-                'café 500g': { marca: 'generica', id: 'PDV7', quantidade: 5 },
-                'café 250g' : { marca: 'generica', id: 'PDV8', quantidade: 6 },
-                'pão sovado' : { marca: 'generica', id: 'PDV9', quantidade: 5 },
-                'Óleo 1L' : { marca: 'generica', id: 'PDV10', quantidade: 7 },
-
-            }
+    const queryDataOnDB = async () => {
+        let data = [];
+        
+        //console.log(" GETTING ITEM BY ID BASKET: ", modelId)
+        const getData = async () => {
+            const response = await getBasketItemsList( modelId )
+            return response.content
         }
+
+        data = getData()
 
         return data;
     }
 
 
-    const GenerateBasketGetInformations = () => {
+    const GenerateBasketGetInformations = async () => {
         
-        let produtos = queryDataOnDB();
-        let modelo = modelsBasket[modelName];
+
+        let modelo = {
+            name : modelsBasket[0][1],
+            produtos : []
+        };
         
+        let get_produtos = await getBasketItemsList(modelId)
+        
+
+        modelo.produtos = get_produtos['content']
+
+        console.log(" get_produtos: ", get_produtos['content'])
+
         let minValueOfGenerate;
-        minValueOfGenerate = GenerateBasket(produtos.produtos, modelo);
+        minValueOfGenerate = await GenerateBasket(modelo);
         setCountBasketGenerate(minValueOfGenerate);
 
     }
 
     const navigate = useNavigate();
 
-    const handleSelectModel = (modelName) => {
-        setModelName(modelName)
+    const handleSelectModel = ( idValue ) => {
+        //console.log("ModelName: ", idValue)
+        setModelId(idValue)
     }
     
     const handleGoBack = () => {
@@ -96,33 +86,49 @@ const GenerateBasicFoodBaskets = () => {
     }
 
 
+
+
+    //Obtem dados do historico de produtos e atualizando a variavel que guarda essa informação
+    //    sempre que atualizar a pagina.
     useEffect(() => {
+        
+        const getHistoryBasketModelDataFunction = async () => {
+            const response = await getBasketData()
+            if( response.status === 0 ) {
+                console.log("DATA MODELS: ", response.content)
+                setModelBasket(response.content)
+                return
+            }
+            return []
+        }
+        getHistoryBasketModelDataFunction()
+        forceUpdate()
+        
+        
+        
+    }, [modelId])
+
+    //
+    useEffect(() => {
+        
+        const getBasketProductsDataFunction = async () => {
+            const response = await searchForBasketItem(modelId, 'id da cesta')
+            if( response.status ) {
+                console.log('dataModel: ', response.content)
+                setCurrentModel(response.content);
+            }
+            return []
+        }
+        getBasketProductsDataFunction()
+        forceUpdate()
+        
+        
+        
+    }, [modelId])
+
+    useLayoutEffect(() => {
         setProdutosDoEstoque(queryDataOnDB());
     }, [])
-
-    useEffect(() => {
-        let produtos = []
-
-        for( let I in modelsBasket[modelName].produtos ) {
-            produtos.push(
-                {
-                    produto: I,
-                    id: modelsBasket[modelName].produtos[I].id,
-                    marca: modelsBasket[modelName].produtos[I].marca,
-                    quantidade: modelsBasket[modelName].produtos[I].quantidade,
-                }
-            )
-
-        }
-
-        const dataModel = {
-            'Modelo1' : produtos
-        }
-
-        console.log('dataModel: ', produtos)
-        setCurrentModel(produtos);
-    }, [modelName])
-
     return (
         <div className={styles.GenerateBascketsDiv}>
             <LabelTitles text="Gerar Cestas Basicas" nameClass={styles.TopTitleDiv} />
@@ -134,8 +140,17 @@ const GenerateBasicFoodBaskets = () => {
                 <select 
                     onChange={(e) => handleSelectModel(e.target.value)}
                 >
-                    <option> Modelo1</option>
-                    <option> Modelo2</option>
+                    <option value={"0"}> NENHUM </option>
+                    { (Array.isArray(modelsBasket) && modelsBasket.length > 0) ? (
+                        //console.log(modelsBasket),
+                        modelsBasket.map( ( value, index ) => (
+                            <option key={index} value={value[0]}>
+                                {value[1]}
+                            </option>
+                        ))) : (
+                            <option></option>
+                        )
+                    }
                 </select>
                 <label>
                     Quantidade Possivel: 

@@ -10,15 +10,12 @@ import searchForChurch from '../../../Functions/Church/SearchForChurch';
 import getChurchGoalsList from '../../../Functions/Church/GetGoalsList';
 
 const ChurchRecords = () => {
-    const [ dataListChurches, setDataListChurches ] = useState();
+    const [ dataListChurches, setDataListChurches ] = useState([]);
     const [ searchItem, setSearchItem ] = useState();
-    const [ editableCelTable, setEditableCelTable ] = useState();
 
 
     const navigate = useNavigate();
     const tabelaRef = useRef();
-
-    const [ cadastrosDeIgrejas, setCadastrosDeIgrejas ] = useState([])
     
     const goToPage = (url) => {
         if (url) {
@@ -58,18 +55,20 @@ const ChurchRecords = () => {
 
 
         const itensSelecionados = tabelaRef.current.listarElementosSelecionados();
-        //console.log('itens selecionados para alterar: ', itensSelecionados)
+        console.log('itens selecionados para alterar: ', itensSelecionados[0].childNodes[1].innerText)
 
-        let churchName     = itensSelecionados[0].childNodes[1].innerText;
-        let representative = itensSelecionados[0].childNodes[2].innerText;
-        let members        = itensSelecionados[0].childNodes[3].innerText;
-        let city           = itensSelecionados[0].childNodes[4].innerText;
-        let neighborhood   = itensSelecionados[0].childNodes[5].innerText;
-        let street         = itensSelecionados[0].childNodes[6].innerText;
-        let buildingNumber = itensSelecionados[0].childNodes[7].innerText;
-        let monthGoals     = itensSelecionados[0].childNodes[8].innerText;
+        let idChurch       = itensSelecionados[0].childNodes[1].innerText;
+        let churchName     = itensSelecionados[0].childNodes[2].innerText;
+        let representative = itensSelecionados[0].childNodes[3].innerText;
+        let members        = itensSelecionados[0].childNodes[4].innerText;
+        let city           = itensSelecionados[0].childNodes[5].innerText;
+        let neighborhood   = itensSelecionados[0].childNodes[6].innerText;
+        let street         = itensSelecionados[0].childNodes[7].innerText;
+        let buildingNumber = itensSelecionados[0].childNodes[8].innerText;
+        let monthGoals     = itensSelecionados[0].childNodes[9].innerText;
 
         navigate('/change-church-registration', {state : {
+                                                    idChurch : idChurch,
                                                     churchName : churchName,
                                                     representative: representative,
                                                     members : members,
@@ -100,7 +99,7 @@ const ChurchRecords = () => {
 
         //console.log("itensSelecionados", itensSelecionados)
         let churchName = itensSelecionados[0].childNodes[1].innerText;
-        let representative = itensSelecionados[0].childNodes[2].innerText;
+        let representative = itensSelecionados[0].childNodes[1].innerText;
         
 
         // Implementar uma logica de requisição ao banco de dados
@@ -127,7 +126,7 @@ const ChurchRecords = () => {
             const response = await searchForChurch(itemName, column, limit)
             console.log("SEARCH RESPONSE: ", response)
             if( response.status === 0 ) {
-                setCadastrosDeIgrejas(response.content)
+                //setCadastrosDeIgrejas(response.content)
                 setDataListChurches(response.content)
                 //setItens(response.content)
                 return response.content
@@ -148,6 +147,10 @@ const ChurchRecords = () => {
         }
         
         const response = searchItemOnTable(searchItem, "Nome")
+        if( !response.content ) {
+            response.content = []
+        }
+        setDataListChurches(response.content)
         //console.log('handleSearchChurch: ', searchItem)
         //tabelaRef.current.searchItemOnTable(searchItem, 'Nome');
         tabelaRef.current.updateItens(response.content)
@@ -171,11 +174,10 @@ const ChurchRecords = () => {
     useEffect(() => {
         async function get_data() {
             const response = await getChurchData()
-            setCadastrosDeIgrejas(response.content)
             setDataListChurches(response.content)
         }
 
-        if( cadastrosDeIgrejas.length === 0 ) {
+        if( Array.isArray(dataListChurches) ) {
             get_data()
         }
         
@@ -208,14 +210,11 @@ const ChurchRecords = () => {
             </div>
 
             <div className={styles.divTabelaMeta}>
-                {dataListChurches && (
-                    <TabelaListaDeProdutos 
-                        ref={ tabelaRef }
-                        listaDeItens={ dataListChurches }
-                        editableCel={editableCelTable}
-                    />
-
-                )}
+            
+                <TabelaListaDeProdutos 
+                    listaDeItens={ dataListChurches }
+                    ref={ tabelaRef }
+                />
             </div>
             
         </div>

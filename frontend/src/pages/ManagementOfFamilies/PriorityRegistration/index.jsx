@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useReducer, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -7,15 +7,28 @@ import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 import LabelTitles from '/src/Components/LabelTitles';
 
 import styles from './PriorityRegistration.module.css';
-import getPriorityRegistration from '../../../Functions/Family/GetPriorityRegistration/Index';
+import getPriorityRegistration from '../../../Functions/Family/PriorityFunction/GetPriorityRegistration';
+import deletePriorityRegistration from '../../../Functions/Family/PriorityFunction/DeletePriorityRegistration';
+import { useDeletingPriority } from '../../../Components/hooks/ManageFamily/Priority/DeletePriority/useDeletingRegisterPriority';
+import MessageAlert from '../../../Components/MessageAlert';
 
 
 
 const PriorityRegistration = () => {
     const tabelaRef = useRef();
     const navigate = useNavigate();
+    const [, forceUpdate] = useReducer(x => x + 1, 0);
     const [ priorityList, setPriorityList ] = useState([])
 
+    const { handleDeletingRegistrationPriority, DeletingPriorityMessage, DeletingPriorityLoading } = useDeletingPriority()
+
+    const columnList = [
+        "ID",
+        "DESCRIçÃO",
+        "NIVEL",
+        "DATA DE CRIAÇÃO",
+        "ULTIMA ALTERAÇÃO"
+    ]
     
 
     const goToPage = ( url, states ) => {
@@ -45,7 +58,7 @@ const PriorityRegistration = () => {
         console.log('itemSelecionado: ', itensSelecionados[0].children[1].innerText)
 
         goToPage('/alter-priority-register', { state: { 
-            namePriority : itensSelecionados[0].children[1].innerText,
+            idPriority : itensSelecionados[0].children[1].innerText,
             descriptionPriority: itensSelecionados[0].children[2].innerText, 
             priorityLevel : String(itensSelecionados[0].children[3].innerText),
             }
@@ -58,7 +71,24 @@ const PriorityRegistration = () => {
             return
         }
 
-        tabelaRef.current.removerItensSelecionados()
+        
+        let prioritySelected = tabelaRef.current.listarItensSelecionados()
+
+        for( let I = 0; I < prioritySelected.length; I ++ ) {
+            prioritySelected[I] = Object.values( prioritySelected[I])
+        }
+
+        //console.log(" REMOVENDO: ", prioritySelected)
+        //tabelaRef.current.removerItensSelecionados()
+        
+        for( let I = 0; I < prioritySelected.length; I ++ ) {
+            handleDeletingRegistrationPriority( prioritySelected[I][0] )
+        }
+
+        forceUpdate()
+
+        get_priority_data()
+        
     }
 
     const get_priority_data = async() => {
@@ -103,9 +133,19 @@ const PriorityRegistration = () => {
                         ref={ tabelaRef }
                         listaDeItens={ priorityList }
                         nameClass={ styles.priorityTable }
+                        columnList = { columnList }
                         
                     />
                 </div>
+            )}
+
+
+            { DeletingPriorityMessage && (
+                <MessageAlert
+                    text={DeletingPriorityMessage}
+                >
+
+                </MessageAlert>
             )}
         </div>
     );

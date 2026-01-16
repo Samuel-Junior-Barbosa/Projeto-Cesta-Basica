@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 // Componentes
 import LabelTitles from '/src/Components/LabelTitles';
@@ -15,8 +15,16 @@ import styles from './AlterarDadosProdutos.module.css';
 const AlterarItem = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [ alterId, setAlterId ] = useState();
+
     const { handleAlterProduct, AlterProductLoading, AlterProductMessage } = useAlterProduct();
-    const {produto, marca, id, quantidade } = location.state || { produto: '', marca: '', id: '', quantidade: 0 };
+    const { id, produto, marca, quantidade } = location.state || { id: '', produto: '', marca: '', quantidade: 0 };
+    
+    const [ statusRegister, setStatusRegister ] = useState(true);
+    const [ productName, setProductName ] = useState('');
+    const [ marchName, setMarchName ] = useState('');
+    const [ idValue, setIdValue ] = useState(0);
+    const [ quantity, setQuantity ] = useState(0);
 
     const voltarPagina = () => {
         navigate(-1);
@@ -25,15 +33,35 @@ const AlterarItem = () => {
     const onSubmit = (e) => {
         e.preventDefault();
         // Implementar uma logica para alterar informações de itens no banco de dados
+        console.log(
+            'id_Value', idValue,
+            'produto', productName,
+            marchName,
+            quantity,
+            statusRegister
+        )
+        let confirm_dialog = confirm("Confirmar a alteração do produto?")
+
+        if( !confirm_dialog ) {
+
+            return
+        }
         handleAlterProduct(
-            e.target[0].value,
-            e.target[1].value,
-            e.target[2].value,
-            e.target[3].value
+            idValue,
+            productName,
+            marchName,
+            quantity,
+            statusRegister
         )
     }
 
+    useState(() => {
+        setProductName( produto )
+        setMarchName( marca )
+        setIdValue( id )
+        setQuantity( quantidade )
 
+    }, [produto, marca, id, quantidade])
 
     return (
 
@@ -44,30 +72,46 @@ const AlterarItem = () => {
                 <div className={styles.entradaDeDados}>
                     <label> Nome: </label>
                     <input
-                        defaultValue={produto}
+                        value={productName}
                         required
+                        onChange={(e) =>
+                            setProductName( e.target.value.toUpperCase() )
+                        }
                     />
                     <label> Marca: </label>
                     <input
-                        defaultValue={marca}
+                        value={marchName}
                         required
+                        onChange={(e) => 
+                            setMarchName( e.target.value.toUpperCase() )
+                        }
                     />
-                    <label> ID: </label>
-                    <input
-                        defaultValue={id}
-                        required
-                    />
+                    { alterId && (
+                        <>
+                            <label> ID: </label>
+                            <input
+                                value={idValue}
+                                required
+                                onChange={(e) =>
+                                    setIdValue( Number( e.target.value.toUpperCase() ) )
+                                }
+                            />
+                        </>
+                    )}
                     <label> Quantidade: </label>
                     <input
                         min="0"
                         required
                         type='number'
-                        defaultValue={quantidade}
+                        defaultValue={quantity}
+                        onChange={(e) =>
+                            setQuantity( Number( e.target.value ) )
+                        }
                     />
                 </div>
 
                 <SimpleButton type="submit" nameClass={styles.buttonRegister} textButton="Alterar"/>
-                <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
+                <SimpleButton type="button" nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
             </form>
             {AlterProductMessage && (
                 <p>{AlterProductMessage}</p>

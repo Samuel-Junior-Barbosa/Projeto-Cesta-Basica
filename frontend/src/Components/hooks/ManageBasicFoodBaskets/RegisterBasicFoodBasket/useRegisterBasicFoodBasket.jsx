@@ -1,5 +1,7 @@
-import RegisterBasicFoodBasketOnDB from "./RegisterBasicFoodBasket";
+//import RegisterBasicFoodBasketOnDB from "./RegisterBasicFoodBasket";
+
 import { useState } from "react";
+import registerBasketFoodModelFunction from "../../../../Functions/Basket/RegisterBasketFoodModelFunction";
 
 export function useRegisterBasicFoodBasket() {
 
@@ -12,20 +14,30 @@ export function useRegisterBasicFoodBasket() {
         useRegisterBasicFoodBasketSetMessage(null);
 
         try {
-            const response = await RegisterBasicFoodBasketOnDB(dataOfBasicFoodBasket = dataOfBasicFoodBasket);
-            if (response === true) {
+            const response = await registerBasketFoodModelFunction(dataOfBasicFoodBasket);
+            if (response.status === 0) {
                 useRegisterBasicFoodBasketSetRegistred(true)
                 useRegisterBasicFoodBasketSetMessage('Registrada com sucesso');
-                setTimeout(() => {
-                    useRegisterBasicFoodBasketSetMessage('');
-                }, 2000)
-                useRegisterBasicFoodBasketSetLoading(false);
                 
     
             }
-            else {
-                useRegisterBasicFoodBasketSetMessage(response.message)
+
+            else if( response.status === 2067 ) {
+                useRegisterBasicFoodBasketSetRegistred(false)
+                useRegisterBasicFoodBasketSetMessage("Nome da cesta já existe, tente outro nome")
             }
+
+            else {
+                useRegisterBasicFoodBasketSetRegistred(false)
+                useRegisterBasicFoodBasketSetMessage(response.content)                
+            }
+
+            setTimeout(() => {
+                useRegisterBasicFoodBasketSetMessage('');
+            }, 2000)
+            useRegisterBasicFoodBasketSetLoading(false);
+
+            return response
             
             
         } catch (err) {

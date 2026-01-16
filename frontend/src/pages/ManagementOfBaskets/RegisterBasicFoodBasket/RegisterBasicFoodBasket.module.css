@@ -9,17 +9,21 @@
     height: 90dvh;
 }
 
+.tituloPaginaAtualDiv {
+    font-size: 1rem;
+}
+
 .RegisterChurchDivMain {
 
     background-color: var(--bg-page3);
-    padding: 10px;
-    margin-top: 20px;
+    padding: 5px;
+    margin-top: 15px;
     border-radius: 20px;
     
 }
 
 .labelNameBaskets {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 .inputNameBaskets {
@@ -27,7 +31,7 @@
     outline: 0;
     border: 0;
     font-size: 1.2rem;
-    padding: 5px;
+    padding: 2.5px;
     &::selection {
         outline: 0;
         border: 0;

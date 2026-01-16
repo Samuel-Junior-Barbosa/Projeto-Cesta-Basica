@@ -9,12 +9,20 @@ import { useEffect, useRef, useState } from 'react';
 
 import getBasketData from '../../../Functions/Basket/GetBasketData';
 import searchForBasket from '../../../Functions/Basket/SearchForBasket';
+import removeItemOfBasketModel from '../../../Functions/Basket/RemoveItemOfBasketModel';
+import removeRegistrationBasketModel from '../../../Functions/Basket/RemoveRegistrationBasketModel';
+
+
 
 const ManageBasicBasket = () => {
     const tabelaRef = useRef();
     const navigate = useNavigate();
     const [ nameSearch, setNameSearch ] = useState('');
     const [ basketList, setBasketList ] = useState([])
+    const columnList = [
+        'ID', 
+        'NOME DA CESTA',
+    ]
     const handleSetItemSearch = (nameItem) => {
         nameItem = nameItem.toUpperCase()
         setNameSearch(nameItem)
@@ -71,12 +79,27 @@ const ManageBasicBasket = () => {
         tabelaRef.current.updateItens(response.content);
     }
 
-    const handleRemoveItens = () => {
+    const handleRemoveItens = async () => {
         if( !tabelaRef.current ) {
             return;
         }
 
-        tabelaRef.current.removerItensSelecionados();
+        //tabelaRef.current.removerItensSelecionados();
+        
+        let confirm_dialog = confirm("DESEJA REALMENTE DELETAR ESSA CESTA?")
+        if( !confirm_dialog ) {
+            return
+        }
+        
+        let itensSelecionados = tabelaRef.current.listarItensSelecionados()
+
+        for( let i = 0; i < itensSelecionados.length; i ++ ) {
+            console.log(" REMOVING ITEM: ", Object.values( itensSelecionados[i]) )
+            await removeRegistrationBasketModel( Object.values(itensSelecionados[i])[0] )
+        }
+
+        get_basket_data()
+
     }
 
     const handleAlterBasket = async () => {
@@ -90,17 +113,16 @@ const ManageBasicBasket = () => {
                 return
             }
         }
-        const basketName = itemSelecionado[0]["NOME DA CESTA"]
-        const basketId        = itemSelecionado[0].id
-        const basketQuantity  = itemSelecionado[0]["Quantidade de itens"]
-        const basketGenerated = itemSelecionado[0]["Quantidade de cestas geradas"]
+        
+        const basketId        = itemSelecionado[0][0]
+        const basketName = itemSelecionado[0][1]
+        //const basketQuantity  = itemSelecionado[0]["Quantidade de itens"]
 
         goToPage('/change-basic-basket', {
                                             state: {
                                                 basketName : basketName,
-                                                basketId: basketId,
-                                                basketQuantity: basketQuantity,
-                                                basketGenerated: basketGenerated,
+                                                basketId: basketId
+                                                //basketQuantity: basketQuantity
                                             }})
     }
 
@@ -151,6 +173,7 @@ const ManageBasicBasket = () => {
                     ref={tabelaRef}
                     listaDeItens={basketList}
                     nameClass={styles.tabelaCestas}
+                    columnList={ columnList }
                     
                 />
             </div>

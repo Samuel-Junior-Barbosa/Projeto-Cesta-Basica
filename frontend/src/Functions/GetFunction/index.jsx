@@ -3,12 +3,13 @@ import { useEffect, useState } from "react"
 
 const getFunction = async (url, params = null) => {
     let response;
+    //console.log("GET FUNCTION: ", url, params)
     if( params ) {
         response = await axios.get(url, {
+            params,
             headers: {
-                "Cache-Control": "no-cache" // evita cache do navegador/proxy
+                "Cache-Control": "no-cache", // evita cache do navegador/proxy
             },
-            params : params,
         })
     }
     else{ 
@@ -18,6 +19,8 @@ const getFunction = async (url, params = null) => {
             }
         })
     }
+
+    //console.log("RETURNED GET", response)
     return response.data
 
 }

@@ -3,19 +3,35 @@ import TabelaListaDeProdutos from '/src/Components/TabelaListaDeProdutos';
 import LabelTitles from '../../../Components/LabelTitles';
 
 import styles from './AddingPriorityRegister.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import registrationPriorityFunction from '../../../Functions/Family/PriorityFunction/RegistrationPriority';
+import { useAdditingPriority } from '../../../Components/hooks/ManageFamily/Priority/RegistrationPriority/useAddtingRegisterPriority';
+import MessageAlert from '../../../Components/MessageAlert';
 
 
 
 const AddingPriorityRegister = () => {
     const navigate = useNavigate();
 
+    const [ descriptionPriority, setDescriptionPriority ] = useState('')
+    const [ priorityLevel, setPriorityLevel ] = useState(0)
+
+    const { handleAdditingRegistrationPriority, AdditingPriorityMessage, AdditingPriorityLoading} = useAdditingPriority()
+
     const handleGoBack = () => {
         navigate(-1);
     }
 
-    const onSubmit = (e) => {
-        e.preventDefault();
+    const onSubmit = () => {
+        
+        const data = {
+            descricao : descriptionPriority,
+            nivel : priorityLevel
+        }
+
+        //console.log(" DATA: ", data)
+        handleAdditingRegistrationPriority( data )
 
     }
 
@@ -27,21 +43,20 @@ const AddingPriorityRegister = () => {
                 text={ 'Adicionando novo critérios' }
                 nameClass={ styles.titleTopPage }
             />
-            <form onSubmit={onSubmit} className={styles.formPriorities}>
+            <div className={styles.formPriorities}>
                 <div>
                     <label>
-                        Nome: 
-                    </label>
-                    <input
-
-                    />
-                </div>
-                <div>
-                    <label>
-                        Descrição (opcional):
+                        Descrição:
                     </label>
                     <input 
-                    
+
+                        value={descriptionPriority}
+                        required
+                        onChange={(e) => {
+                            setDescriptionPriority(e.target.value.toUpperCase())
+                        }}
+
+
                     />
                 </div>
                 <div>
@@ -52,18 +67,29 @@ const AddingPriorityRegister = () => {
                         type={'number'}
                         min={"0"}
                         max={"10"}
+                        required
+                        onChange={(e) => {
+                            setPriorityLevel( Number( e.target.value) ) 
+                        }}
                     />
                 </div>
                 <SimpleButton 
-                    typeButton={"submit"}
                     textButton={ 'Adicionar' }
+                    onClickButton={onSubmit}
                     
                 />
                 <SimpleButton 
                     textButton={ 'Cancelar' }
                     onClickButton={handleGoBack}
                 />
-            </form>
+            </div>
+
+            { AdditingPriorityMessage && (
+                <MessageAlert
+                    text={AdditingPriorityMessage}
+                >
+                </MessageAlert>
+            )}
         </div>
     );
 }

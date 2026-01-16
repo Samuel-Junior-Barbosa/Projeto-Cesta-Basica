@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useReducer, useState, useLayoutEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import styles from './IOBaskets.module.css';
@@ -14,61 +14,96 @@ import { useListaDeItensNoBD } from '/src/contexts/ListOfProductsonStock';
 import { useBasketOutput } from '../../../Components/hooks/ManageBasicFoodBaskets/BasketOutput/useBasketOutput';
 import { useBasketInput } from '../../../Components/hooks/ManageBasicFoodBaskets/BasketInput/useBasketInput';
 import { element } from 'prop-types';
+
+import AddItemLookupList from '../../../Components/AddItemLookupList';
 import get_stock_itens from '../../../Functions/Stock/GetStockItens';
+import getHistoryBasketModel from '../../../Functions/Basket/GetHistoryBasketModel';
+import getChurchData from '../../../Functions/Church/GetChurchData';
+
+import SearchOnStock from '../../../Functions/Stock/SearchOnStock';
+import GetHistoryBasketModelsData from '../../../Functions/Basket/GetHistoryModelData';
+import searchForBasket from '../../../Functions/Basket/SearchForBasket';
+import searchForBasketItem from '../../../Functions/Basket/SearchForBasketItem';
+import GetHistoryBasketModelItemById from '../../../Functions/Basket/GetHistoryBasketModelItemDataById';
 
 const IOBaskets = () => {
     const tabelaRef = useRef();
     const navigate = useNavigate();
     const location = useLocation();
-    const { typeAction, dataOfBasket, dataProdutosRecived } = location.state || { typeAction: '', dataOfBasket: null, dataProdutosRecived: null};
+    const { typeAction, dataOfBasket, dataProdutosRecived, idHistoryModel } = location.state || { typeAction: '', dataOfBasket: null, dataProdutosRecived: null, idHistoryModel : null};
     const [ dataRecivedOfProducts, setDataRecivedOfProducts ] = useState();
     const [ dataOfBasketRecived, setDataOfBasketRecived ] = useState();
-
+    const [ dataLoaded, setDataLoaded ] = useState(false)
     const { handleBasketOutput, useBasketOutputWithdrawal, useBasketOutputLoading, useBasketOutputMessage } = useBasketOutput();
     const { handleBasketInput, useBasketInputWithdrawal, useBasketInputLoading, useBasketInputMessage } = useBasketInput();
+    const [ historyBasketData, setHistoryBasketData ] = useState([])
 
     const [ listaDeItensNoBD, setListaDeItensNoBD ] = useState([])
+    const listHistoryModelProduct = useRef([])
+    const currentSelectedItems = useRef([])
+
     const [ maxQuantityPerItem, setMaxQuantityPerItem ] = useState(0);
     const [ dataBasicFoodBasket, setDataBasicFoodBasket ] = useState();
     const [ basketWithdrawQuantity, setBasketWithdrawQuantity ] = useState('');
 
     const [ incrementingQuantityItem, setIncrementingQuantityItem ] = useState(false);
-
     const [ timeoutId, setTimeoutId ] = useState(null);
-
     const [isKeyPressed, setIsKeyPressed] = useState(false);
     
     // valores para ser impresso na tela
-    const [ typeOfAction, setTypeOfAction ] = useState('Entrada');
+    const [ typeOfAction, setTypeOfAction ] = useState('Saida'); //'Entrada'
     const [ itemSearch, setItemSearch ] = useState('');
-    const [ itemIdSearched, setItemIdSearched ] = useState('');
-    const [ itemSearchedByID, setItemSearchedByID ] = useState('');
     const [ donationFromOutside, setDonationFromOutside ] = useState(false);
-    const [ tableBody, setTableBody ] = useState(null)
-    const [ quantityItemForAdd, setQuantityItemForAdd ] = useState('0')
+    const [ registrationList, setRegistrationList ] = useState([]);
+    const [ iframeContent, setIframeContent ] = useState([])
+    const [ historyBasketItemData, setHistoryBasketItemData ] = useState([])
+
 
     // elementos html
-    const [ inputProductName, setInputProductName ] = useState();
-    const [ inputIdItem, setInputIdItem ] = useState();
-    const [ inputQuantityPerItem, setInputQuantityPerItem ] = useState();
-    const [ inputBasketWithdrawQuantity, setIinputBasketWithdrawQuantity ] = useState();
-    const [ donorsName, setDonorsName ] = useState();
-    const [ congregationName, setCongregationName ] = useState();
-    const [ inputAddress, setInputAddress ] = useState();
-    const [ observationInput, setObservationInput ] = useState();
-    const [ whoRecivedBasicBasketFood, setWhoRecivedBasicBasketFood ] = useState();
-    const [ familyRepresentative, setFamilyRepresentative ] = useState();
+    const [ inputProductName, setInputProductName ] = useState('');
+    const [ inputIdItem, setInputIdItem ] = useState('');
+    const [ inputQuantityPerItem, setInputQuantityPerItem ] = useState('');
+    const [ inputBasketWithdrawQuantity, setIinputBasketWithdrawQuantity ] = useState('');
+    const [ donorsName, setDonorsName ] = useState('');
+    const [ congregationName, setCongregationName ] = useState('');
+    const [ inputAddress, setInputAddress ] = useState('');
+    const [ observationInput, setObservationInput ] = useState('');
+    const [ whoRecivedBasicBasketFood, setWhoRecivedBasicBasketFood ] = useState('');
+    const [ familyRepresentative, setFamilyRepresentative ] = useState('');
+    const [ showItemListWindow, setShowItemListWindow ] = useState(false);
+    const [ showBasketHistoryItemListWindow, setShowBasketHistoryItemListWindow ] = useState(false);
     
+    //
+    const [, forceUpdate] = useReducer(x => x + 1, 0);
 
-    const handleDonorsName = ( name ) => {
+    const handleSetDonorsName = ( name ) => {
         setDonorsName( name )
     }
+    const handleDonorsName = ( key ) => {
+        if( (key == 'Enter' || key === 'NumpadEnter') && !congregationName ) {
+            setShowItemListWindow(true)
+        }
 
+        else if( key == "Escape" && showItemListWindow === true ) {
+            setShowItemListWindow(false)
+        }
+        
+    }
 
-    const handleCongregationName = ( name ) => {
+    const handleSetCongregationName = ( name ) => {
         setCongregationName( name )
     }
 
+    const handleCongregationName = ( key ) => {
+        if( (key == 'Enter' || key === 'NumpadEnter') && !congregationName ) {
+            setShowItemListWindow(true)
+        }
+
+        else if( key == "Escape" && showItemListWindow === true ) {
+            setShowItemListWindow(false)
+        }
+
+    }
 
     const handleInputAddress = ( address ) => {
         setInputAddress( address )
@@ -85,148 +120,93 @@ const IOBaskets = () => {
     }
     
 
-    const handleFamilyRepresentative = ( value ) => {
+    const handleSetFamilyRepresentative = ( value ) => {
         setFamilyRepresentative( value )
     }
-    
-    
 
-    const testRef = useCallback((node) => {
-        if( node !== null) {
-            tabelaRef.current = node;
+    const handleFamilyRepresentative = ( key ) => {
+        if( (key == 'Enter' || key === 'NumpadEnter') && !congregationName ) {
+            setShowItemListWindow(true)
         }
-    }, [tabelaRef])
 
-    const handleSetItemSearch = useCallback((itemName) => {        
-        if( itemName === null ) {
+        else if( key == "Escape" && showItemListWindow === true ) {
+            setShowItemListWindow(false)
+        }
+    }
+
+    const handleSetItemSearch = (nameItem) => {
+        if( nameItem ) {
+            nameItem = nameItem.toUpperCase()
+        }
+        //console.log("ITEM PESQUISADO: ", nameItem)
+        setItemSearch(nameItem)
+        
+    }
+
+    
+    const searchItemOnTable = (nameForSearch, column, limit=-1) => {
+        
+        async function search_function() {
+            
+            const response = await SearchOnStock(nameForSearch, column, limit)
+            //console.log("SEARCH RESPONSE: ", response)
+            if( response.status === 0 ) {
+                setListaDeItensNoBD(response.content)
+                
+                return response
+            }
+        }
+
+        const response = search_function()
+
+        return response
+    }
+
+    const handleSearchInput = ( keypressed ) => {
+        if( keypressed === "Enter" ) {
+            setDataLoaded(false)
+            handleSearchItem()
+        }
+
+    }
+
+    const handleSearchItem = () => {
+        if( !tabelaRef.current ) {
             return
         }
-        //console.log('set itemSearch: ', itemSearch)
-        setItemSearch(itemName);
-    }, [itemSearch]);
-    
-    const handleSetSearchById = useCallback((idSearch) => {
-        if( idSearch === null) {
-            return;
+        if( !itemSearch ) {
+            setItemSearch("")
         }
-
-        setItemIdSearched(idSearch)
         
-        for( let I = 0; I < listaDeItensNoBD.length; I++ ) {
-            if( idSearch === listaDeItensNoBD[I].id ) {
-                
-                setItemSearchedByID( listaDeItensNoBD[I].produto );
-                setDataBasicFoodBasket( listaDeItensNoBD[I] )
-                setItemSearch( listaDeItensNoBD[I].produto  )
-                inputProductName.value = listaDeItensNoBD[I].produto;
-                //setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
-                //console.log(inputProductName.value)
-            }
+        const response = searchItemOnTable(itemSearch, 'produto')
+        if( response.status === 0 ) {
+            currentSelectedItems.current = tabelaRef.current.getCheckedList()
+            //console.log("SEARCH ITEM: ", currentSelectedItems.current)
         }
-
+        //console.log("RESPONSE CONTENT: ", response.content)
+        if( response.content ) {
+            setListaDeItensNoBD(response.content)
+            tabelaRef.current.updateItens(response.content);
+            tabelaRef.current.updateItemList(response.content)
+        }
+        else {
+            tabelaRef.current.updateItens([]);
+            tabelaRef.current.updateItemList([])
+        }
         
         
+        if( currentSelectedItems.current.length > 0 ) {
+            setTimeout(() => {
+                tabelaRef.current.setCheckedList(currentSelectedItems.current)
+                forceUpdate()
+            }, 1000)
+        }
         
-    }, [inputProductName, listaDeItensNoBD, inputIdItem, itemSearchedByID])
-
-
-    const handleFocusItemSearch = useCallback((itemName) => {
-        let itemFind = false
-        let index = 0;
-        if( (inputIdItem.value) && (!itemSearch || itemSearch) ) {
-            for( let I = 0; I < listaDeItensNoBD.length; I ++) {
-                if( listaDeItensNoBD[I].id === inputIdItem.value) {
-                    index = I;
-                    setItemSearch( listaDeItensNoBD[I].produto );
-                    setDataBasicFoodBasket(listaDeItensNoBD[I])
-                    inputProductName.value = listaDeItensNoBD[I].produto;
-                    //setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
-                    itemFind = true;
-                }
-            }   
-        }
-        else if( (!inputIdItem.value) && (itemSearch)) {
-            for( let I = 0; I < listaDeItensNoBD.length; I ++) {
-                if( listaDeItensNoBD[I].produto === inputProductName.value) {
-                    index = I;
-                    setItemSearch( listaDeItensNoBD[I].produto );
-                    setDataBasicFoodBasket( listaDeItensNoBD[I] );
-                    setItemIdSearched( listaDeItensNoBD[I].id );
-
-
-                    //setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
-
-                    
-
-                    inputIdItem.value = listaDeItensNoBD[I]
-                    itemFind = true;
-                }
-            } 
-        }
-    }, [ listaDeItensNoBD, inputProductName, itemSearchedByID, itemSearch ]);
-
-    
-    const handleFocusIdItem = useCallback((e) => {
-        let itemFind = false
-        let index = 0;
-        //console.log(' inputItem: ', inputIdItem)
-        if( (itemSearch) && (!inputIdItem.value || inputIdItem.value) ) {
-            //console.log('opção 1 ')
-            for( let I = 0; I < listaDeItensNoBD.length; I ++) {
-                //console.log(' itemSearch: ', itemSearch)
-                if( listaDeItensNoBD[I].produto === itemSearch) {
-                    //console.log('Encontrou')
-                    //console.log(' listaDeItensNoBD', listaDeItensNoBD[I])
-                    index = I;
-                    setItemSearchedByID(listaDeItensNoBD[I].id)
-                    setItemIdSearched(listaDeItensNoBD[I].id);
-                    
-                    setDataBasicFoodBasket(listaDeItensNoBD[I])
-                    //setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
-                    
-                    
-                    handleSetSearchById(listaDeItensNoBD[I].id)
-                    itemFind = true;
-                }
-            }
-        }
-        else if( (inputIdItem.value) && (itemSearch !== '')) {
-            //console.log('opção2 ')
-            for( let I = 0; I < listaDeItensNoBD.length; I ++) {
-                if( listaDeItensNoBD[I].id === inputIdItem.value) {
-                    //console.log(' inputIdItem', inputIdItem.value)
-                    index = I;
-                    setItemSearchedByID(listaDeItensNoBD[I].id)
-                    setItemIdSearched(listaDeItensNoBD[I].id);
-                    inputIdItem.value = listaDeItensNoBD[I].id;
-
-                    setDataBasicFoodBasket(listaDeItensNoBD[I])
-                    setItemSearch( listaDeItensNoBD[I].produto );
-                    // setMaxQuantityPerItem(listaDeItensNoBD[I].quantidade);
-
-                    inputProductName.value = listaDeItensNoBD[I].produto;
-                    
-                    
-                    itemFind = true;
-
-                }
-            }
-        }
-
         
-    }, [ inputIdItem, listaDeItensNoBD, inputProductName, itemSearch ])
-    
-
-    
-    const handleFocusQuantityPerItens = useCallback(() => {
-        inputQuantityPerItem.value = dataBasicFoodBasket.quantidade;
-        handleSetQuantityPerItens();
-    }, [dataBasicFoodBasket, inputQuantityPerItem]);
-
-
-    const handleSetQuantityPerItens = useCallback((e) => {
-        inputQuantityPerItem.max = dataBasicFoodBasket.quantidade;
-    }, [inputQuantityPerItem, dataBasicFoodBasket]);
+        
+        //console.log("SEARCH ITEM2: ", currentSelectedItems.current)
+        
+    }
 
 
     const handleGoBack = useCallback(() => {
@@ -240,6 +220,7 @@ const IOBaskets = () => {
         //setTypeOfAction('Saida')
     }, [])
 
+
     const resetTable = useCallback(() => {
         if( tabelaRef.current ) {
             //console.log(' Limpando os itens selecionados da tabela')
@@ -247,28 +228,6 @@ const IOBaskets = () => {
         }
     }, [tabelaRef])
 
-    /*
-    const queryDataOnDB = () => {
-        let data = {
-
-        };
-        let produtos = {}
-
-        for( let I = 0; I < listaDeItensNoBD.length; I ++) {
-            let currentProduct = listaDeItensNoBD[I];
-            let currentNameProduct = currentProduct.produto;
-            Object.assign(produtos, {[currentNameProduct] : {
-                    marca: currentProduct.marca, id : currentProduct.id, quantidade: currentProduct.quantidade,
-                },
-            });
-
-        }
-
-        Object.assign(data, produtos)
-
-        return data;
-    };
-    */
 
     const queryDataOnDB = () => {
         async function get_data_on_db() {
@@ -278,6 +237,7 @@ const IOBaskets = () => {
 
         return get_data_on_db()
     }
+
 
     const confirmWithdrawItens = useCallback(() => {
         if( !tabelaRef ) {
@@ -314,13 +274,14 @@ const IOBaskets = () => {
         
         //console.log('modelo1 ', modelo);
         let maxBasketsGenerate = GenerateBasket(produtos, modelo['modelo1']);
-        console.log('basketWithdrawQuantity: ', basketWithdrawQuantity)
+        //console.log('basketWithdrawQuantity: ', basketWithdrawQuantity)
         if( maxBasketsGenerate < basketWithdrawQuantity ) {
             return 1
         }
         const retorno = confirm(`Desejá tirar: ${Number(basketWithdrawQuantity)} unidade(s) de cesta com os seguintes itens: ${msg}\n O maximo de cestas à gerar são: ${maxBasketsGenerate}`);
         return retorno;
     }, [tabelaRef, basketWithdrawQuantity, listaDeItensNoBD, inputBasketWithdrawQuantity]);
+
 
     const withdrawItensOfStock = useCallback(() => {
         // Implementar alguma logica que envia uma solicitação para o back pedindo a retirada dos itens
@@ -348,18 +309,6 @@ const IOBaskets = () => {
         alert('Itens retiados com sucesso.')
     }, [tabelaRef, listaDeItensNoBD, basketWithdrawQuantity])
 
-    const addItemOnStock = useCallback((e) => {
-        e.preventDefault();
-        const nameProduct = e.target.elements[0].value;
-        const idProduct = e.target.elements[1].value;
-        const quantityProduct = e.target.elements[2].value;
-        const donationFromOutsideValue = donationFromOutside
-        //console.log(' enviando: ', nameProduct, idProduct, quantityProduct)
-        if( (nameProduct !== '') && (idProduct !== '') && (quantityProduct !== '') ) {
-            handleBasketInput(nameProduct, idProduct, quantityProduct)
-        }    
-        
-    }, [])
 
     const addBasketWithdrawalToHistory = useCallback(() => {
         // implementar uma logica de envio de informações de
@@ -377,86 +326,63 @@ const IOBaskets = () => {
     }, [])
 
 
-    const handleBasketHistory = useCallback(() => {
-        navigate('/history-basic-food-basket')
-    }, [navigate] );
+    const handleBasketHistory = () => {
+        //navigate('/history-basic-food-basket')
+        if( showBasketHistoryItemListWindow ) {
+            setShowBasketHistoryItemListWindow(false)
+        }
+
+        else {
+            setShowBasketHistoryItemListWindow(true)
+        }
+    };
 
 
-    const selectItemById = useCallback((id) => {
+    const changeQuantatityOfItemSelectedById = (id, value) => {
+        //console.log("ID: ", id, "  VALUE: ", value)
         if( !tabelaRef.current ) {
             //console.log('Saindo do select by id: ', tabelaRef)
             return
         }
-        
-        //console.log('selectItemById tabelaRef: ', tabelaRef)
-        //console.log('selectItemById tabelaRef ListarItens: ', tabelaRef.current.retornarLinhasDaTabela)
-        
-        let tableBodyChildNodes;
-        tableBodyChildNodes = tabelaRef.current.retornarLinhasDaTabela()
 
+        let listItems = tabelaRef.current.getCurrentItens()
         
-        //console.log(' selectItens: ', tabelaRef.current.getCurrentItens())
-        //console.log('selectItemById tableBody1: ', tableBody)
-        
-        if( !tableBodyChildNodes || tableBodyChildNodes.length === 0 ) {
-            return
-        }
-
-        //console.log('selectItemById tableBody2: ', tableBodyChildNodes)
-        //console.log('selectItemById tableBody2.length: ', tableBodyChildNodes.length)
-
-        let row;
-        let checkboxCel;
-        let textContent;
-        for( let I = 0; I < tableBodyChildNodes.length; I ++ ) {
-            row = tableBodyChildNodes[I]
-            if( row.children.length < 5 ) {
-                continue
+        for( let I = 0; I < listItems.length; I ++ ) {
+            if( listItems[I].id === id ) {
+                listItems[I].quantidade = value
             }
-            console.log('row: ', row)
+        }
+        //console.log("LISTA DE ITENS: ", listItems)
+        tabelaRef.current.updateItens(listItems)
+        tabelaRef.current.updateItemList(listItems)
+
+
+    }// [tabelaRef, dataProdutosRecived, dataOfBasket, typeOfAction])
+
+
+    const handleGetHistoryBasketModelsData = () => {
+        const GetHistoryBasketModelsDataFunction = async () => {
+            const response = await GetHistoryBasketModelsData()
+            //console.log("RESPONSE handleGetHistoryBasketModelsData: ", response)
             
-            checkboxCel = row.children[0].children[0]
-            console.log('checkboxCel: ', checkboxCel)
-    
-            textContent = row.children[3].children[0].textContent
-            console.log('textContent: ', textContent)
-            console.log('id: ', id)
-            
-            if( textContent === id) {
-                checkboxCel.checked = true;
-            }
-    
-        }
-        
-    }, [tabelaRef, listaDeItensNoBD])
-
-
-    const changeQuantatityOfItemSelectedById = useCallback((id, value) => {
-        if( tabelaRef.current ) {
-            //console.log('Saindo do select by id: ', tabelaRef)
-            return
-        }
-        
-        const tableBody = tabelaRef.current.listarElementosSelecionados();
-
-        if( !tableBody ) {
-            return
-        }
-
-        //console.log('ChangeQuantity tableBody1: ', tableBody)
-
-        if( tableBody ) {
-            if( tableBody.length > 0 ) {
-                for(let I = 0; I < tableBody.length; I ++ ) {
-                    if( tableBody[I].childNodes[3].childNodes[0].textContent === id) {
-                        tableBody[I].childNodes[4].children[0].value = value;
+            if( response.status === 0 ) {
+                let tmp_line;
+                for( let i = 0; i < response.content.length; i ++ ) {
+                    tmp_line = ''
+                    for( let ii = 0; ii < response.content[i]["itensDaCesta"].length; ii ++ ) {
+                        tmp_line += `[ ${response.content[i]["itensDaCesta"][ii]["produto"]} -- Quant.: ${response.content[i]["itensDaCesta"][ii]["quantidade"]} ]`
                     }
+                    response.content[i]["itensDaCesta"] = tmp_line
                 }
-    
             }
+            
+            return response
         }
-    }, [tabelaRef, dataProdutosRecived])
 
+        const response = GetHistoryBasketModelsDataFunction()
+        return response
+
+    }
 
     const handleButtonDonationFromOutside = useCallback((checkValue) => {
         setDonationFromOutside(checkValue);
@@ -477,39 +403,6 @@ const IOBaskets = () => {
     }, []);
 
 
-
-    const handleIncrementOrDecrementQuantityItemByArrowButton = useCallback((key) => {
-        if( isKeyPressed ) {
-            return
-        }
-
-        console.log('key: ', key)
-
-        setIsKeyPressed(true)
-
-        if( key === 'ArrowUp' ) {
-            handleChangeQuantityItem( quantityItemForAdd + 1 )
-            return
-        }
-        else if( key === 'ArrowDown') {
-            if( quantityItemForAdd <= 0 ) {
-                return
-            }
-            handleChangeQuantityItem( quantityItemForAdd - 1)
-        }    
-
-
-    }, [quantityItemForAdd, isKeyPressed])
-
-
-    const handleKeyUp = () => {
-        setIsKeyPressed(false);
-      };
-
-    const handleChangeQuantityItem = (value) => {
-        setQuantityItemForAdd(Number(value))
-    }
-
     // Captura as entradas do usuario
     useLayoutEffect(() => {
         setInputIdItem( window.document.querySelector(`.${styles.inputIdItem}`) );
@@ -522,36 +415,123 @@ const IOBaskets = () => {
     }, [])
 
 
+    useEffect( () => {
+        //console.log("initing... historyBasketData: ", historyBasketData, " -- ", historyBasketData.id)
+        if( !tabelaRef.current || historyBasketData.length === 0 ) {
+            return
+        }
+        
+        tabelaRef.current.desSelecionarTudo()
+        let historyBasket = [];
+
+        const getHistoryBasketData = async () => {
+            
+            const response = await GetHistoryBasketModelItemById( String(historyBasketData['id']))
+            if( response.status === 0 ) {    
+                //console.log("RESPONSE CONTENT: ", response.content)            
+                historyBasket = response.content
+                for( let i = 0; i < response.content.length; i++ ) {
+                    //console.log("historyBasketData: ", response.content)            
+                    tabelaRef.current.selectProductById(response.content[i]["iddoitem"])
+                    
+                }
+            }
+            forceUpdate()
+        }
+        getHistoryBasketData()
+        console.log("RESPONSE historyBasketItem: ", historyBasket)
+
+
+
+    }, [historyBasketData])
     // Atualiza as informações enviadas entre as paginas
     useEffect(() => {
         setDataRecivedOfProducts(dataProdutosRecived);
         setDataOfBasketRecived(dataOfBasket);
-        setTypeOfAction(typeAction);
+        if( typeAction ) {
+            setTypeOfAction(typeAction);
+        }
+        
     }, [])
 
     useEffect(() => {
         async function get_data_on_db() {
             const response = await get_stock_itens()
             setListaDeItensNoBD( response.content )
+            //console.log("LISTA DE ITENS: ", response.content)
         }
         if( listaDeItensNoBD.length === 0 ) {
                 get_data_on_db()
             }
     }, [])
 
+    useEffect(() => {
+        //localStorage.setItem("modelLoaded", dataLoaded)
+    }, [dataLoaded])
+
+    useEffect(() => {
+        //console.log("iframeContent", iframeContent)
+        if( !iframeContent || !iframeContent.Nome) {
+            return
+        }
+
+        setCongregationName(iframeContent.Nome)
+        
+        const address = `${iframeContent.Rua}, ${iframeContent.Numero}, ${iframeContent.Bairro} - ${iframeContent.Cidade} `
+
+        setInputAddress( address )
+
+
+    }, [iframeContent])
+
     // Depois de receber informações da pagina de historico,
     // Seleciona os itens recebidos conforme seus IDs
     useLayoutEffect(() => {
         setTimeout(() => {
-            if( dataRecivedOfProducts && tabelaRef) {
-                for(let I = 0; I < dataRecivedOfProducts.length; I ++ ) {
-                    //console.log(' selecionando: ', dataRecivedOfProducts[I].id)
-                    selectItemById(dataRecivedOfProducts[I].id)
-                    changeQuantatityOfItemSelectedById(dataRecivedOfProducts[I].id, dataRecivedOfProducts[I].quantidade);
-                }
+            if( !tabelaRef.current || dataLoaded === true ) {
+                //localStorage.setItem("modelLoaded", true)
+                return
             }
+            //console.log("idbasketModel: ", idHistoryModel)
+            //console.log("checkedList: ", checkedList)
+            const checkingProductRecived = async () => {
+                let response = await getHistoryBasketModel(idHistoryModel)
+                if( response.status > 0 ) {
+                    return
+                }
+                let productsList = response.content
+                //console.log("Product: ", productsList)
+                listHistoryModelProduct.current = productsList.itensDaCesta
+                let checkedList = await tabelaRef.current.getCheckedList()
+
+                
+                //console.log("listHistoryModelProduct: ", listHistoryModelProduct.current)
+
+                if( listHistoryModelProduct.current.length > 0 ) {
+                    for(let I = 0; I < checkedList.length; I ++ ) {
+                        //console.log(' selecionando: ', checkedList[I].id)   
+                        //selectItemById(productsList.itensDaCesta[I].id)
+                        for(let II = 0; II < listHistoryModelProduct.current.length; II ++ ) {
+                            //console.log("PRODUCTLIST: ", listHistoryModelProduct.current[II].id)
+                            if( checkedList[I].id == listHistoryModelProduct.current[II].id ) {
+                                checkedList[I].checked = true
+                                //console.log("CHECKED ITEM: ", checkedList[I])
+                                changeQuantatityOfItemSelectedById(listHistoryModelProduct.current[II].id, listHistoryModelProduct.current[II].quantidade);
+                            }
+                        }
+                        
+                        
+                    }
+                    //console.log("CHECEKDLIST: ", checkedList)
+                    tabelaRef.current.setCheckedList(checkedList)
+                    setDataLoaded(true)
+                    //localStorage.setItem("modelLoaded", false)
+                }
+                
+            }
+            checkingProductRecived()
         }, 100)
-    }, [dataRecivedOfProducts])
+    }, [listaDeItensNoBD, idHistoryModel, tabelaRef, dataLoaded])
 
 
     return (
@@ -564,7 +544,8 @@ const IOBaskets = () => {
                     </label>
                     <select
                         onChange={(e) => handleSetType(e.target.value)}
-                        value={typeOfAction}
+                        //value={typeOfAction}
+                        defaultValue={typeOfAction}
                     >
                         <option>
                             Entrada
@@ -596,9 +577,12 @@ const IOBaskets = () => {
                                                     <input
                                                         value={congregationName}
                                                         onChange={ (e) => {
-                                                            handleCongregationName(e.target.value)
+                                                            handleSetCongregationName(e.target.value)
                                                             }
                                                         }
+                                                        onKeyDown={(e) => {
+                                                            handleCongregationName(e.code)
+                                                        }}
                                                         placeholder='Nome da congregação que a familia frequenta'
                                                     />
                                                 </div>
@@ -637,11 +621,25 @@ const IOBaskets = () => {
                                                 <input
                                                     value={familyRepresentative}
                                                     onChange={ (e) => {
-                                                        handleFamilyRepresentative(e.target.value)
+                                                        handleSetFamilyRepresentative(e.target.value)
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        handleFamilyRepresentative(e.code)
                                                     }}
                                                     placeholder='Nome do representante da familia'
                                                 />
                                             </div>
+                                            <div>
+                                                <label>
+                                                    Endereço: 
+                                                </label>
+                                                <input
+                                                    value={inputAddress}
+                                                    placeholder='Endereço do representante da familia'
+                                                    readOnly={true}
+                                                />
+                                            </div>
+                                            
                                         </>
                                     )}
                                     <div>
@@ -664,28 +662,42 @@ const IOBaskets = () => {
                                 </div>
                             </div>
                             <label> Itens para a Cesta </label>
-                            <div>
-                                <SimpleButton
-                                    textButton="Historico de cestas"
-                                    onClickButton={handleBasketHistory}
-                                />
-                            </div>
 
-                            { ( (congregationName && whoRecivedBasicBasketFood) || donorsName  ) && (
-                                    <div className={styles.divTableListProducts}>
-                                        <TabelaListaDeProdutos
-                                            ref={tabelaRef}
-                                            nameClass={styles.listProductsTable}
-                                            listaDeItens= { listaDeItensNoBD }
-                                            limitarMaxNumber={[3]}
+
+                            { (inputAddress) && (
+
+                                <div className={styles.divTableListProducts}>
+                                    <div>
+                                        <SimpleButton
+                                            textButton="Historico de cestas"
+                                            onClickButton={handleBasketHistory}
                                         />
-                                    </div>        
-                                )
-                            }
-                            <div className={styles.buttonsForm}>
-                                <SimpleButton textButton="Confirmar" onClickButton={withdrawItensOfStock} />
-                                <SimpleButton textButton="Cancelar" onClickButton={handleGoBack} />
-                            </div>
+                                    </div>
+                                    <input
+                                        className={styles.inputValue}
+                                        placeholder='Insira o nome do produto'
+                                        value={itemSearch}
+                                        onChange={ (e) => { 
+                                            handleSetItemSearch(e.target.value )
+                                        }}
+                                        onKeyDown={(e) => {
+                                            handleSearchInput( e.key )
+                                        }}
+                                    >
+                                    </input>
+                                    
+                                    <TabelaListaDeProdutos
+                                        ref={tabelaRef}
+                                        nameClass={styles.listProductsTable}
+                                        listaDeItens= { listaDeItensNoBD }
+                                        limitarMaxNumber={[3]}
+                                    />
+                                    <div className={styles.buttonsForm}>
+                                        <SimpleButton textButton="Confirmar" onClickButton={withdrawItensOfStock} />
+                                        <SimpleButton textButton="Cancelar" onClickButton={handleGoBack} />
+                                    </div>
+                                </div>
+                            )}        
                         </div>
                     ) : ( 
                         <div>
@@ -714,11 +726,29 @@ const IOBaskets = () => {
                                                     className={styles.congregationNameInput}
                                                     value={congregationName}
                                                     onChange={(e) => {
-                                                        handleCongregationName(e.target.value)
+                                                        handleSetCongregationName(e.target.value)
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        handleCongregationName(e.code)
                                                     }}
                                                     required
                                                     placeholder='Congregação da retirada da cesta'
                                                     readOnly={donationFromOutside}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label>
+                                                    Endereço: 
+                                                </label>
+                                                <input
+                                                    className={styles.addressInput}
+                                                    value={inputAddress}
+                                                    onChange={(e) => {
+                                                        handleInputAddress(e.target.value)
+                                                    }}
+                                                    placeholder='Endereço da congregação'
+                                                    required
+                                                    readOnly={true}
                                                 />
                                             </div>
                                         </>
@@ -733,9 +763,12 @@ const IOBaskets = () => {
                                                     placeholder='Nome do doador de fora'
                                                     value={donorsName}
                                                     onChange={(e) => {
-                                                        handleDonorsName(e.target.value)
+                                                        handleSetDonorsName(e.target.value)
                                                         }
                                                     }
+                                                    onKeyDown={(e) => {
+                                                        handleDonorsName(e.code)
+                                                    }}
                                                 />
                                             </div>
                                             <div>
@@ -801,6 +834,25 @@ const IOBaskets = () => {
 
 
             </div>
+            {showItemListWindow && (
+                <AddItemLookupList
+                    controlIframe={setShowItemListWindow}
+                    titleName={"Adicionar doador"}
+                    queryFunction={getChurchData}
+                    dataContent={setIframeContent}
+                />
+            )}
+
+            {showBasketHistoryItemListWindow && (
+                <AddItemLookupList
+                    controlIframe={setShowBasketHistoryItemListWindow}
+                    titleName={"Historico de cestas basicas"}
+                    queryFunction={handleGetHistoryBasketModelsData}
+                    dataContent={setHistoryBasketData}
+                />
+            )}
+
+            
         </div>
     );
 };

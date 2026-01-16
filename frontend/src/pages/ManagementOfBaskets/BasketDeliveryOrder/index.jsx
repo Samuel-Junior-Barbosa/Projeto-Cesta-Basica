@@ -7,6 +7,7 @@ import TabelaListaDeProdutos from '../../../Components/TabelaListaDeProdutos';
 import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { data, useNavigate } from 'react-router-dom';
 import getBasketOrderList from '../../../Functions/Basket/GetBasketOrderList';
+import getItemOfHistoryBasketModelOrder from '../../../Functions/Basket/GetItemOfHistoryBasketOrder';
 
 
 const BasketDeliveryOrder = () => {
@@ -37,7 +38,10 @@ const BasketDeliveryOrder = () => {
     const queryDataForDB = () => {
         async function getBasketData () {
             const response = await getBasketOrderList()
-            setBasketDeliveryOrderData(response.content)
+            
+            setBasketDeliveryOrderData( response.content )
+            setBasketDeliveryOrderFocus( response.content )
+
             return response
         }
         return getBasketData()
@@ -45,13 +49,14 @@ const BasketDeliveryOrder = () => {
 
     const reciveDataBasketOrder = () => {
         let dataHistory = basketDeliveryOrderFocus;
-        
-        console.log("DATAHISTORY: ", dataHistory, dataHistory.length)
+        //let dataHistory = queryDataForDB()
+        dataHistory = dataHistory.content
+        //console.log("DATAHISTORY: ", dataHistory, dataHistory.length)
         if( (Array.isArray(dataHistory) && dataHistory.length > 0) ) {
 
             for( let I = 0; I < dataHistory.length; I ++ ) {
-                let itensDaCesta = dataHistory[I].itensDaCesta;
-                let labelItenDaCesta = ''
+
+                
                 
                 if( dataHistory[I].entregue === '0' ) {
                     dataHistory[I].entregue = 'entregue';
@@ -62,20 +67,6 @@ const BasketDeliveryOrder = () => {
                 else {
                     dataHistory[I].entregue = 'cancelada'
                 }
-
-                for( let II = 0; II < itensDaCesta.length; II ++ ) {
-                    let itemDaCesta = itensDaCesta[II]
-                    console.log(`ITEM: ${String(itemDaCesta.produto)}`)
-                    labelItenDaCesta += `[ Produto: ${itemDaCesta.produto}; ID: ${itemDaCesta.id}; Quants.: ${itemDaCesta.quantidade} ]\n`
-                }
-                
-                if( !tabelaRef.current ) {
-                    dataHistory[I].itensDaCesta = labelItenDaCesta;
-                }
-                else {
-                    dataHistory[I].itensDaCesta =  tabelaRef.current.LineBreakForLabel(labelItenDaCesta);
-                }
-                
                 
                 
             }
@@ -116,28 +107,6 @@ const BasketDeliveryOrder = () => {
         }
     }, [basketDeliveryOrderData, basketDeliveryOrderPendente])
 
-    const formatingData = (data) => {
-        let dataFormated;
-        let tmpData = data.split('/');
-        if( tmpData[2].includes('\n') ) {
-            tmpData[2] = tmpData[2].replaceAll('\n', '')
-        }
-        
-        dataFormated = `${tmpData[2]}-${tmpData[1]}-${tmpData[0]}`;
-        return dataFormated;
-    }
-    
-    const removeLineBreak = (line) => {
-        let lineFormated;
-
-        if( line.includes('\n') ) {
-            lineFormated = line.replaceAll('\n', '')
-        }
-
-        return lineFormated
-    }
-
-
     const handleAlterBasketOrder = useCallback(() => {
         if( !tabelaRef.current ) {
             return
@@ -148,16 +117,26 @@ const BasketDeliveryOrder = () => {
             return
         }
         itensSelecionados = itensSelecionados[0]
-        let statusDeEntrega = removeLineBreak(itensSelecionados.entregue)
-
-        if( statusDeEntrega == 'entregue') {
+        
+        let statusDeEntrega = Number(itensSelecionados.entregue)
+        if( statusDeEntrega === 1 ) {
             alert('Não é possivel alterar itens entregues')
             return
         }
+
+        else if( statusDeEntrega === 0 ) {
+            alert('Não é possivel alterar itens cancelados')
+            return
+            
+        }
         
         
-        //console.log('itensSelecionados: ', itensSelecionados)
-        let itensDaCesta = itensSelecionados.itensDaCesta;
+        console.log('itensSelecionados: ', itensSelecionados)
+        
+        //let itensDaCesta = itensSelecionados.itensDaCesta;
+        let itensDaCesta = getItemOfHistoryBasketModelOrder(itensSelecionados.id)
+        itensDaCesta = itensDaCesta.content
+
         let prazo = itensSelecionados['PRAZO DE ENTREGA'];
         if( prazo ) {
             prazo = formatingData(prazo)
@@ -168,43 +147,22 @@ const BasketDeliveryOrder = () => {
             dataCriacao = formatingData(dataCriacao)
         }
 
-        let tmpItensDaCesta = itensDaCesta.replaceAll("] [", ', ')
-        tmpItensDaCesta = tmpItensDaCesta.replaceAll("[ ", '')
-        tmpItensDaCesta = tmpItensDaCesta.replaceAll("]", '')
-
-        tmpItensDaCesta = tmpItensDaCesta.replaceAll("Quants.", 'quantidade')
-        itensDaCesta = tmpItensDaCesta.split(',')
-
-        let tmpItem;
-        let tmpItem2;
-        let tmpObj = {}
-        let tmpListaDeitens2 = []
-        for(let i = 0; i < itensDaCesta.length; i ++) {
-            tmpItem = itensDaCesta[i].split(';');
-            tmpItem2 = tmpItem[0].split(':');
-            tmpObj['produto'] = tmpItem2[1];
-            tmpItem2 = tmpItem[1].split(':');
-            tmpObj['id'] = tmpItem2[1];
-            tmpItem2 = tmpItem[2].split(':');
-            tmpObj['quantidade'] = tmpItem2[1].trim();
-            tmpListaDeitens2.push(tmpObj)
-            tmpObj= {}
-        }
-        itensDaCesta = tmpListaDeitens2
-
 
         let congrecao = removeLineBreak(itensSelecionados.destino)
         let paraQuem = removeLineBreak(itensSelecionados.paraQuem)
         let quemRetirou = removeLineBreak(itensSelecionados.quemRetirou)
         let enderecoEntrega = removeLineBreak(itensSelecionados.enderecoDeDestino)
-
+        let ordemDaCesta = itensSelecionados.id
+        let idDaCesta = itensDaCesta
         
-        console.log('itensSelecionados: ', itensDaCesta)
+        console.log('ordemDaCesta: ', ordemDaCesta)
+        console.log('itensSelecionados: ', itensSelecionados)
         console.log('datas: ', dataCriacao, prazo)
         console.log('status: ', statusDeEntrega)
         console.log('quemRetirou: ', quemRetirou)
         
         goToPage('/alter-basket-order', { state: {
+            basketOrderId : ordemDaCesta,
             orderCreatedData: dataCriacao,
             orderVal: prazo,
             orderStatus: statusDeEntrega,
@@ -227,18 +185,7 @@ const BasketDeliveryOrder = () => {
 
 
     useEffect(() => {
-        async function getBasketOrderData() {
-            const response = await getBasketOrderList()
-            setBasketDeliveryOrderData(response.content)
-            setBasketDeliveryOrderFocus(response.content)
-
-        }
-        
-        if( basketDeliveryOrderData.length === 0 ) {
-            getBasketOrderData()
-        }
-        console.log(basketDeliveryOrderData)
-        
+        queryDataForDB()
     }, [])
 
     useEffect(() => {
@@ -272,14 +219,13 @@ const BasketDeliveryOrder = () => {
             </div>
 
             <div className={styles.divBeforeTable}>
-                { basketDeliveryOrderFocus && (
-                    <TabelaListaDeProdutos
-                        ref={tabelaRef}
-                        listaDeItens={basketDeliveryOrderFocus}
-                        lengthColumns={'1fr 1fr 1fr 4fr 1fr 1fr 1fr 1fr'} 
-                        nameClass={styles.tableClass}
-                    />
-                )}
+                
+                <TabelaListaDeProdutos
+                    ref={tabelaRef}
+                    listaDeItens={basketDeliveryOrderFocus}
+                    lengthColumns={'1fr 1fr 1fr 1fr 4fr 1fr 1fr 1fr'} 
+                    nameClass={styles.tableClass}
+                />
                 
                 
             </div>

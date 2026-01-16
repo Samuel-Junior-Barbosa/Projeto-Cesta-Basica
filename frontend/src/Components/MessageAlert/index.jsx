@@ -7,8 +7,8 @@ import styles from './MessageAlert.module.css';
 
 const MessageAlert = ({text= '', nameClass = styles.MessageAlertClass, background = 'green'}) => {
     
-    console.log('nameClass: ', nameClass)
-    console.log('background: ', background)
+    //console.log('nameClass: ', nameClass)
+    //console.log('background: ', background)
     return(
         <>
             <LabelTitles

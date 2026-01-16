@@ -1,9 +1,9 @@
-import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEffect, useRef, useCallback, useReducer} from 'react';
 import PropTypes from 'prop-types';
 import styles from './TabelaCadastroDeItens.module.css'
 
 
-const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref}) => {
+const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, fontSize}) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -14,6 +14,15 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
     const [ linhaSelecionada, setLinhaSelecionada ] = useState([]);
     const [ inputQuantityValue, setInputQuantityValue ] = useState(0);
     const [ checkBoxAll, setCheckBoxAll ] = useState(false)
+    const [ headerNames, setHeaderNames ] = useState([])
+    const currentItens = useRef(itens)
+    const currentHeaders = useRef([])
+    const currentSeletedLine = useRef(-1)
+    const currentListLineChecked = useRef([])
+    const [ listLinesChecked, setListLinesChecked ] = useState([])
+    const [, forceUpdate] = useReducer(x => x + 1, 0);
+
+
 
     const handleInput = useCallback((event) => {
         setEditableLabel(event.target.textContent);
@@ -27,6 +36,18 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         const tableBody = window.document.querySelector(`.${tableClass} > tbody`)
         
         return tableBody;
+    }
+
+    const getCheckedList = () => {
+        //console.log("RETORNANDO LISTA DE LINHA SELECIONADA ", listLinesChecked)
+        //return listLinesChecked
+        return currentListLineChecked.current
+    }
+    const setCheckedList = (listLines) => {
+        currentListLineChecked.current = listLines
+        setListLinesChecked(listLines)
+        //console.log("SETANDO LINHAS MARCADAS: ", listLines)
+        forceUpdate()
     }
 
         // Função que adiciona o novo item à lista
@@ -44,61 +65,73 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         else {
             desSelecionarTudo();
         }
-    }, [linhaSelecionada])
+    }, [linhaSelecionada, itens])
 
-    const selecionarTudo = useCallback(() => {
 
-        const tabela = window.document.querySelector('table > tbody');
-        
-        if( !tabela || tabela.childNodes.length === 0) {
-            return
+    const selecionarTudo = () => {
+        let copyChecekdList = [...listLinesChecked]
+        for(let I = 0; I < listLinesChecked.length; I ++ ) {
+            copyChecekdList[I].checked = true
         }
-        //console.log(' tabela selecionar: ', tabela, typeof(tabela))
+        //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
+        setCheckedList(copyChecekdList)
         setCheckBoxAll(true)
-        
+        forceUpdate()
 
-        if( tabela.childNodes[0].childNodes.length === 0 ) {
-            return
-        }
+    } //, [itens, tableClassRef, columnsTemplate, listLinesChecked, listaDeItens])
 
-
-        for(let index = 0; index < tabela.childNodes.length; index ++) {
-            //console.log('tabela: ', tabela.childNodes[index].childNodes[0].children[0].checked)
-            tabela.childNodes[index].childNodes[0].children[0].checked = true;
-        }
-        
-        
-    }, [itens, tableClassRef, columnsTemplate])
 
     const desSelecionarTudo = useCallback(() => {
-        const tabelaBody = window.document.querySelector('table > tbody');
-        const tabelaHead = window.document.querySelector('table > thead');
-        
-
-        //console.log('tabelaHead: ', tabelaHead)
-        //console.log('tabelaBody: ', tabelaBody)
-
-        //tabelaHead.childNodes[0].childNodes[1].checked = false;
-        if( !tabelaBody || !tabelaHead || tabelaBody.childNodes.length === 0 ) {
-            return
+        let copyChecekdList = [...listLinesChecked]
+        for(let I = 0; I < listLinesChecked.length; I ++ ) {
+            copyChecekdList[I]['checked'] = false
         }
-
-        if( tabelaBody.childNodes[0].childNodes.length === 0) {
-            return
-        }
-
+        console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
+        setCheckedList(copyChecekdList)
         setCheckBoxAll(false)
-        
-        for(let index = 0; index < tabelaBody.childNodes.length; index ++) {
-            //console.log('tabelaBody: ', tabelaBody.childNodes[index].childNodes[0].children[0].checked)
-            tabelaBody.childNodes[index].childNodes[0].children[0].checked = false;
-        }
-        
-    }, [itens, tableClassRef, columnsTemplate]);
 
-    const selecionarLinha = useCallback((id) => {
-        setLinhaSelecionada(id);
-    }, [])
+
+    }, [itens, tableClassRef, columnsTemplate, listLinesChecked]);
+
+
+    const selectProductById = (id) => {
+        let copyIndexList = getCheckedList()
+        let tmpLinhaSelecionada = []
+        let checkingCount = 0
+        
+        id = String(id)
+        //console.log("SELECIONANDO: ", id)
+        for( let i = 0; i < copyIndexList.length; i ++ ) {
+            if( copyIndexList[i].id === id ) {
+                if( copyIndexList[i].checked === true) {
+                    copyIndexList[i].checked = false
+                }
+                else {
+                    copyIndexList[i].checked = true
+                    checkingCount += 1
+                }
+            }
+            tmpLinhaSelecionada = copyIndexList[i]
+            //console.log("COPY: ", copyIndexList[i].id, copyIndexList[i].checked)
+        }
+
+        //console.log("RETURN ", copyIndexList)
+        if( checkingCount === copyIndexList.length ) {
+            setCheckBoxAll( true )
+        }
+        else if( checkingCount <= copyIndexList.length && checkBoxAll === true ) {
+            setCheckBoxAll( false )
+        }
+        setCheckedList(copyIndexList)
+        forceUpdate()
+    } //, [itens, listaDeItens, listLinesChecked])
+
+
+
+    const selecionarLinha = ( index ) => {
+        currentSeletedLine.current = index
+        setLinhaSelecionada(index);
+    }
 
     const setColumns = useCallback((tamanho) => {
     
@@ -116,16 +149,7 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
     
         }
         setColumnsTemplate(colunasTemplate);
-        
-        /*
-        let colunaCorpo  = `max-content`;
-        colunaCorpo += ' 1fr';
-        for (let i = 2; i < (tamanho); i++) {
-            colunaCorpo += ` 1fr`;;
-        }
 
-        colunaCorpo += ' 1fr';
-        */
 
 
     }, []);
@@ -146,59 +170,47 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         }
     }, [columnsTemplate]);
 
-    const retornarLinhasDaTabela = () => {
+    const retornarLinhasDaTabela = async () => {
         let classN = `${styles.ListaDeItensCadastrados} ${nameClass}`;
         let tableClass = classN.replaceAll(' ', '.')
-        let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > tr`)
-        let childList = []
+        let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > td`)
+        let childList = [];
 
         //console.log(' ( retornarLinhas ) tBody: ', tBody)
         //console.log(' ( retornarLinhas ) tBody.length: ', tBody.length)
         //console.log(' ( retornarLinhas ) tBody.child: ', tBody[0].childNodes)
-        if( !tBody ) {
+        if( !tBody || !Array.isArray(tBody) ) {
             return null;
         }
-        else if ( !tBody[0].childNodes || tBody[0].childNodes.length  === 0 ) {
+        else if ( !tBody.childNodes || tBody.childNodes.length  === 0 ) {
             return null
         }
-
         for( let I = 0; I < tBody.length; I ++ ) {
             childList.push(tBody[I])
         }
-
         return childList;
-            
-        
     }
 
     const getCurrentItens = useCallback(() => {
         return itens
     },[itens])
 
-    const getSelectedElements = useCallback(() => {
+  
+    const getSelectedElements = () => {
         if( tableClassRef ) {
             if( !tableClassRef.current ) {
                 return;
             }
-            
         }
         let tableClass = tableClassRef.current.replace(' ', '.')
         const elementsSelected = window.document.querySelectorAll(`.${tableClass} > tbody > tr > td > input:checked`);
         //console.log('elementos selecionados: ', elementsSelected)
         return elementsSelected;
-    }, [tableClassRef, tableClassName, itens])
+    }
 
     // Lista os itens marcados como selecionados na tabela de produtos
-    const listarElementosSelecionados = useCallback(() => {
+    const listarElementosSelecionados = () => {
         const itensSelecionados = getSelectedElements(); 
-        if( itensSelecionados ) {
-            if( itensSelecionados.length === 0) {
-                return [];
-            }
-        }
-        else {
-            return [];
-        }
 
         let linhasSelecionadas = [];
         let linhaSelecionada;
@@ -208,37 +220,28 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         }
         //console.log(' linhas selecionadas: ', linhasSelecionadas)
         return linhasSelecionadas;
-    }, [tableClassName, tableClassRef])
+    }
 
-    const listarItensSelecionados = useCallback(() => {
-        if( listaDeItens ) {
-            if( listaDeItens.length === 0) {
-                return [];
-            }
-        }
-        else {
-            return [];
-        }
-
+    const listarItensSelecionados = () => {
+        //console.log('listaItens1: ', await listarElementosSelecionados())
         const elementosSelecionados = listarElementosSelecionados();
-        if( elementosSelecionados ) {
-            if( elementosSelecionados.length === 0 ) {
-                return [];
-            }
-        }
-        else {
-            return [];
-        }
+        //console.log('elementosSelecionados: ', elementosSelecionados)
+
         let listaItens = []
         let objeto = {}
-        const topTitleTable = Object.keys(listaDeItens[0])
+        //console.log("lista de itens[]: ", currentItens.current)
+        //const topTitleTable = currentItens.current
+        //updateHeaders()
+        const topTitleTable = Object.keys(currentItens.current[0])
+        //console.log(' topTitleTable: ', headerNames)
         //console.log(' elementosSelecionados: ', elementosSelecionados)
-        //console.log(' topTitleTable: ', topTitleTable)
+        
 
         for(let I = 0; I < elementosSelecionados.length; I++) {
             for(let II = 0; II < topTitleTable.length; II ++ ) {
                 //console.log(` elementosSelecionados[${I}].childNodes: `, elementosSelecionados[I].childNodes[II+1].children[0].innerText)
                 objeto[topTitleTable[II]] = elementosSelecionados[I].childNodes[II+1].children[0].innerText;
+                //console.log('objeto : ', elementosSelecionados[I].childNodes[II+1].children[0].innerText)
             }
             listaItens.push(objeto);
             objeto= {}
@@ -246,16 +249,15 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         //console.log('listaItens: ', listaItens)
         return listaItens;
 
-    }, [listaDeItens]);
-
-
+    };
+    
     const listarColuna = useCallback(() => {
-        
+        // Em progresso
 
     }, [])
 
     const listarValoresDeUmaColuna = useCallback(() => {
-
+        // Em progresso
     }, [])
 
     const LineBreakForLabel = useCallback((texto) => {
@@ -298,92 +300,119 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         }
     }, [])
 
-    const handleCheckedInput = useCallback(() => {
+    
+    const handleCheckedInput = async (id) => {
         const itensSelecionados = listarElementosSelecionados()
         const linhasTotalDaTabela = retornarLinhasDaTabela()
-        
+        //console.log("HANDLE INPUT: ", id)
+        //console.log("ITENS SELECIONADOS: ", itensSelecionados, linhasTotalDaTabela)
+        if( !Array.isArray(itensSelecionados) || !Array.isArray( linhasTotalDaTabela )) {
+            return
+        }
         if( (itensSelecionados.length != linhasTotalDaTabela.length) && (checkBoxAll || !checkBoxAll) ) {
             setCheckBoxAll(false)
+            selectProductById(id)
             return
-        }
-
-        setCheckBoxAll(true)
-        return
-    }, [])
-
-    /*
-    const searchItemOnTable = useCallback((nameItem, column) => {
-        //console.log('pesquisando na tabela: nameItem: ', nameItem, ' column: ', column)
-        if( !nameItem ) {
-            setItens(listaDeItens);
-            return;
-        }
-        if( listaDeItens.length === 0 ) {
-            return
-        }
-
-        let listaDeItensPesquisados = []
-        console.log('listaDeItens: ', listaDeItens)
-        for(let I = 0; I < listaDeItens.length; I ++ ) {
-            //console.log('item atual da pesquisa: ', listaDeItens[I][column])
-            if( !Object.keys(listaDeItens[I]).includes(column) ) {
-                continue
-            }
-
-            if(listaDeItens[I][column].includes(nameItem) ) {
-                listaDeItensPesquisados.push(listaDeItens[I])
-            }
-        }
-
-        //console.log('listaDeItensPesquisados: ', listaDeItensPesquisados)
-
-        if( listaDeItensPesquisados.length === 0 ) {
-            setItens([]);
-        }
-
-        else {
-            setItens(listaDeItensPesquisados);
         }
         
-        return;
+        //selectProductById(id)
+        selecionarTudo()
+        setCheckBoxAll(true)
+        return
+    }
 
-    }, [listaDeItens])
-    */
+    const getTableHeader = () => {
+        forceUpdate()
+        return currentHeaders.current
+    }
+
+    const updateHeaders = () => {
+        if( Array.isArray(currentItens.current) ) {
+            if( currentItens.current.length > 0) {
+                let tmp_headers = Object.keys(currentItens.current[0])
+                currentHeaders.current = tmp_headers
+                setHeaderNames(tmp_headers)
+                //console.log("HEADERS: ", tmp_headers)
+            }
+        }
+    }
+
+    const updateItens = ( itemList ) => {
+        //console.log("UPDATE ITEM: ", itemList)
+        setItens(itemList)
+        currentItens.current = itemList
+        forceUpdate()
+    }
+
 
     const updateTable = useCallback(() => {
         //console.log('itens: ', itens)
-        if( itens) {
+        if( Array.isArray(itens) ) {
             if( itens.length > 0) {
                 setColumns(Object.keys(itens[0]).length);
                 setTable();
                 setEditableColumnIndex(editableCel);
-            }    
+            }
+            else {
+                setColumns([])
+                setTable()
+                setEditableColumnIndex(editableCel)
+            }
         }
-    }, [itens, editableCel, columnsTemplate])
+    }, [itens, editableCel, columnsTemplate, listLinesChecked])
 
     const updateData = (item_list) => {
         setItens(item_list)
+        currentItens.current = item_list
+        forceUpdate()
     }
 
     useEffect(() => {
         let classN = `${styles.ListaDeItensCadastrados} ${nameClass}`;
         tableClassRef.current = classN;
         setTableClassName(classN);
+
+
     }, [])
+
+    useEffect(() => {
+        //console.log(" LIST: ", columnList)
+        if( columnList ) {
+
+            let tabela_itens = window.document.querySelector(`.${styles.ListaDeProdutosCadastrados}.${nameClass} > thead > tr.${styles.linhaTabela}`)
+            tabela_itens.style.gridTemplateColumns = `repeat(1, 1fr)`
+            console.log(" TABELA: ", tabela_itens.style)
+            return
+        }
+            try {
+                if( !Array.isArray( columnList[0]) ) {
+                    columnList = Object.keys(listaDeCadastros[0])    
+                }
+                
+            } catch (error) {
+                columnList = []
+                for( let i = 0; i < listaDeCadastros.length; i ++ ) {
+                    columnList.push( "Column" + i )
+                }
+            }
+                
+    }, [columnList])
 
     // define uma lista de itens para ser renderizada na tela com base no parametro recebido
     useEffect(() => {
-        //console.log('(Tabela) listaDeItens: ', listaDeItens)
-        if( !listaDeItens ) {
+        //console.log('(Tabela) listaDeCadastros: ', listaDeCadastros)
+        if( !listaDeCadastros ) {
             return
         }
-        if( listaDeItens.length === 0 ) {
+        if( listaDeCadastros.length === 0 ) {
             return
         }
 
-        setItens(listaDeItens);  
+        setItens(listaDeCadastros);
+        currentItens.current = listaDeCadastros
+        updateHeaders()
 
-        }, [listaDeItens, columnsTemplate]) // columnsTemplate
+        }, [listaDeCadastros, columnsTemplate]) // columnsTemplate
 
     useEffect(() => {
         if( !itens ) {
@@ -396,10 +425,44 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
         
         setTimeout(() => {
             updateTable();
-            
         }, 30)
 
-    }, [itens, columnsTemplate])
+
+
+    }, [itens, columnsTemplate, listLinesChecked])
+
+
+    // define uma lista de itens selecionados na tabela
+    useEffect(() => {
+        
+        if( !Array.isArray(listaDeCadastros) && listaDeCadastros.length < 0) {
+            return
+        }
+        
+        //console.log("{COMPONENT} LISTA DE ITENS: ", listaDeCadastros)
+        let tmpLinesChecked = []
+        for( let I = 0; I < listaDeCadastros.length; I++ ) {
+            //console.log(" line: ", I, " ", listaDeCadastros[I])
+            let tmp_id = listaDeCadastros[I].id
+            if( !tmp_id ) {
+                tmp_id = listaDeCadastros[I][0]
+            }
+            tmpLinesChecked.push({
+                "id" : `${tmp_id}`,
+                "checked" : false
+            })
+            //console.log(" TMP ID: ", tmp_id)
+        }
+        //console.log(tmpLinesChecked)
+        setCheckedList(tmpLinesChecked)
+        currentItens.current = listaDeCadastros
+
+    }, [listaDeCadastros, columnsTemplate, itens]) // columnsTemplate
+
+
+    useEffect(() => {
+        updateHeaders()
+    }, [itens, listaDeCadastros, listLinesChecked])
 
     useImperativeHandle(ref, () => {
         return {
@@ -413,7 +476,9 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
             getTableBody,
             LineBreakForLabel,
             removerItensSelecionados,
-            updateData
+            updateData,
+            updateItens,
+            getTableHeader
         };
     }, []);
 
@@ -422,28 +487,29 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
     return (
         <>
             <div className={styles.ListaDeItensCadastradosDiv}>
-                <table className={`${styles.ListaDeItensCadastrados} ${nameClass}`}>
+                <table className={`${styles.ListaDeItensCadastrados} ${nameClass}`} style={{ fontSize: fontSize  }}>
                     <thead>
                         <tr className={styles.linhaTabela}>
-                            { ( Array.isArray(listaDeItens) && listaDeItens.length > 0 ) && (
+                            { ( Array.isArray(columnList) && columnList.length > 0 ) && (
                                 <th className={styles.LabelListProdutos}>
                                     <input
-                                        onChange={selecionarTudoCheckbox}
+                                        onChange={ selecionarTudoCheckbox }
                                         type="checkbox"
-                                        className={styles.checkBoxItem + ' ' + ' checkBoxItemPrimary'}
-                                        checked={checkBoxAll}
+                                        className={ styles.checkBoxItem + ' ' + ' checkBoxItemPrimary' }
+                                        checked={ checkBoxAll }
                                     />
                                 </th>
                             )}
-                            { ( Array.isArray(listaDeItens) && listaDeItens.length > 0 ) && (
-                                (Object.keys(listaDeItens[0])).map((item, index) => (
-                                <th
-                                    key={index}
-                                    className={styles.LabelListProdutos}
-                                >
-                                    {item}
-                                </th>
-                            )))}
+                            { ( Array.isArray(columnList) && columnList.length > 0 ) && (
+                                columnList.map((item, index) => (
+                                    <th
+                                        key={index}
+                                        className={styles.LabelListProdutos}
+                                    >
+                                        <label> {item} </label>
+                                    </th>
+                                ))
+                            )}
                         
 
                         </tr>
@@ -454,13 +520,31 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
                             <tr 
                                 key={index}
                                 onClick={() => selecionarLinha(index)}
+                                onDoubleClick={() => {
+                                    let tmp_id = itens[index].id
+                                    if( !tmp_id ) (
+                                        tmp_id = itens[index][0]
+                                    )
+                                    selectProductById( tmp_id )
+                                }}
                                 className={(styles.linhaTabela) + " " + (linhaSelecionada === index ? (styles.selecionada) : '')}
                             >
                                 <td>
                                     <input
                                         type="checkbox"
                                         className={styles.checkBoxItem}
-                                        onChange={handleCheckedInput}
+                                        onChange={() => {
+                                            let tmp_id = item.id
+                                            if( !tmp_id ) {
+                                                tmp_id = item[0]
+                                            }
+                                            selectProductById( tmp_id );
+                                        }}
+                                        checked={
+                                            listLinesChecked.length > 0 ?
+                                                listLinesChecked[index]['checked'] :
+                                                false
+                                        }
                                     /> 
                                 
                                 </td>
@@ -521,7 +605,7 @@ const TabelaCadastroDeItens = ({listaDeItens, nameClass, editableCel, limitarMax
 
 
 TabelaCadastroDeItens.propTypes = {
-    listaDeItens: PropTypes.array,
+    listaDeCadastros: PropTypes.array,
     nameClass: PropTypes.string,
     editableCel: PropTypes.array,
     limitarMaxNumber: PropTypes.array,
@@ -529,7 +613,7 @@ TabelaCadastroDeItens.propTypes = {
 }
 
 TabelaCadastroDeItens.default = {
-    listaDeItens: [],
+    listaDeCadastros: [],
     nameClass: '',
     editableCel: [],
     limitarMaxNumber: [],

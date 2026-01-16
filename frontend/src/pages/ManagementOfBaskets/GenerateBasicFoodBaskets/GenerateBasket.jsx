@@ -1,33 +1,44 @@
 import { useCallback } from "react"
+import get_stock_itens from "../../../Functions/Stock/GetStockItens"
+import searchOnStock from "../../../Functions/Stock/SearchOnStock"
 
-const GenerateBasket = (produtos, modelo) => {
+const GenerateBasket = async (modelo) => {
     //let produtos = queryDataOnDB();
     //console.log('modelName: ', modelName)
     //console.log('produtos: ', produtos)
     //let modelo = modelsBasket[modelName]
     //console.log('model: ', modelo)
+
+    var produtos = []
+
+    const getProducts = async () => {
+        let itemStock = null;
+        for( let i = 0; i < modelo.produtos.length; i ++ ) {
+            itemStock = await searchOnStock( modelo.produtos[i][1], "produto")
+            produtos.push(itemStock.content[0])
+        }
+
+    }
+    await getProducts()
     let mediaDeProdutosGeraveis = []
     let contador = 0
-    let productsKey = Object.keys(modelo.produtos);
     let currentKey;
-    
+    console.log('produtos1: ', produtos)
     //console.log('productKeys: ', productsKey)
 
-    for( let I = 0; I < productsKey.length;  I++ ) {
-        currentKey = productsKey[I]
-        /*
-        console.log('produto: ', I)
-        console.log('modelo.produto: ', modelo.produtos[currentKey])
-        console.log('produtos.produtos: ', produtos[currentKey])
-        console.log('quantidade: ', produtos[currentKey].quantidade / Number(modelo.produtos[currentKey].quantidade))
-        */
-        mediaDeProdutosGeraveis.push({
-            produto: modelo.produtos[currentKey],
-            geravel: Number.parseInt(produtos[currentKey].quantidade / Number(modelo.produtos[currentKey].quantidade)) || 0
-        })
+    for( let i = 0; i < modelo.produtos.length; i ++ ) {
+          
+        console.log('produto: ', i)
+        console.log('modelo.produto: ', modelo.produtos[i])
+        console.log('produtos2: ', produtos[i])
+        console.log('quantidade: ', produtos[i][3] / Number(modelo.produtos[i][3]))
         
+        mediaDeProdutosGeraveis.push({
+            produto: modelo.produtos[i][1],
+            geravel: Number.parseInt(produtos[i][3] / Number(modelo.produtos[i][3]) ) || 0
+        })
+            
     }
-
     let minValueOfGenerate = 0;
     for( let I = 0; I < mediaDeProdutosGeraveis.length; I ++) {
         if( I === 0 ) {
@@ -37,7 +48,7 @@ const GenerateBasket = (produtos, modelo) => {
             minValueOfGenerate = mediaDeProdutosGeraveis[I].geravel
         }
     }
-    //console.log(' Minimo geravel de cesta nesse modelo: ', minValueOfGenerate)
+    console.log(' Minimo geravel de cesta nesse modelo: ', minValueOfGenerate)
     return minValueOfGenerate;
 }
 
