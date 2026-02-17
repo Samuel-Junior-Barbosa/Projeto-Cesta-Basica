@@ -11,7 +11,7 @@ import { useEffect, useState, useRef, useLayoutEffect, useReducer } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { CiHardDrive } from 'react-icons/ci';
 import registerItemOnBasketModelFunction from '../../../Functions/Basket/RegisterItemOnBasketModel';
-
+import MessageAlert from '/src/Components/MessageAlert'
 
 const RegisterBasicFoodBasket = () => {
     const tabelaRef = useRef();
@@ -99,10 +99,10 @@ const RegisterBasicFoodBasket = () => {
 
         for( let i = 0; i < currentItens.length; i ++ ) {
             let tmp_item = {}
-            tmp_item["id"] = currentItens[i][0]
+            tmp_item["idProduct"] = currentItens[i][0]
             tmp_item["idBasket"] = registerBasket["content"][0]
-            tmp_item["produto"] = currentItens[i][1]
-            tmp_item['quantidade'] = currentItens[i][3]
+            tmp_item["productName"] = currentItens[i][1]
+            tmp_item['productQuantity'] = currentItens[i][3]
 
             console.log(' currentItens: ', currentItens[i]);
             console.log(' tmp_item: ', tmp_item);
@@ -295,15 +295,14 @@ const RegisterBasicFoodBasket = () => {
                             />
                         </div>
                         <div className={styles.divListaDeItensDaCestaBasica}>
-                            { ( Array.isArray(listItemRecived) ) && (
-                                <TabelaListaDeProdutos
-                                    ref={tabelaRef}
-                                    nameClass={styles.listProductTable}
-                                    listaDeItens={listItemRecived}
-                                    columnList={ columnList }
-                                />
-                                )
-                            }
+                            
+                            <TabelaListaDeProdutos
+                                ref={tabelaRef}
+                                nameClass={styles.listProductTable}
+                                listaDeItens={listItemRecived}
+                                columnList={ columnList }
+                            />
+
                             
                         </div>
 
@@ -312,16 +311,12 @@ const RegisterBasicFoodBasket = () => {
 
 
                 </div>
-                
-                    {useRegisterBasicFoodBasketMessage && (
-                        <LabelTitles
-                            nameClass={`${styles.registredMessage}`}
-                            text={useRegisterBasicFoodBasketMessage}
-                            background="green"
-                        />
-                    )}
-
             </div>
+            {useRegisterBasicFoodBasketMessage && (
+                <MessageAlert
+                    text={useRegisterBasicFoodBasketMessage}
+                />
+            )}
         </div>
     );
 }

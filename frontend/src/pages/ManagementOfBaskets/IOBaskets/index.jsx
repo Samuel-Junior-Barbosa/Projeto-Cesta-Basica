@@ -25,6 +25,11 @@ import GetHistoryBasketModelsData from '../../../Functions/Basket/GetHistoryMode
 import searchForBasket from '../../../Functions/Basket/SearchForBasket';
 import searchForBasketItem from '../../../Functions/Basket/SearchForBasketItem';
 import GetHistoryBasketModelItemById from '../../../Functions/Basket/GetHistoryBasketModelItemDataById';
+import getBasketData from '../../../Functions/Basket/GetBasketData';
+import getBasketItemsList from '../../../Functions/Basket/GetBasketItems';
+import OutputBasketFunction from '../../../Functions/IOBasket/OutputBasket';
+import inventoryAdjustment from '../../../Functions/Stock/InvetoryAdjustment';
+import getFamilyData from '../../../Functions/Family/getFamilyData';
 
 const IOBaskets = () => {
     const tabelaRef = useRef();
@@ -36,15 +41,17 @@ const IOBaskets = () => {
     const [ dataLoaded, setDataLoaded ] = useState(false)
     const { handleBasketOutput, useBasketOutputWithdrawal, useBasketOutputLoading, useBasketOutputMessage } = useBasketOutput();
     const { handleBasketInput, useBasketInputWithdrawal, useBasketInputLoading, useBasketInputMessage } = useBasketInput();
-    const [ historyBasketData, setHistoryBasketData ] = useState([])
+    //const [ historyBasketData, setHistoryBasketData ] = useState([])
+
 
     const [ listaDeItensNoBD, setListaDeItensNoBD ] = useState([])
+    const [ itensSelecionados, setItensSelecionados ] = useState([])
     const listHistoryModelProduct = useRef([])
     const currentSelectedItems = useRef([])
 
     const [ maxQuantityPerItem, setMaxQuantityPerItem ] = useState(0);
     const [ dataBasicFoodBasket, setDataBasicFoodBasket ] = useState();
-    const [ basketWithdrawQuantity, setBasketWithdrawQuantity ] = useState('');
+    const [ basketWithdrawQuantity, setBasketWithdrawQuantity ] = useState(0);
 
     const [ incrementingQuantityItem, setIncrementingQuantityItem ] = useState(false);
     const [ timeoutId, setTimeoutId ] = useState(null);
@@ -56,8 +63,67 @@ const IOBaskets = () => {
     const [ donationFromOutside, setDonationFromOutside ] = useState(false);
     const [ registrationList, setRegistrationList ] = useState([]);
     const [ iframeContent, setIframeContent ] = useState([])
+    const [ familySelected, setFamilySelected ] = useState([])
+    
     const [ historyBasketItemData, setHistoryBasketItemData ] = useState([])
+    const [ modelBasketData, setModelBasketData ] = useState([])
 
+    const [ listItemSelected, setListItemSelected ] = useState([])
+
+    const columnList = [
+        "ID",
+        "Nome do produto",
+        "Marca",
+        "Quant. Selecionada",
+        "ESTOQUE"
+    ]
+
+    const columnListFamily = [
+        'ID',
+        'REPRESENTANTE',
+        'MEMBROS',
+        'CIDADE',
+        'BAIRRO',
+        'RUA',
+        'NUMERO',
+        'UF',
+        'CEP',
+        'TELEFONE',
+        'PRIORIDADE',
+        'CONGREGACAO'
+    ]
+
+    const columnListStock = [
+        'ID',
+        'NOME',
+        'MARCA',
+        'QUANTIDADE'
+    ]
+
+    const columnListBasket = [
+        "ID CESTA",
+        "NOME DO MODELO"
+    ]
+
+    const columnListChurch = [
+        "ID",
+        "NOME",
+        "REPRESENTANTE",
+        "QUANT. MEMBROS",
+        "CIDADE",
+        "BAIRRO",
+        "RUA",
+        "NUMERO",
+        "CEP",
+        "UF"
+
+    ]
+
+    const columnListContent = {
+        "quantidade" : 3,
+        "estoque" : 4
+    }
+    
 
     // elementos html
     const [ inputProductName, setInputProductName ] = useState('');
@@ -70,9 +136,13 @@ const IOBaskets = () => {
     const [ observationInput, setObservationInput ] = useState('');
     const [ whoRecivedBasicBasketFood, setWhoRecivedBasicBasketFood ] = useState('');
     const [ familyRepresentative, setFamilyRepresentative ] = useState('');
-    const [ showItemListWindow, setShowItemListWindow ] = useState(false);
+
+    const [ showChurchListWindows, setShowChurchListWindows ] = useState(false);
     const [ showBasketHistoryItemListWindow, setShowBasketHistoryItemListWindow ] = useState(false);
-    
+    const [ showBasketModelListWindow, setShowBasketModelListWindow ] = useState(false)
+    const [ showFamilyListWindow, setShowFamilyListWindow ] = useState(false)
+    const [ showWindowForAddItem, setShowWindowForAddItem ] = useState(false)
+
     //
     const [, forceUpdate] = useReducer(x => x + 1, 0);
 
@@ -81,11 +151,11 @@ const IOBaskets = () => {
     }
     const handleDonorsName = ( key ) => {
         if( (key == 'Enter' || key === 'NumpadEnter') && !congregationName ) {
-            setShowItemListWindow(true)
+            setShowChurchListWindows(true)
         }
 
-        else if( key == "Escape" && showItemListWindow === true ) {
-            setShowItemListWindow(false)
+        else if( key == "Escape" && showChurchListWindows === true ) {
+            setShowChurchListWindows(false)
         }
         
     }
@@ -94,16 +164,18 @@ const IOBaskets = () => {
         setCongregationName( name )
     }
 
+    // Ao apertar enter, aparece uma tela para selecionar a igreja para a operação
     const handleCongregationName = ( key ) => {
         if( (key == 'Enter' || key === 'NumpadEnter') && !congregationName ) {
-            setShowItemListWindow(true)
+            setShowChurchListWindows(true)
         }
 
-        else if( key == "Escape" && showItemListWindow === true ) {
-            setShowItemListWindow(false)
+        else if( key == "Escape" && showChurchListWindows === true ) {
+            setShowChurchListWindows(false)
         }
 
     }
+
 
     const handleInputAddress = ( address ) => {
         setInputAddress( address )
@@ -126,11 +198,11 @@ const IOBaskets = () => {
 
     const handleFamilyRepresentative = ( key ) => {
         if( (key == 'Enter' || key === 'NumpadEnter') && !congregationName ) {
-            setShowItemListWindow(true)
+            setShowChurchListWindows(true)
         }
 
-        else if( key == "Escape" && showItemListWindow === true ) {
-            setShowItemListWindow(false)
+        else if( key == "Escape" && showChurchListWindows === true ) {
+            setShowChurchListWindows(false)
         }
     }
 
@@ -208,6 +280,19 @@ const IOBaskets = () => {
         
     }
 
+    const handleAddItemOnStock = () => {
+        const confirm_ask = confirm("Deseja realmente adicionar esse(s) itens no estoque?")
+        if( !confirm_ask ) {
+            return
+        }
+
+        for( let i = 0; i < itensSelecionados.length; i ++ ) {
+            inventoryAdjustment(itensSelecionados[i][0], 1, itensSelecionados[i][3], observationInput)
+        }
+
+        alert("Itens adicionados com sucesso")
+        setItensSelecionados([])
+    }
 
     const handleGoBack = useCallback(() => {
         navigate(-1);
@@ -232,6 +317,9 @@ const IOBaskets = () => {
     const queryDataOnDB = () => {
         async function get_data_on_db() {
             const response = await get_stock_itens()
+            for(let i = 0; i < response.content.length; i ++ ) {
+                response.content[i][4] = response.content[i][3]
+            }
             return response
         }
 
@@ -239,75 +327,162 @@ const IOBaskets = () => {
     }
 
 
-    const confirmWithdrawItens = useCallback(() => {
+    const getBasketModelListData = async () => {
+        let response = await getBasketData()
+        if( response.status === 0 ) {
+            setModelBasketData(response.content)
+        }
+
+    }
+
+    const handleKeydownOnFamily = ( key ) => {
+        //console.log(" KEY: ", key)
+        if( (key == 'Enter' || key === 'NumpadEnter') && !familyRepresentative) {
+            setShowFamilyListWindow(true)
+        }
+
+        else if( key == "Backspace" && familyRepresentative ) {
+            setFamilyRepresentative("")
+        }
+        else if( key == "Escape" && showFamilyListWindow ) {
+            setShowFamilyListWindow(false)
+        }
+    }
+
+    const handleShowFamilyListWindow = () => {
+        if( showFamilyListWindow ) {
+            setShowFamilyListWindow(false)
+        }
+        else {
+            setShowFamilyListWindow(true)
+        }
+
+
+    }
+
+
+    const confirmWithdrawItens = useCallback( async () => {
         if( !tabelaRef ) {
             return false;
         }
 
         var modelo = {
             modelo1 : {
-                produtos: {}
+                produtos: []
             }
         }
 
         
-        const selectItens = tabelaRef.current.listarElementosSelecionados();
+        const selectItens = [...itensSelecionados]
         let msg = '\n';
         let tmpNameProduct;
         let tmpQuantityProduct;
         let produtos = queryDataOnDB();
         
         //console.log('produtossss: ', produtos)
+        //console.log('selecItens: ', selectItens)
         let products = {}
         for(let I = 0; I < selectItens.length; I ++ ) {
-            tmpNameProduct = selectItens[I].children[1].textContent;
-            tmpQuantityProduct = selectItens[I].children[4].children[0].value;
+            tmpNameProduct = selectItens[I][1];
+            tmpQuantityProduct = selectItens[I][3]
             msg += `${tmpNameProduct} x ${tmpQuantityProduct} unidades \n`;
             
-            Object.assign(modelo['modelo1'].produtos, {
-                [tmpNameProduct] : {
-                    marca: 'generica', id: '', quantidade: tmpQuantityProduct,
-                }
-            });
+            modelo['modelo1'].produtos.push({
+                produto: tmpNameProduct, marca: 'generica', id: '', quantidade: tmpQuantityProduct,
+            })
             
         }
         
         //console.log('modelo1 ', modelo);
-        let maxBasketsGenerate = GenerateBasket(produtos, modelo['modelo1']);
+        let maxBasketsGenerate = await GenerateBasket(modelo['modelo1']);
         //console.log('basketWithdrawQuantity: ', basketWithdrawQuantity)
         if( maxBasketsGenerate < basketWithdrawQuantity ) {
-            return 1
+            return 2
         }
+        else if( basketWithdrawQuantity <= 0 ) {
+            return 2
+        }
+
         const retorno = confirm(`Desejá tirar: ${Number(basketWithdrawQuantity)} unidade(s) de cesta com os seguintes itens: ${msg}\n O maximo de cestas à gerar são: ${maxBasketsGenerate}`);
-        return retorno;
-    }, [tabelaRef, basketWithdrawQuantity, listaDeItensNoBD, inputBasketWithdrawQuantity]);
+        let resposta = 0
+        if( retorno ) {
+            resposta = 1
+        }
+
+        else {
+            resposta = 0
+        }
+        return resposta;
+    }, [tabelaRef, basketWithdrawQuantity, listaDeItensNoBD, inputBasketWithdrawQuantity, itensSelecionados]);
 
 
-    const withdrawItensOfStock = useCallback(() => {
-        // Implementar alguma logica que envia uma solicitação para o back pedindo a retirada dos itens
-
-        if( !tabelaRef) {
+    const withdrawItensOfStock = useCallback(async () => {
+        if( !tabelaRef.current) {
             return;
         }
-        if( tabelaRef.current.listarElementosSelecionados().length <= 0 ) {
+
+
+       
+        if( itensSelecionados.length <= 0 ) {
             alert(' Nenhum item selecionado.')
             return;
         }
-        const confirmation = confirmWithdrawItens()
-        switch (confirmation) {
-            case 1:
-                alert('Numero de cesta retiradas não condiz com o estoque')
 
-            _:
-                return false;
+        const confirmation = await confirmWithdrawItens()
+        if( confirmation === 2 ) {
+            const confirm2 = confirm('Numero de cesta retiradas não condiz com o estoque.\n Deseja Continuar com a saida da cesta?')
+            if( !confirm2 ) {
+                return
+            }
+            
+        }
+
+        else if ( confirmation === 0 ) {
+            return false
+        }
+
+        else {
+            let tmp_itens_seleciodados = [...itensSelecionados]
+            for( let i = 0; i < tmp_itens_seleciodados.length; i ++ ) {
+                tmp_itens_seleciodados[i][3] = tmp_itens_seleciodados[i][3] * basketWithdrawQuantity
+            }
         }
 
         
         resetTable();
         resetDataProdutosRecived();
         addBasketWithdrawalToHistory();
-        alert('Itens retiados com sucesso.')
-    }, [tabelaRef, listaDeItensNoBD, basketWithdrawQuantity])
+
+//        let tmp_list_item = []
+//        for( let i = 0; i < itensSelecionados.length; i ++ ) {
+//            tmp_list_item.push([itensSelecionados[i][0], itensSelecionados[i][3]])
+//        }
+
+
+        let id_basket = 0
+
+        if ( Array.isArray( modelBasketData) ) {
+            if( modelBasketData[0] ) {
+                id_basket = modelBasketData[0]
+            }
+        }
+
+
+            
+        //console.log(" BASkET MODEL: ", modelBasketData)
+        //console.log(" church", iframeContent)
+        let id_church = iframeContent[0]
+        let id_family = familySelected[0]
+        let response = await OutputBasketFunction( id_basket, id_family, id_church, itensSelecionados, basketWithdrawQuantity, observationInput, donationFromOutside)
+        //console.log(" reponse: ", response)
+        if( response.status === 0 ) {
+            alert('Itens retiados com sucesso.')
+            setItensSelecionados([])
+        }
+        
+
+
+    }, [tabelaRef, listaDeItensNoBD, basketWithdrawQuantity, itensSelecionados])
 
 
     const addBasketWithdrawalToHistory = useCallback(() => {
@@ -328,15 +503,26 @@ const IOBaskets = () => {
 
     const handleBasketHistory = () => {
         //navigate('/history-basic-food-basket')
-        if( showBasketHistoryItemListWindow ) {
-            setShowBasketHistoryItemListWindow(false)
+        if( showBasketModelListWindow ) {
+            setShowBasketModelListWindow(false)
         }
 
         else {
-            setShowBasketHistoryItemListWindow(true)
+            setShowBasketModelListWindow(true)
         }
     };
 
+
+
+    const handleBasketModelList = () => {
+        if( showBasketModelListWindow ) {
+            setShowBasketModelListWindow(false)
+        }
+
+        else {
+            setShowBasketModelListWindow(true)
+        }
+    }
 
     const changeQuantatityOfItemSelectedById = (id, value) => {
         //console.log("ID: ", id, "  VALUE: ", value)
@@ -384,6 +570,8 @@ const IOBaskets = () => {
 
     }
 
+
+
     const handleButtonDonationFromOutside = useCallback((checkValue) => {
         setDonationFromOutside(checkValue);
         setInputAddress('')
@@ -398,10 +586,64 @@ const IOBaskets = () => {
 
 
     const handleChangeBasketWithdrawQuantity = useCallback((value) => {
-        console.log('value: ', value)
+        //console.log('value: ', value)
         setBasketWithdrawQuantity(value)
     }, []);
 
+
+    const handleSelectItensOnTable = async (modelBasketDataVar) => {
+
+        
+        //console.log(" modelBasketData: ", modelBasketDataVar)
+        await tabelaRef.current.desSelecionarTudo()
+
+        let item_list = await getBasketItemsList(  modelBasketDataVar[0] )
+        //item_list = item_list.content
+
+        //console.log(" LET ITEM LIST: ", item_list, await tabelaRef.current.getCurrentItens())
+        //console.log(" ITEMS: ", item_list)
+        //let tmp_itens = await getBasketItemsList( modelBasketData[0] )
+        //for( let i = 0; i < tmp_itens['content'].length; i ++ ) {
+            //tmp_itens["content"][i].push( tmp_itens["content"][i][3])
+        //}
+
+        //console.log( 'tmp_list: ', tmp_itens)
+
+        //setItensSelecionados( tmp_itens['content'] )
+        setItensSelecionados( item_list["content"] )
+        return 
+
+
+
+
+    }
+
+    const handleAddItemOnList = async() => {
+        if( showWindowForAddItem ) {
+            setShowWindowForAddItem( false )
+        }
+
+        else {
+            setShowWindowForAddItem( true )
+        }
+    }
+
+    const handleRemoveItemOnList = async( ) => {
+        if( !tabelaRef.current ) {
+            return
+        }
+
+        
+        //let removeItemList = await tabelaRef.current.listarItensSelecionados()
+        tabelaRef.current.removerItensSelecionados()
+        tabelaRef.current.desSelecionarTudo()
+        let tmp_itens = tabelaRef.current.getCurrentItens()
+
+        console.log("TMP_LIST: ", tmp_itens)
+
+        setItensSelecionados( tmp_itens )
+
+    }
 
     // Captura as entradas do usuario
     useLayoutEffect(() => {
@@ -415,6 +657,7 @@ const IOBaskets = () => {
     }, [])
 
 
+    /*
     useEffect( () => {
         //console.log("initing... historyBasketData: ", historyBasketData, " -- ", historyBasketData.id)
         if( !tabelaRef.current || historyBasketData.length === 0 ) {
@@ -444,6 +687,18 @@ const IOBaskets = () => {
 
 
     }, [historyBasketData])
+    */
+
+
+    useLayoutEffect(() => {
+        if( !modelBasketData || !Array.isArray(modelBasketData) || !tabelaRef.current || !listaDeItensNoBD ) {
+            return
+        }
+
+        handleSelectItensOnTable(modelBasketData)
+    }, [modelBasketData])
+
+
     // Atualiza as informações enviadas entre as paginas
     useEffect(() => {
         setDataRecivedOfProducts(dataProdutosRecived);
@@ -454,9 +709,14 @@ const IOBaskets = () => {
         
     }, [])
 
+    /*
     useEffect(() => {
         async function get_data_on_db() {
             const response = await get_stock_itens()
+            for(let i = 0; i < response.content.length; i ++ ) {
+                response.content[i][4] = response.content[i][3]
+            }
+
             setListaDeItensNoBD( response.content )
             //console.log("LISTA DE ITENS: ", response.content)
         }
@@ -464,20 +724,18 @@ const IOBaskets = () => {
                 get_data_on_db()
             }
     }, [])
+    */
 
-    useEffect(() => {
-        //localStorage.setItem("modelLoaded", dataLoaded)
-    }, [dataLoaded])
-
+    // Evento que trata a escolha do nome da congregação escolhida
     useEffect(() => {
         //console.log("iframeContent", iframeContent)
-        if( !iframeContent || !iframeContent.Nome) {
+        if( !iframeContent || !iframeContent[1]) {
             return
         }
 
-        setCongregationName(iframeContent.Nome)
+        setCongregationName(iframeContent[1])
         
-        const address = `${iframeContent.Rua}, ${iframeContent.Numero}, ${iframeContent.Bairro} - ${iframeContent.Cidade} `
+        const address = `${iframeContent[6]}, ${iframeContent[7]}, ${iframeContent[5]} - ${iframeContent[4]} `
 
         setInputAddress( address )
 
@@ -533,6 +791,52 @@ const IOBaskets = () => {
         }, 100)
     }, [listaDeItensNoBD, idHistoryModel, tabelaRef, dataLoaded])
 
+
+    // Verifica sempre a variavel de controle de item selecionado,
+    //    Ao selecionar um item, esse evento escuta e adiciona a lista
+    // de itens selecionados
+    useEffect(() => {
+        if( listItemSelected.length <= 0 || !listItemSelected ) {
+            return
+        }
+       
+        for( let i = 0; i < itensSelecionados.length; i ++ ) {
+            if( itensSelecionados[i][0] === listItemSelected[0]) {
+                alert("Item já está selecionado")
+                return
+            }
+        }
+        
+
+        let tmpL = listItemSelected
+        tmpL[4] = listItemSelected[3]
+        //console.log(" listItemSelected: ", listItemSelected)
+        setListItemSelected(tmpL)
+
+        setItensSelecionados([...itensSelecionados, listItemSelected])
+        console.log(" ITENS SELECIONADOS: ", [...itensSelecionados, listItemSelected])
+        
+    }, [listItemSelected])
+
+    // Evento que verifica a mudança da opção de operação para mudar as opções da tela
+    useEffect(() => {
+        if( typeOfAction == 'saida' ) {
+            setItensSelecionados([])
+        }
+        else if ( typeOfAction == 'entrada') {
+            setItensSelecionados([])
+        }
+
+    }, [typeOfAction])
+
+    useEffect(() => {
+        if( !familySelected.length ) {
+            return
+        }
+        setFamilyRepresentative( familySelected[1])
+        console.log("familySelected: ", familySelected, familyRepresentative)
+
+    }, [familySelected])
 
     return (
         <div className={styles.IOBasketsDivMain}>
@@ -606,7 +910,10 @@ const IOBaskets = () => {
                                                     onChange={ (e) => {
                                                         handleWhoRecivedBasicBasketFood( e.target.value )
                                                     }}
-                                                    value={whoRecivedBasicBasketFood}
+                                                    onKeyDown={ (e) => {
+                                                        handleKeydownOnFamily(e.code)
+                                                    }}
+                                                    value={familyRepresentative}
                                                     placeholder='Para quem que a cesta foi entregue'
                                                 />
                                             </div>
@@ -621,10 +928,10 @@ const IOBaskets = () => {
                                                 <input
                                                     value={familyRepresentative}
                                                     onChange={ (e) => {
-                                                        handleSetFamilyRepresentative(e.target.value)
+                                                        handleSetFamilyRepresentative(e.target.value.toUpperCase())
                                                     }}
-                                                    onKeyDown={(e) => {
-                                                        handleFamilyRepresentative(e.code)
+                                                    onKeyDown={ (e) => {
+                                                        handleKeydownOnFamily(e.code)
                                                     }}
                                                     placeholder='Nome do representante da familia'
                                                 />
@@ -636,7 +943,9 @@ const IOBaskets = () => {
                                                 <input
                                                     value={inputAddress}
                                                     placeholder='Endereço do representante da familia'
-                                                    readOnly={true}
+                                                    onChange={ (e) => {
+                                                        setInputAddress(e.target.value.toUpperCase())
+                                                    }}
                                                 />
                                             </div>
                                             
@@ -651,7 +960,8 @@ const IOBaskets = () => {
                                     <div>
                                         <label> Quantidade de cesta(s): </label>
                                         <input 
-                                        className={styles.basketWithdrawQuantityClass}
+                                            className={styles.basketWithdrawQuantityClass}
+                                            value={basketWithdrawQuantity}
                                             required
                                             placeholder='Insira quantas cestas serão retiradas'
                                             type='number'
@@ -661,16 +971,15 @@ const IOBaskets = () => {
 
                                 </div>
                             </div>
-                            <label> Itens para a Cesta </label>
 
 
                             { (inputAddress) && (
-
+                                
                                 <div className={styles.divTableListProducts}>
                                     <div>
                                         <SimpleButton
-                                            textButton="Historico de cestas"
-                                            onClickButton={handleBasketHistory}
+                                            textButton="Modelos de cestas"
+                                            onClickButton={handleBasketModelList}
                                         />
                                     </div>
                                     <input
@@ -685,12 +994,36 @@ const IOBaskets = () => {
                                         }}
                                     >
                                     </input>
-                                    
+                                    <div>
+
+                                        <SimpleButton
+                                            textButton={"Adicionar item"}
+                                            onClickButton={(e) => {
+                                                handleAddItemOnList()
+                                            }}
+                                        />
+                                        <SimpleButton
+                                            textButton={"Remover item"}
+                                            onClickButton={(e) => {
+                                                handleRemoveItemOnList( )
+                                            }}
+
+                                        />
+                                        <br/>
+                                        <label>
+                                            Itens selecionados
+                                        </label>
+                                        
+                                    </div>
                                     <TabelaListaDeProdutos
                                         ref={tabelaRef}
                                         nameClass={styles.listProductsTable}
-                                        listaDeItens= { listaDeItensNoBD }
+                                        listaDeItens= { itensSelecionados }
                                         limitarMaxNumber={[3]}
+                                        columnList={columnList}
+                                        contentColumnList={
+                                            columnListContent
+                                        }
                                     />
                                     <div className={styles.buttonsForm}>
                                         <SimpleButton textButton="Confirmar" onClickButton={withdrawItensOfStock} />
@@ -699,9 +1032,9 @@ const IOBaskets = () => {
                                 </div>
                             )}        
                         </div>
-                    ) : ( 
+                    ) : (
+                        {/* Entrada */},
                         <div>
-                            {/* Entrada */}
                             <label> Entrada de item ao estoque</label>
     
                             <div className={styles.aboutDiv + ' ' + styles.aboutDonationOrigin}>
@@ -802,23 +1135,53 @@ const IOBaskets = () => {
                                     </div>
                                 </div>
                             </div>
+
                             {/* Lista de produtos para entrar */}
-                            { ( congregationName || ( inputAddress )) && (
+                            { /*( congregationName || ( inputAddress ) || (donationFromOutside)) && ( */}
+                                <>
+                                    <div>
+                                        <label>
+                                            Itens selecionados
+                                        </label>
+                                        <br/>
+                                        
+                                            
+
+                                        <SimpleButton
+                                            textButton={"Adicionar item"}
+                                            onClickButton={(e) => {
+                                                handleAddItemOnList()
+                                            }}
+                                        />
+                                        <SimpleButton
+                                            textButton={"Remover item"}
+                                            onClickButton={(e) => {
+                                                handleRemoveItemOnList( )
+                                            }}
+
+                                        />
+                                    </div>
+
                                     <div className={styles.divInputListProducts}>
                                         <TabelaListaDeProdutos
                                             ref={tabelaRef}
                                             nameClass={styles.listProductsTable}
-                                            listaDeItens= { listaDeItensNoBD }
-                                            limitarMaxNumber={[3]}
+                                            listaDeItens= { itensSelecionados }
+                                            columnList={columnList}
+                                            inputColumn={[3]}
+                                            contentColumnList = {
+                                                columnListContent
+                                            }
                                             >
                                         </TabelaListaDeProdutos>
 
                                         <div className={styles.buttonsForm}>
-                                            <SimpleButton typeButton="submit" textButton="Confirmar"  />
+                                            <SimpleButton typeButton="submit" textButton="Confirmar" onClickButton={handleAddItemOnStock} />
                                             <SimpleButton textButton="Cancelar" onClickButton={handleGoBack} />
                                         </div>
                                     </div>
-                                ) 
+                                </>
+                            
                             }
                         </div>
                     )
@@ -834,21 +1197,49 @@ const IOBaskets = () => {
 
 
             </div>
-            {showItemListWindow && (
+            {showChurchListWindows && (
                 <AddItemLookupList
-                    controlIframe={setShowItemListWindow}
+                    controlIframe={setShowChurchListWindows}
                     titleName={"Adicionar doador"}
                     queryFunction={getChurchData}
                     dataContent={setIframeContent}
+                    columnList={ columnListChurch }
                 />
             )}
 
-            {showBasketHistoryItemListWindow && (
+            {showBasketModelListWindow && (
                 <AddItemLookupList
-                    controlIframe={setShowBasketHistoryItemListWindow}
+                    controlIframe={setShowBasketModelListWindow}
                     titleName={"Historico de cestas basicas"}
-                    queryFunction={handleGetHistoryBasketModelsData}
-                    dataContent={setHistoryBasketData}
+                    queryFunction={getBasketData}
+                    dataContent={setModelBasketData}
+                    columnList={ columnListBasket }
+                />
+            )}
+
+            {showWindowForAddItem && (
+                <AddItemLookupList
+                    controlIframe={setShowWindowForAddItem}
+                    titleName={"Adicione item na lista de saida"}
+                    queryFunction={get_stock_itens}
+                    dataContent={setListItemSelected}
+                    columnList = {
+                        columnListStock
+                    }
+
+                />
+            )}
+
+            {showFamilyListWindow && (
+                <AddItemLookupList
+                    controlIframe={setShowFamilyListWindow}
+                    titleName={"Familia que destina esta cesta"}
+                    queryFunction={getFamilyData}
+                    dataContent={setFamilySelected}
+                    columnList={ 
+                        columnListFamily
+                    }
+
                 />
             )}
 

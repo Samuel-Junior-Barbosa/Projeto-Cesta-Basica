@@ -17,6 +17,12 @@ const BasketDeliveryOrder = () => {
     const [ basketDeliveryOrderPendente, setBasketDeliveryOrderPendente ] = useState([]);
     const [ basketDeliveryOrderEntregue, setBasketDeliveryOrderEntregue ] = useState([]);
     const [ basketDeliveryOrderCancelados, setBasketDeliveryOrderCancelados ] = useState([]);
+    const columnList = [
+        "ID",
+        "Nome do produto",
+        "Marca",
+        "Quant. Selecionada"
+    ]
 
     const navigate = useNavigate()
 
@@ -225,6 +231,7 @@ const BasketDeliveryOrder = () => {
                     listaDeItens={basketDeliveryOrderFocus}
                     lengthColumns={'1fr 1fr 1fr 1fr 4fr 1fr 1fr 1fr'} 
                     nameClass={styles.tableClass}
+                    columnList={columnList}
                 />
                 
                 

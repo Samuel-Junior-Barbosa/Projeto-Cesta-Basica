@@ -1,5 +1,5 @@
-import getFunction from "../../GetFunction";
-import postFunction from "../../PostFunction";
+import getFunction from "../../../GetFunction";
+import postFunction from "../../../PostFunction";
 
 const searchForChurchGoalItem = async (churchId, goalItemName, columnName) => {
     const url = "http://localhost:8080/search-for-church-goals-item"

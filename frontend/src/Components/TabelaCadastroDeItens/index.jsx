@@ -381,7 +381,7 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
 
             let tabela_itens = window.document.querySelector(`.${styles.ListaDeProdutosCadastrados}.${nameClass} > thead > tr.${styles.linhaTabela}`)
             tabela_itens.style.gridTemplateColumns = `repeat(1, 1fr)`
-            console.log(" TABELA: ", tabela_itens.style)
+            //console.log(" TABELA: ", tabela_itens.style)
             return
         }
             try {

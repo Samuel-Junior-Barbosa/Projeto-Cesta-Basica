@@ -4,25 +4,28 @@ import SimpleButton from '/src/Components/SimpleButton';
 import TabelaCadastroDeItens from '/src/Components/TabelaCadastroDeItens';
 import { useNavigate } from 'react-router-dom';
 
+import MessageAlert from '/src/Components/MessageAlert';
 import styles from './CadastroDeFamilias.module.css';
 import getFamilyData from '../../../Functions/Family/getFamilyData';
 import searchForFamily from '../../../Functions/Family/SearchForFamily';
 import TabelaListaDeProdutos from '../../../Components/TabelaListaDeProdutos';
 import searchForFamilyById from '../../../Functions/Family/SearchForFamilyByIdFamily';
 import deleteFamilyDataFunction from '../../../Functions/Family/DeleteFamilyData';
+import { useRemoveFamilyRegister } from '../../../Components/hooks/ManageFamily/DeleteFamilyRegister/useDeleteFamilyRegister';
 
 
 
 
 const CadastrosDeFamilias = () => {
     const tabelaRef = useRef('');
+    const { handleRemoveFamilyRegister, RemoveFamilyRegisterLoading, RemoveFamilyRegisterMessage } = useRemoveFamilyRegister()
     const [ listarItensSelecionados, setListarItensSelecionados ] = useState(() => () => {});
     const [ representativeName, setRepresentativeName ] = useState('');
     const navigate = useNavigate();
     const [, forceUpdate] = useReducer(x => x + 1, 0);
     const columnList = [
         'id' , 'Representante', 'Membros', 'Cidade', 'Bairro', 'Rua',
-        'Numero Da Casa', 'Numero De Telefone', 'Prioridade', 'Congregação'
+        'Numero Da Casa', 'cep', 'uf', 'Numero De Telefone', 'Prioridade', 'Congregação'
     ]
 
     const [ cadastroDeFamilias, setCadastroDeFamilias ] = useState([])
@@ -70,15 +73,7 @@ const CadastrosDeFamilias = () => {
         const idFamily        = itensSelecionados[0]["0"]
         let get_data = await searchForFamilyById( idFamily )
         console.log('cadastroDeFamilias: ', itensSelecionados, get_data)
-        const idChurch = get_data["content"][9]
-        const churchName      = itensSelecionados[0]["Congregação"]
-        const representative  = itensSelecionados[0]["Representante"]
-        const members         = itensSelecionados[0]["Membros"]
-        const city            = itensSelecionados[0]["Cidade"]
-        const neighborhood    = itensSelecionados[0]["Bairro"]
-        const street          = itensSelecionados[0]["Rua"]
-        const buildingNumber  = itensSelecionados[0]["Numero Da Casa"]
-        const telephoneNumber = itensSelecionados[0]["Telefone"]
+        const idChurch = Number(get_data["content"][1])
         const priorityLevel   = get_data["content"][8]
         
         
@@ -87,14 +82,6 @@ const CadastrosDeFamilias = () => {
             state: {
                     idFamilyRecive        : idFamily,
                     idChurchRecived       : idChurch,
-                    churchNameRecive      : churchName,
-                    representativeRecive  : representative,
-                    membersRecive         : members,
-                    cityRecive            : city,
-                    neighborhoodRecive    : neighborhood,
-                    streetRecive          : street,
-                    buildingNumberRecive  : buildingNumber,
-                    telephoneNumberRecive : telephoneNumber,
                     priorityLevelRecive   : priorityLevel,
                     dataRecived: true,
                 }
@@ -104,16 +91,14 @@ const CadastrosDeFamilias = () => {
 
 
     const searchItemOnTable = async (representativeRecive, column = "Representante", limit=-1) => {
-        async function search_function() {
-            //console.log("REPRESENTATIVE: ", representativeRecive, column)
-            const response = await searchForFamily(representativeRecive, column, limit)
-            console.log("SEARCH RESPONSE: ", response)
-            if( response.status === 0 ) {
-                setCadastroDeFamilias(response.content)
-                //setRegisterList(response.content)
-            }
+        console.log("REPRESENTATIVE: ", representativeRecive, column)
+        const response = await searchForFamily(representativeRecive, column, limit)
+        console.log("SEARCH RESPONSE: ", response)
+        if( response.status === 0 ) {
+            setCadastroDeFamilias(response.content)
+            //setRegisterList(response.content)
         }
-        const response = await search_function()
+
         return response
     }
 
@@ -153,13 +138,18 @@ const CadastrosDeFamilias = () => {
 
         //tabelaRef.current.removerItensSelecionados();
 
+        const confirmDelete = confirm("Deseja realemte deletar o cadastro da igreja?")
+        if( !confirmDelete ) {
+            return
+        }
+
         let family_selected = tabelaRef.current.listarItensSelecionados()
         for( let I = 0; I < family_selected.length; I ++ ) {
             family_selected[I] = Object.values( family_selected[I] )
         }
 
         for( let I = 0; I < family_selected.length; I ++ ) {
-            deleteFamilyDataFunction( family_selected[I][0])
+            handleRemoveFamilyRegister( family_selected[I][0])
         }
         
 
@@ -170,7 +160,7 @@ const CadastrosDeFamilias = () => {
         async function get_family_data() {
             const response = await getFamilyData( true)
             setCadastroDeFamilias(response.content)
-            //console.log("CADASTROS", response.content)
+            console.log("CADASTROS", response.content)
         }
         if( Array.isArray(cadastroDeFamilias)) {
             get_family_data()
@@ -192,6 +182,12 @@ const CadastrosDeFamilias = () => {
     return (
 
         <div className={styles.CadastrosDeFamiliasDiv}>
+            { RemoveFamilyRegisterMessage && (
+                <MessageAlert
+                    text={RemoveFamilyRegisterMessage}
+                >
+                </MessageAlert>
+            )}
             <LabelTitles nameClass={styles.tituloPaginaAtualDiv} text="Cadastros de Familias"/>
             <div className={styles.topNavbarCadastroFamiliaDiv}>
                 <SimpleButton nameClass={styles.TopNavBarButton} textButton="Adicionar" onClickButton={() => {goToPage('/register-family')}}/>

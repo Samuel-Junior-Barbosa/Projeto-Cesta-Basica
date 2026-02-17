@@ -12,7 +12,6 @@ const AddingItemOnMeta = ({setIframeAddItem}) => {
     const [ idProduct, setIdProduct ] = useState('')
 
     const handleAddItemOnMeta = (e) => {
-        e.preventDefault()
         alert('item adicionado')
         console.log("Produto: ", e)
         setIframeAddItem(false)
@@ -55,7 +54,7 @@ const AddingItemOnMeta = ({setIframeAddItem}) => {
         }
     }
 
-    return;
+    
     return (
         <>
             <div className={styles.AddingItemOnMetaDiv}>

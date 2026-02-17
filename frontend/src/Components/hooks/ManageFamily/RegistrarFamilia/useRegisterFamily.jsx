@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerFamily } from './register';
+
 import registrationFamilyFunction from "../../../../Functions/Family/RegistrationFamily";
 
 
@@ -17,16 +17,22 @@ export function useRegisterFamily() {
         try {
             //const response = await registerFamily(representative, members, city, neighborhood, street, builderNumber, telephone, situation, congregation);
             const response = await registrationFamilyFunction( data )
-            console.log(" resposta de registro: ", response)
+            //console.log(" resposta de registro: ", response)
             if(response.status === 0) {
                 setMessage('Familia cadastrada com sucesso!');
-                setTimeout(() => {
-                    setMessage('')
-                }, 1500)
+
+            }
+            else if( response.status === 2067 ) {
+                setMessage('Já existe uma familia com o mesmo representante ou endereço cadastrado');
             }
             else {
                 setMessage(response.content)
             }
+
+            setTimeout(() => {
+                setMessage('')
+            }, 2000)
+
         } catch (err) {
             setMessage(err.message);
         }

@@ -2,7 +2,7 @@
 import LabelTitles from '/src/Components/LabelTitles';
 import SimpleButton from '/src/Components/SimpleButton';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 import styles from './ChangeChurchRegistration.module.css';
 import { useAlterChurch } from '../../../Components/hooks/ManageChurches/AlterRegistrationChurch/useAlterRegistrationChurch';
@@ -10,13 +10,32 @@ import MessageAlert from '../../../Components/MessageAlert';
 import alterChurchData from '../../../Functions/Church/AlterRegisterChurch';
 import { useState } from 'react';
 import { AlterRegistrationChurch } from '../../../Components/hooks/ManageChurches/AlterRegistrationChurch';
+import searchForChurch from '../../../Functions/Church/SearchForChurch';
+import searchForChurchById from '../../../Functions/Church/SearchChurchById';
 
 const ChangeChurchRegistration = () => {
     const navigate = useNavigate();
 
     const location = useLocation();
 
-    const { idChurch, churchName, representative, members, city, neighborhood, street, buildingNumber} = location.state || { idChurch: '', churchName: '', representative: '', members: 0, city: '', neighborhood: '', street: '', buildingNumber: 0};
+    const {
+        idChurchRecived,
+    } = location.state || {
+        idChurchRecived: '',
+    };
+
+
+    const [ idChurch, setIdChurch ] = useState(0)
+    const [ churchName, setChurchName ] = useState('')
+    const [ representative, setRepresentative ] = useState('')
+    const [ members, setMembers ] = useState(0)
+    const [ city, setCity ] = useState('')
+    const [ neighborhood, setNeighborhood ] = useState('')
+    const [ street, setStreet  ] = useState('')
+    const [ buildingNumber, setBuildingNumber ] = useState(0)
+    const [ cep, setCep ] = useState('')
+    const [ uf, setUf ] = useState('')
+    const [ registerStatus, setRegisterStatus ] = useState(false)
 
     const { handleAlterRegistrationChurch, AlterChurchLoading, AlterChurchMessage } = useAlterChurch();
 
@@ -27,20 +46,9 @@ const ChangeChurchRegistration = () => {
     }
 
 
-    const onSubmit = (e) => {
-        e.preventDefault();
-        
-        const idChurch       = e.target[0].value
-        const churchName     = e.target[1].value
-        const representative = e.target[2].value
-        const members        = e.target[3].value
-        const city           = e.target[4].value
-        const neighborhood   = e.target[5].value
-        const street         = e.target[6].value
-        const buildingNumber = e.target[7].value
-        
+    const onSubmit = async () => {
 
-        const alterData = {
+        await handleAlterRegistrationChurch(
             idChurch,
             churchName,
             representative,
@@ -49,81 +57,174 @@ const ChangeChurchRegistration = () => {
             neighborhood,
             street,
             buildingNumber,
-        }
-
-        const response = handleAlterRegistrationChurch( alterData )
+            cep,
+            uf,
+            registerStatus )
         
     }
+
+    const getChurchDataApi = async (idChurchParam) => {
+        const response = await searchForChurchById( idChurchParam )
+        if( response.status === 0 ) {
+            const churchData = response.content[0]
+            setChurchName(churchData[1])
+            setRepresentative(churchData[2])
+            setMembers(churchData[3])
+            setCity(churchData[4])
+            setNeighborhood(churchData[5])
+            setStreet(churchData[6])
+            setBuildingNumber(churchData[7])
+            setCep(churchData[8])
+            setUf(churchData[9])
+            setRegisterStatus(churchData[10])
+        }
+    }
+
+
+
+    useLayoutEffect(() => {
+
+        if( idChurchRecived  ) {
+            setIdChurch( idChurchRecived )
+            getChurchDataApi( idChurchRecived)
+        }
+        
+
+    },[])  //, [idChurchRecived, churchNameRecived, representativeRecived, membersRecived, cityRecived, neighborhoodRecived, streetRecived, buildingNumberRecived])
+
     return (
         <div className={styles.ChangeChurchRegistrationDiv}>
             <LabelTitles nameClass={styles.titleTopPageDiv} text="Alterar Igreja"/>
-            <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
+            <div onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
 
                 <div className={styles.entradaDeDados}>
                     <label> Id: </label>
                     <input
                         name="nameOfChurch"
                         required
-                        defaultValue={idChurch}
+                        value={idChurch}
                         readOnly={true}
                     />
                     <label> Nome: </label>
                     <input
                         name="nameOfChurch"
                         required
-                        defaultValue={churchName}
+                        value={churchName}
+                        onChange={(e) => {
+                            setChurchName(e.target.value.toUpperCase().trim())
+                        }}
                     />
                     <label> Representante: </label>
                     <input
                         name="representative"
                         required
-                        defaultValue={representative}
+                        value={representative}
+                        onChange={(e) => {
+                            setRepresentative(e.target.value.toUpperCase().trim())
+                        }}
                     />
 
                     <label> Membros: </label>
                     <input
-                        name="Members"
                         required
-                        defaultValue={members}
+                        name={"Members"}
+                        type={'number'}
+                        min={0}
+                        value={members}
+                        onChange={(e) => {
+                            setMembers(e.target.value.toUpperCase().trim())
+                        }}
                     />
                     <label> Cidade: </label>
                     <input
                         name="city"
                         required
-                        defaultValue={city}
+                        value={city}
+                        onChange={(e) => {
+                            setCity(e.target.value.toUpperCase().trim())
+                        }}
                     />
                     <label> Bairro: </label>
                     <input
                         name="neighborhood"
                         required
-                        defaultValue={neighborhood}
+                        value={neighborhood}
+                        onChange={(e) => {
+                            setNeighborhood(e.target.value.toUpperCase().trim())
+                        }}
                     />
 
                     <label> Rua: </label>
                     <input
                         name="street"
                         required
-                        defaultValue={street}
+                        value={street}
+                        onChange={(e) => {
+                            setStreet(e.target.value.toUpperCase().trim())
+                        }}
                     />
 
                     <label> Numero: </label>
                     <input
-                        name="buildingNumber"
                         required
-                        defaultValue={buildingNumber}
+                        name={"buildingNumber"}
+                        type={'number'}
+                        min={0}
+                        value={buildingNumber}
+                        onChange={(e) => {
+                            setBuildingNumber(e.target.value.toUpperCase().trim())
+                        }}
+
                     />
 
+                    <label> CEP: </label>
+                    <input
+                        name={"buildingNumber"}
+                        required
+                        value={cep}
+                        onChange={(e) => {
+                            setCep(e.target.value.toUpperCase().trim())
+                        }}
+                    />
+                    
+                    <label> UF: </label>
+                    <input
+                        name="buildingNumber"
+                        required
+                        value={uf}
+                        onChange={(e) => {
+                            setUf(e.target.value.toUpperCase().trim())
+                        }}
+                    />
+
+                    <label> STATUS: </label>
+                    <select
+                        value={registerStatus}
+                        onChange={(e) => {
+                            setRegisterStatus(e.target.value)
+                        }}
+                    >
+                        <option value={false}> INATIVO </option>
+                        <option value={true}> ATIVO </option>
+                    </select>
+                    
+                    
                 </div>
 
                 <div>
-                    <SimpleButton type="submit" nameClass={styles.buttonRegister} textButton="Alterar"/>
+                    <SimpleButton
+                        type="button"
+                        nameClass={styles.buttonRegister}
+                        textButton="Alterar"
+                        onClickButton={onSubmit}
+                    />
                     <SimpleButton typeButton="button" nameClass={styles.buttonRegister} onClickButton={handleGoBack} textButton="Cancelar"/>
                 </div>
-            </form>
+            </div>
             {AlterChurchMessage && (
                 <MessageAlert
                     text={ AlterChurchMessage }
-                ></MessageAlert>
+                />
             )}
         </div>
     );

@@ -57,3 +57,14 @@
         font-size: 1.5rem;
     }
 }
+
+
+.alertMessageCentralized {
+    position: absolute;
+    width: 50%;
+
+    z-index: 1000;
+    top: 50dvh;
+    left: 40dvw;
+    word-break: keep-all;
+}

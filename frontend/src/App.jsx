@@ -14,6 +14,7 @@ import NoPage from "./pages/NoPage";
 import NoAuthorized from './pages/NoAuthorized';
 import Documentacao from '../src/public/Docspage';
 import MetaPage from './pages/MetaPage';
+
 // ------------------------------------------------------------------------------------------------------
 
 // ------------------------------------- Management of Products  ----------------------------------------
@@ -29,12 +30,15 @@ import AlterarCadastroDeFamilia from './pages/ManagementOfFamilies/AlterarCadast
 import PriorityRegistration from './pages/ManagementOfFamilies/PriorityRegistration';
 import AddingPriorityRegister from './pages/ManagementOfFamilies/AddingPriorityRegister';
 import AlterPrirotityRegister from './pages/ManagementOfFamilies/AlterPrirotityRegister';
+
 // ------------------------------------------------------------------------------------------------------
 
 // ------------------------------------- Management of churches -----------------------------------------
 import RegisterChurch from './pages/ManagementOfChurchs/RegisterChurch';
 import ChurchRecords from './pages/ManagementOfChurchs/ChurchRecords';
 import ChangeChurchRegistration from './pages/ManagementOfChurchs/ChangeChurchRegistration';
+import EditingGoalPage from './pages/MetaPage/EditingGoalPage';
+import CreateGoalForChurch from './pages/MetaPage/CreateGoalForChurch';
 // ------------------------------------------------------------------------------------------------------
 
 // ------------------------------------- Management of Baskets ------------------------------------------
@@ -85,6 +89,8 @@ const App = () => {
                   <Route path="/priority-registration" element={ <PriorityRegistration /> } />
                   <Route path="/adding-priority-register" element={ <AddingPriorityRegister /> } />
                   <Route path="/alter-priority-register" element={ <AlterPrirotityRegister /> } />    
+                  <Route path="/editing-goal-page" element={ <EditingGoalPage /> } />    
+                  <Route path='/create-goal-for-church' element= { <CreateGoalForChurch /> } />
                 </Route>
               </Route>
 

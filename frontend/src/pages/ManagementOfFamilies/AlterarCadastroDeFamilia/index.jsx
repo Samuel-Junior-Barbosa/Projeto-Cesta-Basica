@@ -19,14 +19,16 @@ const AlterarCadastroDeFamilia = () => {
     const [ idChurch, setIdChurch ]               = useState('');
     const [ churchName, setChurchName ]           = useState('');
     const [ representative, setRepresentative ]   = useState('');
-    const [ members, setMembers ]                 = useState('');
+    const [ members, setMembers ]                 = useState(0);
     const [ city, setCity ]                       = useState('');
     const [ neighborhood, setNeighborhood ]       = useState('');
     const [ street, setStreet ]                   = useState('');
-    const [ buildingNumber, setBuildingNumber ]   = useState('');
+    const [ buildingNumber, setBuildingNumber ]   = useState(0);
     const [ telephoneNumber, setTelephoneNumber ] = useState('');
     const [ currentPriority, setCurrentPriority ] = useState('');
     const [ priorityList, setPriorityList ]       = useState([]);
+    const [ cep, setCep ] = useState('');
+    const [ uf, setUf ] = useState('');
 
     const columnList = [
         "ID",
@@ -62,6 +64,8 @@ const AlterarCadastroDeFamilia = () => {
         neighborhoodRecive,
         streetRecive,
         buildingNumberRecive,
+        cepOfCity,
+        ufOfCity,
         telephoneNumberRecive,
         priorityLevelRecive,
         dataRecived,
@@ -76,6 +80,8 @@ const AlterarCadastroDeFamilia = () => {
         neighborhoodRecive    : '',
         streetRecive          : '',
         buildingNumberRecive  : '',
+        cepOfCityRecive       : '',
+        ufOfCityRecive       : '',
         telephoneNumberRecive : '',
         priorityLevelRecive   : '',
         dataRecived: false,
@@ -111,6 +117,8 @@ const AlterarCadastroDeFamilia = () => {
             neighborhood,
             street,
             buildingNumber,
+            cep,
+            uf,
             telephoneNumber,
             currentPriority,
 
@@ -130,23 +138,26 @@ const AlterarCadastroDeFamilia = () => {
                 let search_response = await searchForFamilyById( idFamilyRecive )
                 
                 response = search_response['content'][0]
-                //console.log(" SEARCH FOR ID: ", Number(response[9]))
-                let churchNameById = await searchForChurchById( Number(response[9]) )
+
+                const churchId = Number(response [11])
+                //console.log(" SEARCH FOR ID: ", churchId)
+                let churchNameById = await searchForChurchById( churchId )
                 churchNameById = churchNameById["content"][1]
-                //console.log(" response search family: ", response)
+                console.log(" response search family: ", response)
                 //console.log(" church name: ", churchNameById)
-                setIdFamily(response[0])
-                setIdChurch( response[9] )
                 setChurchName( churchNameById )
+                setIdFamily(response[0])
                 setRepresentative(response[1])
                 setMembers(response[2])
                 setCity(response[3])
                 setNeighborhood(response[4])
                 setStreet(response[5])
                 setBuildingNumber(response[6])
-                setTelephoneNumber(response[7])
-                setCurrentPriority( Number( response[8] ) )
-
+                setCep( response[7] )
+                setUf( response[8] )
+                setTelephoneNumber( response[9] )
+                setCurrentPriority( Number( response[10] ) )
+                setIdChurch( response[11] )
             }
             get_family_data()
   
@@ -200,7 +211,7 @@ const AlterarCadastroDeFamilia = () => {
     return (
         <div className={styles.ChangeFamilyRegistrationDiv}>
             <LabelTitles nameClass={styles.titleTopPageDiv} text="Alterar Cadastro de familia"/>
-            <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
+            <div className={styles.entradaDeDadosDivMain}>
 
                 <div className={styles.entradaDeDados}>
                     <label> ID: </label>
@@ -212,7 +223,7 @@ const AlterarCadastroDeFamilia = () => {
                     />
                     <label> Congregação: </label>
                     <input
-                        name="nameOfChurch"
+                        name={"nameOfChurch"}
                         required
                         
                         placeholder='Insira o nome da congregação que frequenta'
@@ -223,21 +234,22 @@ const AlterarCadastroDeFamilia = () => {
                     />
                     <label> Representante: </label>
                     <input
-                        name="representative"
+                        name={"representative"}
                         required
-                        defaultValue={representative}
+                        value={representative}
                         placeholder='Insira o nome do representante da familia'
                         onChange={(e) => (
-                            setRepresentative(e.target.value)
+                            setRepresentative(e.target.value.toUpperCase())
                         )}
                         
                     />
 
                     <label> Membros: </label>
                     <input
-                        name="Members"
+                        type={"number"}
+                        name={"Members"}
                         required
-                        defaultValue={members}
+                        value={members}
                         placeholder='Insira o numero de membros da familia cadastrada'
                         onChange={(e) => (
                             setMembers(e.target.value)
@@ -246,44 +258,45 @@ const AlterarCadastroDeFamilia = () => {
                     />
                     <label> Cidade: </label>
                     <input
-                        name="city"
+                        name={"city"}
                         required
-                        defaultValue={city}
+                        value={city}
                         placeholder='Insira a cidade da familia'
                         onChange={(e) => (
-                            setCity(e.target.value)
+                            setCity(e.target.value.toUpperCase())
                         )}
 
                     />
                     <label> Bairro: </label>
                     <input
-                        name="neighborhood"
+                        name={"neighborhood"}
                         required
-                        defaultValue={neighborhood}
+                        value={neighborhood}
                         placeholder='Insira o bairro onde a familia mora'
                         onChange={(e) => (
-                            setNeighborhood(e.target.value)
+                            setNeighborhood(e.target.value.toUpperCase())
                         )}
 
                     />
 
                     <label> Rua: </label>
                     <input
-                        name="street"
+                        name={"street"}
                         required
-                        defaultValue={street}
+                        value={street}
                         placeholder='Insira a Rua onde a familia mora'
                         onChange={(e) => (
-                            setStreet(e.target.value)
+                            setStreet(e.target.value.toUpperCase())
                         )}
 
                     />
 
                     <label> Numero da casa: </label>
                     <input
-                        name="buildingNumber"
+                        name={"buildingNumber"}
+                        type={"number"}
                         required
-                        defaultValue={buildingNumber}
+                        value={buildingNumber}
                         placeholder='Insira o numero da casa da familia'
                         onChange={(e) => (
                             setBuildingNumber(e.target.value)
@@ -291,17 +304,42 @@ const AlterarCadastroDeFamilia = () => {
 
                     />
 
+                    <label> CEP:  </label>
+                    <input
+                        name={"cep"}
+                        required
+                        value={cep}
+                        placeholder='Insira o cep da familia'
+                        onChange={(e) => (
+                            setCep(e.target.value)
+                        )}
+
+                    />
+
+                    <label> UF </label>
+                    <input
+                        name={"uf"}
+                        required
+                        value={uf}
+                        placeholder='Insira a Unidade Federativa da cidade'
+                        onChange={(e) => (
+                            setUf(e.target.value.toUpperCase())
+                        )}
+
+                    />
+
                     <label> Numero do telefone: </label>
                     <input
-                        name="telephoneNumber"
+                        name={"telephoneNumber"}
                         required
-                        defaultValue={telephoneNumber}
+                        value={telephoneNumber}
                         placeholder='Insira o numero de telefone para contato'
                         onChange={(e) => (
                             setTelephoneNumber(e.target.value)
                         )}
 
                     />
+                    
                     
                     <label> Prioridade </label>
                     <select
@@ -325,10 +363,15 @@ const AlterarCadastroDeFamilia = () => {
                 </div>
 
                 <div>
-                    <SimpleButton type="submit" nameClass={styles.buttonRegister} textButton="Alterar"/>
+                    <SimpleButton
+                        type="submit"
+                        nameClass={styles.buttonRegister}
+                        textButton="Alterar"
+                        onClickButton={onSubmit}
+                    />
                     <SimpleButton typeButton="button" nameClass={styles.buttonRegister} onClickButton={handleGoBack} textButton="Cancelar"/>
                 </div>
-            </form>
+            </div>
             { AlterFamilyMessage && (
                 <MessageAlert
                     text = {AlterFamilyMessage}

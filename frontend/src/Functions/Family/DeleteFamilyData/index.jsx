@@ -1,10 +1,10 @@
 import postFunction from "../../PostFunction";
 
-const deleteFamilyDataFunction = async ( if_family ) => {
+const deleteFamilyDataFunction = async ( id_family ) => {
     const url = "http://localhost:8080/delete-family-data"
 
     const param = {
-        if_family
+        id_family
     }
 
     const response =  await postFunction(url, param)

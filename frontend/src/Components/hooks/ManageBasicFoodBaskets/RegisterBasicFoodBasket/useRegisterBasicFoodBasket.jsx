@@ -32,11 +32,11 @@ export function useRegisterBasicFoodBasket() {
                 useRegisterBasicFoodBasketSetMessage(response.content)                
             }
 
-            setTimeout(() => {
-                useRegisterBasicFoodBasketSetMessage('');
-            }, 2000)
+            const timer = setTimeout(() => {
+                useRegisterBasicFoodBasketSetMessage('')
+            }, 2000);
             useRegisterBasicFoodBasketSetLoading(false);
-
+            
             return response
             
             

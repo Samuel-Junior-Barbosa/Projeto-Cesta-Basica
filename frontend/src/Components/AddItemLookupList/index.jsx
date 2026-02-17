@@ -47,7 +47,7 @@ const AddItemLookupList = ({
             selectedRegistration = Object.values(selectedRegistration[0])
         }
 
-        console.log(" SELECIONANDO ITEM: ", selectedRegistration)
+        //console.log(" SELECIONANDO ITEM: ", selectedRegistration)
         dataContent(selectedRegistration)
         
         controlIframe(false);

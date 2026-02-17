@@ -1,32 +1,45 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { RegisterChurch } from './RegisterChurch';
+import registerChurchApi from "../../../../Functions/Church/RegisterChurch";
 
 export function useRegisterChurch() {
     const [RegisterChurchLoading, setLoading] = useState(false);
     const [RegisterChurchMessage, setMessage] = useState(null);
     const navigate = useNavigate();
 
-    const handleRegisterChurch = async (representative, numberOfMembers, city, neighborhood, street, streetNumber) => {
+    const handleRegisterChurch = async (churchName, representative, numberOfMembers, city, neighborhood, street, building_number, cep, uf, registrationStatus) => {
         setLoading(true);
         setMessage(null);
 
         try {
-            const response = await RegisterChurch(representative, numberOfMembers, city, neighborhood, street, streetNumber);
-            if (response === true) {
-                setMessage('Cadastrado com sucesso');
-                const timer = setTimeout(() => {
-                    setMessage('')
-                }, 1500);
-                
-                setLoading(false);
-                return () => clearTimeout(timer);
-    
+            const response = await registerChurchApi(churchName, representative, numberOfMembers, city, neighborhood, street, building_number, cep, uf, registrationStatus);
+            console.log(" REPONSe: ", response)
+            let message = ''
+            if (response.status === 0) {
+                message = 'Cadastrado com sucesso';
+
             }
+            else if( response.status === 2067 ) {
+                message = "Essa congregação já está cadastrada"
+
+            }
+
             else {
-                setMessage(response.message)
+                message = response.content
             }
             
+            if( message === '' ) {
+                message = "erro não identificado: " + String(response.content)
+            }
+
+            setMessage( message )
+
+            const timer = setTimeout(() => {
+                    setMessage('')
+                }, 2000);
+            setLoading(false);
+            return () => clearTimeout(timer);
+
             
         } catch (err) {
             setMessage(err.message);

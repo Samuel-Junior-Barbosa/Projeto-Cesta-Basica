@@ -2,7 +2,7 @@ import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEf
 import PropTypes from 'prop-types';
 import styles from './TabelaListaDeProdutos.module.css'
 
-const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList}) => {
+const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, contentColumnList, inputColumn}) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -16,17 +16,60 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     const [ headerNames, setHeaderNames ] = useState([])
     const [ tableLines, setTableLines ] = useState([])
     const [ listLinesChecked, setListLinesChecked ] = useState([])
-
+    const [ columnListOfContent, setColumnListOfContent ] = useState({})
     
     const currentItens = useRef(itens)
     const currentSeletedLine = useRef(-1)
     const currentListLineChecked = useRef([])
     const [, forceUpdate] = useReducer(x => x + 1, 0);
 
-    const handleInput = useCallback((event) => {
-        setEditableLabel(event.target.textContent);
+        // Função que adiciona o novo item à lista
+    const adicionarItem = useCallback((novoItem) => {
+        if (novoItem.trim()) { // Verifica se o campo não está vazio
+            setItens([...itens, novoItem]); // Adiciona o novo item à lista
+        }
     }, [])
-    
+
+
+
+    const desSelecionarTudo = useCallback(() => {
+        let copyChecekdList = [...listLinesChecked]
+        for(let I = 0; I < listLinesChecked.length; I ++ ) {
+            copyChecekdList[I].checked = false
+        }
+        //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
+        setCheckedList(copyChecekdList)
+        setCheckBoxAll(false)
+
+
+    }, [itens, tableClassRef, columnsTemplate, listLinesChecked]);
+
+
+    const getLineIndexByIdProduct = (id) => {
+
+        let copylist = getCheckedList()
+
+        id = String( id )
+        let currentIndex = -1
+
+
+        for( let i = 0; i < copylist.length; i++ ) {
+            if( copylist[i].id === id ) {
+                currentIndex = i
+                break
+            }
+        }
+
+        return currentIndex
+    }
+
+
+    const getCheckedList = () => {
+        //console.log("RETORNANDO LISTA DE LINHA SELECIONADA ", listLinesChecked)
+        //return listLinesChecked
+        return currentListLineChecked.current
+    }
+
     const getTableBody = () => {
         if( !tableClassRef.current ) {
             return;
@@ -37,11 +80,267 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         return tableBody;
     }
 
-        // Função que adiciona o novo item à lista
-    const adicionarItem = useCallback((novoItem) => {
-        if (novoItem.trim()) { // Verifica se o campo não está vazio
-            setItens([...itens, novoItem]); // Adiciona o novo item à lista
+
+    const getTableHeader = () => {
+        return headerNames
+    }
+
+
+    const getCurrentItens = () => {
+        return currentItens.current
+    }
+
+    const getSelectedElements = () => {
+        if( tableClassRef ) {
+            if( !tableClassRef.current ) {
+                return;
+            }
         }
+        let tableClass = tableClassRef.current.replace(' ', '.')
+        const elementsSelected = window.document.querySelectorAll(`.${tableClass} > tbody > tr > td > input:checked`);
+        //console.log('elementos selecionados: ', elementsSelected)
+        return elementsSelected;
+    }
+
+
+    const handleCreateCheckList = () => {
+        //console.log("{COMPONENT} LISTA DE ITENS: ", listaDeItens)
+        let tmpLinesChecked = []
+        for( let I = 0; I < listaDeItens.length; I++ ) {
+            let tmp_id = listaDeItens[I].id
+            if( !tmp_id ) {
+                tmp_id = listaDeItens[I][0]
+            }
+            tmpLinesChecked.push({
+                "id" : `${tmp_id}`,
+                "checked" : false
+            })
+            //console.log(" TMP ID: ", tmp_id)
+        }
+        //console.log(tmpLinesChecked)
+        setCheckedList(tmpLinesChecked)
+    }
+
+
+    const handleInput = useCallback((event) => {
+        setEditableLabel(event.target.textContent);
+    }, [])
+    
+
+    const handleChangeInputQuantity = useCallback((key) => {
+        const inputQuantity = key.target
+
+        let inputQuantityValue = Number(inputQuantity.value)
+        
+        if( key.key === 'ArrowUp') {
+            key.preventDefault()
+            inputQuantity.value = inputQuantityValue + 1;
+            
+        }
+        if( key.key === 'ArrowDown' ) {
+            key.preventDefault()
+            if( inputQuantityValue > 0 ) {
+                inputQuantity.value = inputQuantityValue - 1;   
+            }  
+        }
+    }, [])
+
+    
+    const handleCheckedInput = (id) => {
+        const itensSelecionados = listarElementosSelecionados()
+        const linhasTotalDaTabela = retornarLinhasDaTabela()
+        //console.log("HANDLE INPUT: ", id)
+        //console.log("ITENS SELECIONADOS: ", itensSelecionados, linhasTotalDaTabela)
+        if( !Array.isArray( itensSelecionados ) || !Array.isArray( linhasTotalDaTabela ) ) {
+            return
+        }
+        if( (itensSelecionados.length != linhasTotalDaTabela.length) && (checkBoxAll || !checkBoxAll) ) {
+            setCheckBoxAll(false)
+            selectProductById(id)
+            forceUpdate()
+            return
+        }
+        
+        //selectProductById(id)
+        selecionarTudo()
+        setCheckBoxAll(true)
+        forceUpdate()
+        return
+    }
+
+    const handleChangeCheckInputLine = async (index, colunaContentName, comp) => {
+        //console.log(comp)
+        let tmp_index = await getLineIndexByIdProduct(index)
+        //console.log(" TMP_INDEX: ", tmp_index)
+        //console.log(" listaDeItens: ", listaDeItens)
+        //console.log(" ITENS: ", itens)
+        let lines = await retornarLinhasDaTabela()
+        //console.log(" LINES: ", lines)
+        for(let i = 0; i < lines.length; i ++ ) {
+            //console.log( "LINE1: ", lines[i], contentColumnList)
+            if( i == tmp_index && contentColumnList ) {
+                //console.log( "LINE2: ", lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].value, lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].childNodes[0].value)
+                if( !lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].value ) {
+                    lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].childNodes[0].value = String( comp )
+                    listaDeItens[i][3] = String( comp )
+                    itens[i][3] = String( comp )
+                    //console.log(" TMP ITENS: ", listaDeItens[i], itens[i])
+                    //console.log( "LINE3: ", contentColumnList, comp)
+
+                }
+
+                else {
+                    lines[i].childNodes[ contentColumnList[ colunaContentName ] ].value = comp
+                }
+                
+                
+            }
+        }
+        
+
+
+    }
+
+
+    const handleContentChange = async(lineIndex, columnIndex, value) => {
+        //console.log(" HANDLE CONTENT: ", lineIndex, columnIndex, value)
+        listaDeItens[lineIndex][columnIndex] = value
+        //console.log("HANDLE CONTENT: ", listaDeItens[lineIndex][columnIndex])
+
+    }
+
+
+
+    // Lista os itens marcados como selecionados na tabela de produtos
+    const listarElementosSelecionados = () => {
+        const itensSelecionados = getSelectedElements(); 
+
+        let linhasSelecionadas = [];
+        let linhaSelecionada;
+        for (let linha = 0; linha < itensSelecionados.length; linha ++) {
+            linhaSelecionada = itensSelecionados[linha].parentNode.parentNode
+            linhasSelecionadas.push(linhaSelecionada);
+        }
+        //console.log(' linhas selecionadas: ', linhasSelecionadas)
+        return linhasSelecionadas;
+    }
+
+
+    const listarItensSelecionados = () => {
+        //console.log('listaItens1: ', await listarElementosSelecionados())
+        const elementosSelecionados = listarElementosSelecionados();
+        //console.log('elementosSelecionados: ', elementosSelecionados)
+
+        let listaItens = []
+        let objeto = {}
+        //console.log("lista de itens[]: ", currentItens.current)
+        //const topTitleTable = currentItens.current
+        //updateHeaders()
+        const topTitleTable = Object.keys(currentItens.current[0])
+        //console.log(' topTitleTable: ', headerNames)
+        //console.log(' elementosSelecionados: ', elementosSelecionados)
+        
+
+        for(let I = 0; I < elementosSelecionados.length; I++) {
+            for(let II = 0; II < topTitleTable.length; II ++ ) {
+                //console.log(` elementosSelecionados[${I}].childNodes: `, elementosSelecionados[I].childNodes[II+1].children[0].innerText)
+                objeto[topTitleTable[II]] = elementosSelecionados[I].childNodes[II+1].children[0].innerText;
+                //console.log('objeto : ', elementosSelecionados[I].childNodes[II+1].children[0].innerText)
+            }
+            listaItens.push(objeto);
+            objeto= {}
+        }
+        //console.log('listaItens: ', listaItens)
+        return listaItens;
+
+    };
+
+
+
+    const LineBreakForLabel = useCallback((texto) => {
+        //console.log("BREAKING LINE")
+        let tmp_texto = texto.split('\n')
+        return (
+            <div className={styles.breakParagraph}>
+                {tmp_texto.map((item, index) => (
+                    <p key={index}> {item} </p>
+                ))}
+            </div>
+        )
+    }, [])
+
+
+
+    const retornarLinhasDaTabela = async () => {
+        let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
+        let tableClass = classN.replaceAll(' ', '.')
+        let tBody = window.document.querySelector(`.${tableClass} > tbody`)
+        //let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > tr`)
+        //let childList = []
+
+        //console.log(' ( retornarLinhas ) tBody: ', tBody)
+        //console.log(' ( retornarLinhas ) tBody.length: ', tBody.childNodes.length)
+        //console.log(' ( retornarLinhas ) tBody.child: ', tBody.childNodes)
+        if( !tBody && !Array.isArray(tBody.childNodes) ) {
+            //console.log("RETURNING not array or not object valid")
+            return null;
+        }
+        else if ( !tBody.childNodes ) {
+            //console.log("RETURNING without childnodes")
+            return null
+        }
+
+        else if ( tBody.childNodes.length  === 0 ) {
+            //console.log("RETURNING length invalid")
+            return null
+        }
+
+        return tBody.childNodes;
+    }
+
+    const retornarDadosDeLinhasDaTabela = async () => {
+        let response = []
+        let linesFromTable = await retornarLinhasDaTabela()
+
+        console.log(" RETURN LINES OF TABLE")
+
+        /*if( columnList ) {
+            console.log(" COLUMNLIST: ", columnList)
+            for( let i = 0; i < linesFromTable.length; i ++ ) {
+                for( let ii = 0; ii < columnList.length; ii ++ ) {
+                    response.push( { 
+                            [`${columnList[ii]}`] : linesFromTable[i].childNodes[ii+1].textContent
+                        }
+                    )
+                }
+            }
+            console.log(" response: ", linesFromTable)
+        } else { */
+        for( let i = 0; i < linesFromTable.length; i ++ ) {
+            let tmp_line = []
+            for( let ii = 1; ii < linesFromTable[i].childNodes.length; ii ++ ) {
+                tmp_line.push( linesFromTable[i].childNodes[ii].textContent )
+            }
+
+            response.push( tmp_line )
+        }
+    
+
+        console.log(" LINES OF TABLE: ", response)
+        return response
+
+    }
+
+
+    const removerItensSelecionados = useCallback(() => {
+        const itensSelecionados = listarElementosSelecionados();
+        const tableBody = getTableBody()
+        //console.log(tableBody)
+        for( let I in itensSelecionados ) {
+            //console.log('item: ', itensSelecionados[I])
+            tableBody.removeChild(itensSelecionados[I]);
+        }
+
     }, [])
 
 
@@ -70,18 +369,12 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     } //, [itens, tableClassRef, columnsTemplate, listLinesChecked, listaDeItens])
 
 
-    const desSelecionarTudo = useCallback(() => {
-        let copyChecekdList = [...listLinesChecked]
-        for(let I = 0; I < listLinesChecked.length; I ++ ) {
-            copyChecekdList[I].checked = false
-        }
-        //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
-        setCheckedList(copyChecekdList)
-        setCheckBoxAll(false)
-
-
-    }, [itens, tableClassRef, columnsTemplate, listLinesChecked]);
-
+    const setCheckedList = (listLines) => {
+        currentListLineChecked.current = listLines
+        setListLinesChecked(listLines)
+        //console.log("SETANDO LINHAS MARCADAS: ", listLines)
+        forceUpdate()
+    }
 
     const selecionarLinha = (index) => {
         currentSeletedLine.current = index
@@ -93,9 +386,18 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     const selectProductById = (id) => {
         let copyIndexList = getCheckedList()
+        if( !copyIndexList || !Array.isArray(copyIndexList) || copyIndexList.length < 1 ) {
+            handleCreateCheckList()
+            copyIndexList = getCheckedList()
+        }
+
+
         let tmpLinhaSelecionada = []
         let checkingCount = 0
+        //console.log("ITENS: ", listaDeItens)
         //console.log("SELECIONANDO: ", id)
+        //console.log("copyIndexList: ", copyIndexList)
+        
         id = String(id)
         for( let i = 0; i < copyIndexList.length; i ++ ) {
             if( copyIndexList[i].id === id ) {
@@ -159,222 +461,6 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     }, [columnsTemplate]);
 
 
-    const retornarLinhasDaTabela = async () => {
-        let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
-        let tableClass = classN.replaceAll(' ', '.')
-        let tBody = window.document.querySelector(`.${tableClass} > tbody`)
-        //let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > tr`)
-        //let childList = []
-
-        console.log(' ( retornarLinhas ) tBody: ', tBody)
-        console.log(' ( retornarLinhas ) tBody.length: ', tBody.childNodes.length)
-        console.log(' ( retornarLinhas ) tBody.child: ', tBody.childNodes)
-        if( !tBody && !Array.isArray(tBody.childNodes) ) {
-            console.log("RETURNING not array or not object valid")
-            return null;
-        }
-        else if ( !tBody.childNodes ) {
-            console.log("RETURNING without childnodes")
-            return null
-        }
-
-        else if ( tBody.childNodes.length  === 0 ) {
-            console.log("RETURNING length invalid")
-            return null
-        }
-
-        return tBody.childNodes;
-    }
-
-    const retornarDadosDeLinhasDaTabela = async () => {
-        let response = []
-        let linesFromTable = await retornarLinhasDaTabela()
-
-        console.log(" RETURN LINES OF TABLE")
-
-        /*if( columnList ) {
-            console.log(" COLUMNLIST: ", columnList)
-            for( let i = 0; i < linesFromTable.length; i ++ ) {
-                for( let ii = 0; ii < columnList.length; ii ++ ) {
-                    response.push( { 
-                            [`${columnList[ii]}`] : linesFromTable[i].childNodes[ii+1].textContent
-                        }
-                    )
-                }
-            }
-            console.log(" response: ", linesFromTable)
-        } else { */
-        for( let i = 0; i < linesFromTable.length; i ++ ) {
-            let tmp_line = []
-            for( let ii = 1; ii < linesFromTable[i].childNodes.length; ii ++ ) {
-                tmp_line.push( linesFromTable[i].childNodes[ii].textContent )
-            }
-
-            response.push( tmp_line )
-        }
-    
-
-        console.log(" LINES OF TABLE: ", response)
-        return response
-
-    }
-
-
-    const getCheckedList = () => {
-        //console.log("RETORNANDO LISTA DE LINHA SELECIONADA ", listLinesChecked)
-        //return listLinesChecked
-        return currentListLineChecked.current
-    }
-
-    const setCheckedList = (listLines) => {
-        currentListLineChecked.current = listLines
-        setListLinesChecked(listLines)
-        //console.log("SETANDO LINHAS MARCADAS: ", listLines)
-        forceUpdate()
-    }
-
-    const getCurrentItens = () => {
-        return currentItens.current
-    }
-
-    const getSelectedElements = () => {
-        if( tableClassRef ) {
-            if( !tableClassRef.current ) {
-                return;
-            }
-        }
-        let tableClass = tableClassRef.current.replace(' ', '.')
-        const elementsSelected = window.document.querySelectorAll(`.${tableClass} > tbody > tr > td > input:checked`);
-        //console.log('elementos selecionados: ', elementsSelected)
-        return elementsSelected;
-    }
-
-    // Lista os itens marcados como selecionados na tabela de produtos
-    const listarElementosSelecionados = () => {
-        const itensSelecionados = getSelectedElements(); 
-
-        let linhasSelecionadas = [];
-        let linhaSelecionada;
-        for (let linha = 0; linha < itensSelecionados.length; linha ++) {
-            linhaSelecionada = itensSelecionados[linha].parentNode.parentNode
-            linhasSelecionadas.push(linhaSelecionada);
-        }
-        //console.log(' linhas selecionadas: ', linhasSelecionadas)
-        return linhasSelecionadas;
-    }
-
-
-    const listarItensSelecionados = () => {
-        //console.log('listaItens1: ', await listarElementosSelecionados())
-        const elementosSelecionados = listarElementosSelecionados();
-        //console.log('elementosSelecionados: ', elementosSelecionados)
-
-        let listaItens = []
-        let objeto = {}
-        //console.log("lista de itens[]: ", currentItens.current)
-        //const topTitleTable = currentItens.current
-        //updateHeaders()
-        const topTitleTable = Object.keys(currentItens.current[0])
-        //console.log(' topTitleTable: ', headerNames)
-        //console.log(' elementosSelecionados: ', elementosSelecionados)
-        
-
-        for(let I = 0; I < elementosSelecionados.length; I++) {
-            for(let II = 0; II < topTitleTable.length; II ++ ) {
-                //console.log(` elementosSelecionados[${I}].childNodes: `, elementosSelecionados[I].childNodes[II+1].children[0].innerText)
-                objeto[topTitleTable[II]] = elementosSelecionados[I].childNodes[II+1].children[0].innerText;
-                //console.log('objeto : ', elementosSelecionados[I].childNodes[II+1].children[0].innerText)
-            }
-            listaItens.push(objeto);
-            objeto= {}
-        }
-        //console.log('listaItens: ', listaItens)
-        return listaItens;
-
-    };
-
-
-
-    const LineBreakForLabel = useCallback((texto) => {
-        //console.log("BREAKING LINE")
-        let tmp_texto = texto.split('\n')
-        return (
-            <div className={styles.breakParagraph}>
-                {tmp_texto.map((item, index) => (
-                    <p key={index}> {item} </p>
-                ))}
-            </div>
-        )
-    }, [])
-
-
-    const removerItensSelecionados = useCallback(() => {
-        const itensSelecionados = listarElementosSelecionados();
-        const tableBody = getTableBody()
-        //console.log(tableBody)
-        for( let I in itensSelecionados ) {
-            //console.log('item: ', itensSelecionados[I])
-            tableBody.removeChild(itensSelecionados[I]);
-        }
-
-    }, [])
-
-
-    const handleChangeInputQuantity = useCallback((key) => {
-        const inputQuantity = key.target
-
-        let inputQuantityValue = Number(inputQuantity.value)
-        
-        if( key.key === 'ArrowUp') {
-            key.preventDefault()
-            inputQuantity.value = inputQuantityValue + 1;
-            
-        }
-        if( key.key === 'ArrowDown' ) {
-            key.preventDefault()
-            if( inputQuantityValue > 0 ) {
-                inputQuantity.value = inputQuantityValue - 1;   
-            }  
-        }
-    }, [])
-
-    
-    const handleCheckedInput = (id) => {
-        const itensSelecionados = listarElementosSelecionados()
-        const linhasTotalDaTabela = retornarLinhasDaTabela()
-        //console.log("HANDLE INPUT: ", id)
-        //console.log("ITENS SELECIONADOS: ", itensSelecionados, linhasTotalDaTabela)
-        if( !Array.isArray( itensSelecionados ) || !Array.isArray( linhasTotalDaTabela ) ) {
-            return
-        }
-        if( (itensSelecionados.length != linhasTotalDaTabela.length) && (checkBoxAll || !checkBoxAll) ) {
-            setCheckBoxAll(false)
-            selectProductById(id)
-            forceUpdate()
-            return
-        }
-        
-        //selectProductById(id)
-        selecionarTudo()
-        setCheckBoxAll(true)
-        forceUpdate()
-        return
-    }
-
-    const handleChangeCheckInputLine = (comp) => {
-        console.log(comp)
-    }
-
-
-    const handleContentChange = async(lineIndex, columnIndex, value) => {
-        console.log(" HANDLE CONTENT: ", lineIndex, columnIndex, value)
-        listaDeItens[lineIndex][columnIndex] = value
-
-        console.log("HANDLE CONTENT: ", listaDeItens[lineIndex][columnIndex])
-
-    }
-
-
     const updateItens = ( itemList ) => {
         //console.log("UPDATE ITEM: ", itemList)
         setItens(itemList)
@@ -415,9 +501,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     }, [itens, editableCel, columnsTemplate, listLinesChecked])
 
 
-    const getTableHeader = () => {
-        return headerNames
-    }
+
 
     useEffect(() => {
         //console.log("LISTA DE ITENS: ", listaDeItens)
@@ -433,21 +517,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
             return
         }
         
-        //console.log("{COMPONENT} LISTA DE ITENS: ", listaDeItens)
-        let tmpLinesChecked = []
-        for( let I = 0; I < listaDeItens.length; I++ ) {
-            let tmp_id = listaDeItens[I].id
-            if( !tmp_id ) {
-                tmp_id = listaDeItens[I][0]
-            }
-            tmpLinesChecked.push({
-                "id" : `${tmp_id}`,
-                "checked" : false
-            })
-            //console.log(" TMP ID: ", tmp_id)
-        }
-        //console.log(tmpLinesChecked)
-        setCheckedList(tmpLinesChecked)
+        handleCreateCheckList()
         setItens(listaDeItens);
         currentItens.current = listaDeItens
 
@@ -491,7 +561,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
             let tabela_itens = window.document.querySelector(`.${styles.ListaDeProdutosCadastrados}.${nameClass} > thead > tr.${styles.linhaTabela}`)
             tabela_itens.style.gridTemplateColumns = `repeat(${columnList.length+1}, 1fr)`
-            console.log(" TABELA: ", tabela_itens.style)
+            //console.log(" TABELA: ", tabela_itens.style)
             return
         }
 
@@ -510,28 +580,55 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
         }, [columnList, listaDeItens])
 
+    useEffect(() => {
+        setColumnListOfContent( contentColumnList )
+        //console.log(" contentColumnList : ", contentColumnList)
+
+        
+    }, [contentColumnList])
 
     useImperativeHandle(ref, () => {
         return {
-            getCurrentItens,
+            
+            // A
             adicionarItem,
+
+            // D
             desSelecionarTudo,
-            selecionarTudo,
+
+            // G
+            getCheckedList,
+            getCurrentItens,
+            getTableBody,
+            getTableHeader,
+            getLineIndexByIdProduct,
+
+            // H
+            handleContentChange,
+            handleChangeCheckInputLine,
+
+            // L
+            LineBreakForLabel,
             listarElementosSelecionados,
             listarItensSelecionados,
-            retornarLinhasDaTabela,
-            getTableBody,
-            LineBreakForLabel,
+            
+            // R
             removerItensSelecionados,
+            retornarDadosDeLinhasDaTabela,
+            retornarLinhasDaTabela,
+
+            // S
+            selecionarTudo,
+            setCheckedList,
+            selectProductById,
+            
+            // U
+            updateTable,
             updateItens,
             updateItemList,
             updateHeaders,
-            getCheckedList,
-            setCheckedList,
-            selectProductById,
-            updateTable,
-            getTableHeader,
-            retornarDadosDeLinhasDaTabela
+
+            
         };
     }, []);
 
@@ -604,15 +701,17 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                 {item && Object.keys(item).map((item2, index2) => (
                                     <td key={index2}>
                                         {limitarMaxNumber ?
-                                            (limitarMaxNumber.includes(index2)? ( 
+                                            (limitarMaxNumber.includes(index2) ? (
+                                                    //console.log(" ITEM : ", item,  item[ contentColumnList['quantidade'] ]),
                                                     <input 
                                                         type={'number'}
                                                         min={'0'} 
-                                                        max={item.quantidade}
-                                                        value={item.quantidade}
+                                                        max={  item[ contentColumnList['estoque']] ?  item[ contentColumnList['estoque']] : "0" }
+                                                        value={ item[ contentColumnList['quantidade']] ?  item[ contentColumnList['quantidade']] : "0" }
                                                         className={styles.inputTableEditable}
                                                         onChange={(e) => {
-                                                            handleChangeCheckInputLine(e.target.value)
+                                                            handleChangeCheckInputLine(item[0], 'quantidade', e.target.value)
+                                                            
                                                         }}
                                                         key={index}
                                                         id={`IQ_${index}`}
@@ -631,17 +730,47 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                                         </label>
                                                      )
                                         ) : (
-                                            <label
-                                                contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
-                                                suppressContentEditableWarning={true}
-                                                onInput={(e) =>(
-                                                    handleContentChange(index, index2, e.target.textContent)
-                                                )}
-                                            >
+                                            (inputColumn ? (
+                                                inputColumn.includes(index2) ? (
+                                                    <input 
+                                                        type={'number'}
+                                                        min={'0'} 
+                                                        value={ item[ contentColumnList['quantidade']] ?  item[ contentColumnList['quantidade']] : "0" }
+                                                        className={styles.inputTableEditable}
+                                                        onChange={(e) => {
+                                                            handleChangeCheckInputLine(item[0], 'quantidade', e.target.value)
+                                                        }}
+                                                        key={index}
+                                                        id={`IQ_${index}`}
+                                                        
+                                                    />
+                                                ) : (
+                                                    <label
+                                                        contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
+                                                        suppressContentEditableWarning={true}
+                                                        onInput={(e) =>(
+                                                            handleContentChange(index, index2, e.target.textContent)
+                                                        )}
+                                                    >
 
-                                                {item[item2]}
-                                                
-                                            </label>
+                                                        {item[item2]}
+                                                        
+                                                    </label>
+                                                )
+                                            ) : (
+                                                <label
+                                                    contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
+                                                    suppressContentEditableWarning={true}
+                                                    onInput={(e) =>(
+                                                        handleContentChange(index, index2, e.target.textContent)
+                                                    )}
+                                                >
+
+                                                    {item[item2]}
+                                                    
+                                                </label>
+                                            ))
+
                                         )}
                                     </td>
                                 ))}
@@ -671,6 +800,7 @@ TabelaListaDeProdutos.propTypes = {
     editableCel: PropTypes.array,
     limitarMaxNumber: PropTypes.array,
     lengthColumns: PropTypes.string,
+    //contentColumnList : PropTypes.array
 }
 
 TabelaListaDeProdutos.default = {
@@ -679,6 +809,7 @@ TabelaListaDeProdutos.default = {
     editableCel: [],
     limitarMaxNumber: [],
     lengthColumns: '',
+    //contentColumnList: {}
     
 }
 

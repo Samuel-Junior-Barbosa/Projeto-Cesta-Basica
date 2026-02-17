@@ -11,7 +11,7 @@ const getHistoryBasketModel = async (idBasket) => {
     //console.log("ID MODEL: ", idBasket)
     //console.log("param gh: ", param)
     const response =  await getFunction(url, param)
-    console.log("RETURN OF GET HISTORY BASKET MODEL DATA: ", response)
+    //console.log("RETURN OF GET HISTORY BASKET MODEL DATA: ", response)
     return {
         "status" : response.status,
         "content" : response.content

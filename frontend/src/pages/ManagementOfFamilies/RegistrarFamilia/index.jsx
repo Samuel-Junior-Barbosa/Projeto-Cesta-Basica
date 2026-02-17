@@ -21,17 +21,19 @@ const RegistrarFamilia = () => {
     const [ churchNameInput, setChurchNameInput ] = useState('')
 
     const [ representativeName, setRepresentativeName ] = useState('')
-    const [ membersNumber, setMembersNumbers ] = useState('')
+    const [ membersNumber, setMembersNumbers ] = useState(0)
     const [ city, setCity ] = useState('')
     const [ neighborhood, setNeighborhood ] = useState('')
     const [ street, setStreet ] = useState('')
-    const [ buildingNumber, setBuildingNumber ] = useState('')
+    const [ buildingNumber, setBuildingNumber ] = useState(0)
     const [ telephoneNumber, setTelephoneNumber ] = useState('')
     const [ currentPriority, setCurrentPriority ] = useState(1)
     const [ churchName, setChurchName ] = useState('')
     const [ idChurch, setIdChurch ] = useState('')
     const [ priorityList, setPriorityList ] = useState([])
     const [ registrationStatus, setRegistrationStatus ] = useState(1)
+    const [ cep, setCep ] = useState('')
+    const [ uf, setUf ] = useState('')
 
     const [ churchSelected, setChurchSelected ] = useState( [] )
     
@@ -58,7 +60,7 @@ const RegistrarFamilia = () => {
         if( key === "Enter" || key === "NumpadEnter" ) {
             //console.log(" KEY PRESS: ", key, churchNameInput)
             if( churchNameInput === "" ) {
-                console.log("OPENING LIsT")
+                //console.log("OPENING LIsT")
                 setShowChurchList( true )
             }
         }
@@ -73,31 +75,33 @@ const RegistrarFamilia = () => {
 
         // Prepara o Objeto JSON para usar na API
         const registrationData = {
-            "representative" : representativeName,
-            "members" : membersNumber,
-            "city" : city,
-            "neighborhood" : neighborhood,
-            "street" : street,
-            "buildingNumber" : buildingNumber,
-            "telephoneNumber" : telephoneNumber,
-            "currentPriority" : currentPriority,
-            "churchName" : churchName,
-            "idChurch"   : idChurch,
-            "registrationStatus" : registrationStatus
+            "representative"     : representativeName,
+            "members"            : membersNumber     ,
+            "city"               : city              ,
+            "neighborhood"       : neighborhood      ,
+            "street"             : street            ,
+            "buildingNumber"     : buildingNumber    ,
+            "cep"                : cep               ,
+            "uf"                 : uf                ,
+            "telephoneNumber"    : telephoneNumber   ,
+            "currentPriority"    : currentPriority   ,
+            "churchName"         : churchName        ,
+            "idChurch"           : idChurch          ,
+            "registrationStatus" : registrationStatus,
         };
 
-        console.log(" REGISTRANDO: ", registrationData)
+        //console.log(" REGISTRANDO: ", registrationData)
 
         // Hook para uma função de cadastramento de familia
         handleRegisterFamily(registrationData)
-        console.log('registrado')
+        //console.log('registrado')
     }
     
 
     // Sempre que uma igreja for selecionada, atualizará o nome do imput preenchido do formulario
     //      e o id da igreja selecionada
     useEffect(() => {
-        console.log( churchSelected )
+        //console.log( churchSelected )
         if( churchSelected ) {
             if ( churchSelected[1]  ) {
                 setChurchNameInput( churchSelected[1] )
@@ -133,6 +137,7 @@ const RegistrarFamilia = () => {
                     <label> Representante: </label>
                     <input
                         name="representative"
+                        value={representativeName}
                         required
                         placeholder='Insira o nome do representante da familia'
                         onChange={ (e) => (
@@ -142,8 +147,9 @@ const RegistrarFamilia = () => {
 
                     <label> Numero de membros: </label>
                     <input
-                        type="numbers"
+                        type="number"
                         name="members"
+                        value={membersNumber}
                         min="0"
                         required
                         placeholder='Insira o numero de membros da familia cadastrada'
@@ -155,6 +161,7 @@ const RegistrarFamilia = () => {
                     <label> Cidade: </label>
                     <input
                         name="city"
+                        value={city}
                         required
                         placeholder='Insira o endereço da familia'
                         onChange={ (e) => (
@@ -164,6 +171,7 @@ const RegistrarFamilia = () => {
                     <label> Bairro: </label>
                     <input
                         name="neighborhood"
+                        value={neighborhood}
                         required
                         onChange={ (e) => (
                             setNeighborhood( e.target.value.toUpperCase() )
@@ -173,6 +181,7 @@ const RegistrarFamilia = () => {
                     <label> Rua: </label>
                     <input
                         name="street"
+                        value={street}
                         required
                         onChange={ (e) => (
                             setStreet( e.target.value.toUpperCase() )
@@ -182,20 +191,45 @@ const RegistrarFamilia = () => {
                     <label> Numero da casa: </label>
                     <input
                         name="buildingNumber"
+                        value={buildingNumber}
                         type="number"
                         required
                         onChange={ (e) => (
-                            setBuildingNumber( Number( e.target.value ) )
+                            setMembersNumbers( Number( e.target.value) )
                         )}
                     />
 
                     <label> Numero de telefone: </label>
                     <input
                         name="telephone"
+                        value={telephoneNumber}
                         required
                         placeholder='Insira um numero de contato'
                         onChange={ (e) => (
                             setTelephoneNumber( e.target.value )
+                        )}
+                    />
+                    <label> CEP: </label>
+                    <input
+                        name="cep"
+                        value={cep}
+                        maxLength={8}
+                        required
+                        placeholder='Insira o CEP da familia'
+                        onChange={ (e) => (
+                            setCep( e.target.value )
+                        )}
+                    />
+
+                    <label> UF: </label>
+                    <input
+                        name="uf"
+                        value={uf}
+                        maxLength={2}
+                        required
+                        placeholder='Insira a Unidade Federativa'
+                        onChange={ (e) => (
+                            setUf( e.target.value )
                         )}
                     />
 

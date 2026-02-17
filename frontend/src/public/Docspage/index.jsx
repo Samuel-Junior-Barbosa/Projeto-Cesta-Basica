@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 const Documentacao = () => {
     const [markdownFile, setMarkdownFile] = useState('');
-    const [fileName, setFileName] = useState('install.jsx'); // Certifique-se de que a extensão está correta
+    const [fileName, setFileName] = useState('install.jsx');
     
 
     const handleChangeArticle = useCallback((fileName) => {
@@ -13,35 +13,37 @@ const Documentacao = () => {
         setFileName(fileName); // Altere o nome do arquivo
     }, [fileName])
 
-    const changeArticle = useCallback((fileName) => {
-        import(`./Artigos/${fileName}`)
+    const changeArticle = (fileName) => {
+        import(`./Artigos/${fileName}.jsx`)
             .then(res => {
-                setMarkdownFile(res.default); // Use o conteúdo importado diretamente
+                setMarkdownFile(res.default);
             })
-            .catch(erro => console.log(erro));
-    }, [markdownFile, fileName])
+            .catch(
+                erro => console.log(erro)
+            );
+    }
 
     useEffect(() => {
         changeArticle(fileName)
-    }, [fileName]);
+    }, [fileName])
     
 
     return (
         <div className={styles.ArticleDiv}>
             <div className={styles.NavAndSearchDiv}>
                 <input 
-                    type="text"
-                    placeholder='Pesquisar na Documentação' 
+                    type={"text"}
+                    placeholder={'Pesquisar na Documentação' }
                     className={styles.searchOnDocumentation}
                 />
                 <ul className={styles.navbarArticle}>
-                    <li onClick={(e) => handleChangeArticle('home.jsx')} > Home </li>
-                    <li onClick={(e) => handleChangeArticle('install.jsx')} > Instalação </li>
-                    <li onClick={(e) => handleChangeArticle('managerStock.jsx')} > Gerenciar Estoque  </li>
-                    <li onClick={(e) => handleChangeArticle('registerFamily.jsx')} > Registro de familia </li>
+                    <li onClick={(e) => handleChangeArticle('home')} > Home </li>
+                    <li onClick={(e) => handleChangeArticle('install')} > Instalação </li>
+                    <li onClick={(e) => handleChangeArticle('managerStock')} > Gerenciar Estoque  </li>
+                    <li onClick={(e) => handleChangeArticle('registerFamily')} > Registro de familia </li>
                     <li onClick={(e) => handleChangeArticle('registerProducts')} > Registro de Produto </li>
-                    <li onClick={(e) => handleChangeArticle('utils.jsx')} > utilidades </li>
-                    <li onClick={(e) => handleChangeArticle('generateReport.jsx')} > geração de relatorios </li>
+                    <li onClick={(e) => handleChangeArticle('utils')} > utilidades </li>
+                    <li onClick={(e) => handleChangeArticle('generateReport')} > geração de relatorios </li>
                 </ul>
             </div>
         

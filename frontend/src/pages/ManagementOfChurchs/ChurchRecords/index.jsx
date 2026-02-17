@@ -7,15 +7,27 @@ import styles from './ChurchRecords.module.css';
 import { useEffect, useRef, useState } from 'react';
 import getChurchData from '../../../Functions/Church/GetChurchData';
 import searchForChurch from '../../../Functions/Church/SearchForChurch';
-import getChurchGoalsList from '../../../Functions/Church/GetGoalsList';
+import getChurchGoalsList from '../../../Functions/Church/Goals/GetGoalsList';
+import deleteChurchRegisterApi from '../../../Functions/Church/DeleteChurchRegister';
 
 const ChurchRecords = () => {
     const [ dataListChurches, setDataListChurches ] = useState([]);
     const [ searchItem, setSearchItem ] = useState();
-
+    const columnList = [
+        "ID",
+        "NOME DA COMGREGAÇÂO",
+        "REPRESENTANTE", 
+        "QUANT. MEMBROS",
+        "CIDADE",
+        "BAIRRO",
+        "RUA",
+        "NUMERO",
+        "CEP",
+        "UF"
+    ]
 
     const navigate = useNavigate();
-    const tabelaRef = useRef();
+    const tableRef = useRef();
     
     const goToPage = (url) => {
         if (url) {
@@ -25,12 +37,12 @@ const ChurchRecords = () => {
 
     const existOneItemSelected = async () => {
         //console.log("existe itens selecionados?...")
-        if( !tabelaRef.current ) {
+        if( !tableRef.current ) {
             return
         }
 
 
-        const itensSelecionados = await tabelaRef.current.listarItensSelecionados()
+        const itensSelecionados = await tableRef.current.listarItensSelecionados()
         if( itensSelecionados.length > 1 || itensSelecionados.length < 1) {
             //console.log("NÃO")
             return false;
@@ -44,7 +56,7 @@ const ChurchRecords = () => {
     }
 
     const alterChurch = async () => {
-        if( !tabelaRef.current ) {
+        if( !tableRef.current ) {
             return
         }
 
@@ -54,60 +66,56 @@ const ChurchRecords = () => {
         }
 
 
-        const itensSelecionados = tabelaRef.current.listarElementosSelecionados();
+        const itensSelecionados = tableRef.current.listarElementosSelecionados();
         console.log('itens selecionados para alterar: ', itensSelecionados[0].childNodes[1].innerText)
 
         let idChurch       = itensSelecionados[0].childNodes[1].innerText;
-        let churchName     = itensSelecionados[0].childNodes[2].innerText;
-        let representative = itensSelecionados[0].childNodes[3].innerText;
-        let members        = itensSelecionados[0].childNodes[4].innerText;
-        let city           = itensSelecionados[0].childNodes[5].innerText;
-        let neighborhood   = itensSelecionados[0].childNodes[6].innerText;
-        let street         = itensSelecionados[0].childNodes[7].innerText;
-        let buildingNumber = itensSelecionados[0].childNodes[8].innerText;
-        let monthGoals     = itensSelecionados[0].childNodes[9].innerText;
+
 
         navigate('/change-church-registration', {state : {
-                                                    idChurch : idChurch,
-                                                    churchName : churchName,
-                                                    representative: representative,
-                                                    members : members,
-                                                    city : city,
-                                                    neighborhood : neighborhood,
-                                                    street : street,
-                                                    buildingNumber : buildingNumber,
-                                                    monthGoals : monthGoals,
+                                                    idChurchRecived : idChurch,
                                                 }})
     }
 
     const listGoals = async () => {
-        if( !tabelaRef.current ) {
+        if( !tableRef.current ) {
             return
         }
 
         if( await existOneItemSelected() === false ) {
-            alert('Só é possivel alterar 1 igreja por vez');
+            alert('Só é possivel alterar 1 congregação por vez');
             return
         }
 
         async function getTableLines() {
-            const response = await tabelaRef.current.listarElementosSelecionados();
+            let response = await tableRef.current.listarItensSelecionados();
+            response = Object.values(response[0])
             return response
         }
 
         const itensSelecionados = await getTableLines()
 
         //console.log("itensSelecionados", itensSelecionados)
-        let churchName = itensSelecionados[0].childNodes[1].innerText;
-        let representative = itensSelecionados[0].childNodes[1].innerText;
+        let idChurch = itensSelecionados[0]
+        let churchName = itensSelecionados[1];
+        let representative = itensSelecionados[2];
         
-
-        // Implementar uma logica de requisição ao banco de dados
+        console.log("idChurch: ", idChurch, churchName, representative)
+        // Requisição ao banco de dados
         // Para resgatar as metas das igrejas.
-        const response = await getChurchGoalsList()
+        const response = await getChurchGoalsList(idChurch, null, null, null, 1)
         const getGoals = response.content
-
-        navigate('/metas', {state : {churchName: churchName, representative: representative, listaDeMetas : getGoals}})
+        if( response.status === 0 ) {
+            const stateParams = {
+                    state : {
+                        idChurchRecived : idChurch,
+                        churchNameRecived: churchName,
+                        representativeRecived: representative,
+                        listaDeMetas : getGoals
+                    }}
+            navigate('/metas', stateParams)
+        }
+        
     }
 
     const handleSetSearchItem = ( value ) => {
@@ -137,7 +145,7 @@ const ChurchRecords = () => {
     }
 
     const handleSearchChurch = () => {
-        if( !tabelaRef.current ) {
+        if( !tableRef.current ) {
             return
         }
         
@@ -152,12 +160,12 @@ const ChurchRecords = () => {
         }
         setDataListChurches(response.content)
         //console.log('handleSearchChurch: ', searchItem)
-        //tabelaRef.current.searchItemOnTable(searchItem, 'Nome');
-        tabelaRef.current.updateItens(response.content)
+        //tableRef.current.searchItemOnTable(searchItem, 'Nome');
+        tableRef.current.updateItens(response.content)
     }
     
-    const handleRemoveItemOnTable = () => {
-        if( !tabelaRef.current ) {
+    const handleRemoveItemOnTable = async () => {
+        if( !tableRef.current ) {
             return
         }
 
@@ -165,10 +173,34 @@ const ChurchRecords = () => {
             return
         }
 
-        tabelaRef.current.removerItensSelecionados();
+        const confirmWindow = confirm("DESEJA REALMENTE DELETAR O REGISTRO DESSA IGREJA?")
+        if( !confirmWindow ) {
+            return
+        }
+
+         let itemSelecionado = await tableRef.current.listarItensSelecionados()
+        for( let i = 0; i < itemSelecionado.length; i ++ ) {
+            itemSelecionado[i] = Object.values( itemSelecionado[i] )
+        }
+
+        let tmpList2 = []
+        //console.log(' ITEM SELECIONADO: ', itemSelecionado)
+
+
+        for( let i = 0; i < dataListChurches.length; i ++ ) {
+            for( let ii = 0; ii < itemSelecionado.length; ii ++ ) {
+                if( dataListChurches[i][0] === Number(itemSelecionado[ii][0]) ) {
+                    deleteChurchRegisterApi(itemSelecionado[ii][0])
+                }
+                else {
+                    tmpList2.push(dataListChurches[i])
+                }
+            }
+        }
+        
+        setDataListChurches( tmpList2 )
 
     }
-
 
 
     useEffect(() => {
@@ -213,7 +245,8 @@ const ChurchRecords = () => {
             
                 <TabelaListaDeProdutos 
                     listaDeItens={ dataListChurches }
-                    ref={ tabelaRef }
+                    ref={ tableRef }
+                    columnList={ columnList }
                 />
             </div>
             

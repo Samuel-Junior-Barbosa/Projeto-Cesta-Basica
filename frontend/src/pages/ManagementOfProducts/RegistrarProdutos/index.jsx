@@ -68,6 +68,13 @@ const RegistrarProdutos = () => {
 
         <div className={styles.RegistrarProdutosDiv}>
             <LabelTitles nameClass={styles.tituloPaginaAtual} text="Cadastrar Produtos"/>
+            {RegisterProductMessage && (
+                <MessageAlert
+                    text={RegisterProductMessage}
+                >
+
+                </MessageAlert>
+            )}
             <form onSubmit={onSubmit} className={styles.entradaDeDadosDivMain}>
 
                 <div className={styles.entradaDeDados}>
@@ -117,13 +124,6 @@ const RegistrarProdutos = () => {
                 <SimpleButton type="submit" nameClass={styles.buttonRegister} textButton="Cadastrar" />
                 <SimpleButton nameClass={styles.buttonRegister} onClickButton={voltarPagina} textButton="Cancelar"/>
             </form>
-            {RegisterProductMessage && (
-                <MessageAlert
-                    text={RegisterProductMessage}
-                >
-
-                </MessageAlert>
-            )}
         </div>
     );
 }

@@ -11,27 +11,29 @@ export function useRegisterProducts() {
     const handleRegisterProduct = async (idProduct, productName, marchName, quantity) => {
         setLoading(true);
         setMessage(null);
+        let message = ''
 
         try {
             const response = await RegisterProductOnStock(idProduct, productName, marchName, quantity);
             if (response.status === 0) {
-                setMessage('Registrado com sucesso.')
-
-    
+                message = 'Registrado com sucesso.'
             }
 
             else if( response.status === 2067 ) {
-                setMessage("Já existe um produto com esse nome, utilize outro nome para cadastro.")
+                message = `DADOS DUPLICADOS: ${response.content}`
             }
             else {
-                setMessage(response.message)
+                message = response.content
             }
 
-
+            if( message === '' ) {
+                message = "erro não identificado: " + String(response.content)
+            }
+            setMessage(message)
             const timer = setTimeout(() => {
                     setMessage('')
                 }, 2000);
-                setLoading(false);
+            setLoading(false);
             return () => clearTimeout(timer);
             
         } catch (err) {

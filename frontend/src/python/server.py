@@ -4,7 +4,8 @@ import uvicorn
 import asyncio
 import json
 from fastapi import Depends
-from datetime import date
+from datetime import date, datetime
+import calendar
 
 
 import db_conection
@@ -12,6 +13,19 @@ import db_conection
 base_de_dados = db_conection.GCBBase()
 
 app = FastAPI()
+
+__USER_LOGGED = {
+    "username" : "",
+    "role" : "",
+    "id_user" : 1
+}
+
+INPUT_TYPE = 1
+OUTPUT_TYPE = 2
+REGISTRATION_TYPE = 3
+ALTERATION_TYPE = 4
+ADJUST_TYPE = 5
+DELETE_TYPE = 6
 
 #========================
 # Autentication class
@@ -160,35 +174,40 @@ class ResponseRequest:
 #===================================================
 @app.post("/authentication")
 async def authentication(data: AuthRequest):
+    response = {
+        "status" : 90,
+        "content" : []
+    }
     username = data.username
     password = data.password
-    response = None
+    
     #print("Autenticando: ", username, password)
+    user_logged = {"username" : "", "role" : ""}
 
     #Implementação de uma logica de autenticação
     if username == "Admin" and password == "admin":
-        response= {
-            "status": 0,
-            "content" : {"username": username, "role" : "admin"}
-        }
-    
+        user_logged["username"]= username
+        user_logged["role"] = "admin"
+        user_logged['id_user'] = 1
+        response['status'] = 0
+
     elif username == "Operador" and password == "operador":
-        response= {
-            "status": 0,
-            "content" : {"username": username, "role" : "operator"}
-        }
+        user_logged["username"]= username
+        user_logged["role"] = "operator"
+        user_logged['id_user'] = 2
+        response['status'] = 0
 
     elif username == "Visitante" and password == "visitante":
-        response= {
-            "status": 0,
-            "content" : {"username": username, "role" : "visit"}
-        }
+        user_logged["username"]= username
+        user_logged["role"] = "visit"
+        user_logged['id_user'] = 3
+        response['status'] = 0
 
-    else:
-        response=  {
-            "status": 90,
-            "content" : {"username" : "", "role" : ""},
-        }
+    
+    __USER_LOGGED = user_logged
+
+
+    response["content"] =  user_logged
     
     #print("AUTENTICATION FUNCTION RETURN: ", response)
     return response
@@ -213,32 +232,98 @@ async def get_stock_data():
 
 @app.get("/get-stock")
 async def get_stock():
-    response = await base_de_dados.query(f'''
+    table_name = base_de_dados.product_table_name
+
+    sql_query = f'''
     SELECT
         id_item,
         nome_do_produto,
         marca,
         quantidade_do_item
-    FROM produto''')
+    FROM {table_name};'''
+
+    response = await base_de_dados.query( sql_query )
 
     return response
 
 
-async def register_product_on_stock(id_product, product_name, march_name, quantity):
+async def record_register_product(id_product, quantity, id_user):
     response = {
         "status" : 90,
         "content" : "Error"
     }
-    if type(id_product).__name__ == 'str':
-        if id_product == '':
-            id_product = 0
+
+    current_date = date.today()
+    if not id_user:
+        id_user = __USER_LOGGED['id_user']
+
+    table_name = base_de_dados.history_register_product_table_name
+    column_list = [
+        'id_produto',
+        'quantidade',
+        'id_usuario_responsavel',
+        'tipo_registro',
+        'data'
+    ]
+
+    value_list = [
+        id_product,
+        quantity,
+        id_user,
+        REGISTRATION_TYPE,
+        current_date
+    ]
+
+    #print(" REGISTRANDO NO HISTORICO DE PRODUTOS: ", value_list, flush=1)
+    response = await base_de_dados.insert( table_name, column_list, value_list)
+    
+
+    return response
+
+
+async def register_product_on_stock(id_product = 0, product_name = '', march_name = '', quantity = '', id_user = None):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    product_table_name = base_de_dados.product_table_name
+    
+    if id_product <= 0:
+        sequence_query = await base_de_dados.getSequence( product_table_name )
+        if sequence_query['content'] > 0:
+            id_product = sequence_query['content']
+
+    id_product = id_product + 1
+
+    if not id_user:
+        id_user = __USER_LOGGED['id_user']
+
+    if not product_name or not march_name or not quantity:
+        response['status'] = 90
+        empty_column = []
+        if not product_name:
+            empty_column.append("Nome do produto")
+
+        if not march_name:
+            empty_column.append("Marca do produto")
+
+        if not quantity:
+            empty_column.append("Quantidade")
         
-        else:
-            try:
-                id_product = int(id_product)
-            
-            except:
-                id_product = 0
+        response['content'] = f'Você tentou cadastrar um produto faltando as seguintes informações: {", ".join(empty_column)}'
+        return response
+
+    #print(" last sequence: ", id_product, await base_de_dados.getSequence("produto"), flush=1)
+
+    valid = await search_for_duplicate_product_name( product_name )
+    #print(" SEARCHING ON STOCK: ", valid, len(valid['content']) > 0)
+    if len(valid['content']) > 0:
+        response["status"] = 2067
+        response['content'] = "Existe um produto com o mesmo nome"
+        return response
+
+    
 
     column_list = []
 
@@ -248,6 +333,7 @@ async def register_product_on_stock(id_product, product_name, march_name, quanti
         'marca',
         'quantidade_do_item',
         'status_cadastro',
+        'id_usuario_responsavel',
         'data_criacao',
         'ultima_alteracao'
     ]
@@ -258,18 +344,25 @@ async def register_product_on_stock(id_product, product_name, march_name, quanti
         march_name,
         quantity,
         True,
+        id_user,
         date.today(),
         date.today()
     ]
 
-    if id_product <= 0:
-        column_list.pop(0)
-        value_list.pop(0)
-
+    #if id_product <= 0:
+        #column_list.pop(0)
+        #value_list.pop(0)
+    #print(" REGISTRANDO PRODUTO: ", value_list)
     response = await base_de_dados.insert("produto", column_list, value_list)
+    if response['status'] == 0:
+        response = await record_register_product(id_product, quantity, id_user)
+        if response['status'] != 0:
+            message_error = response['content']
+            response["content"] = f"Ocorreu um erro ao registrar o historico de cadastro do produto {message_error}"
+
+    #print(" REGISTER: ", response)
     return response
     
-
 
 @app.post("/register-product-on-stock")
 async def register_product_on_stock_api(data : dict):
@@ -278,36 +371,96 @@ async def register_product_on_stock_api(data : dict):
         "content": "Error"
     }
 
-    print(" DaTA: ", data)
+    #print(" DaTA: ", data)
 
     id_product = data["idProduct"]
     product_name = data["productName"]
     march_name = data["marchName"]
     quantity = data["quantity"]
+    try:
+        id_product = int(id_product)
 
+    except Exception as error:
+        id_product = 0
+
+    #print(" OLD ID_PRODUTO: ", id_product)
     response = await register_product_on_stock(id_product, product_name, march_name, quantity)
+
+    #print(" RESPONSE REGISTRATION: ", response)
     return response
 
-#PRECISA REFATORAR
-@app.post("/search-stock")
-async def search_on_stock(data : dict):
-    print(f"search for item... {data['itemName']}", flush=1)
-    columnName = data['columnName']
-    itemName = data['itemName']
+
+async def search_for_duplicate_product_name( name ):
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+
+    table_name = base_de_dados.product_table_name
+
+    sql_query = f"""
+    SELECT
+        id_item,
+        nome_do_produto
+    FROM {table_name} WHERE nome_do_produto = '{name}';
+"""
+    
+    
+
+    response = await base_de_dados.query( sql_query )
+
+    #print(" duplicados: ", response)
+
+    return response
+
+
+async def search_on_stock( item_name ):
+    
     response = {
         "status" : 90,
         "content" : "Error"
     }
+    table_name = base_de_dados.product_table_name
 
     sql_query = f"""
     SELECT
         *
-    FROM produto
-    WHERE nome_do_produto LIKE '{itemName}%'
-    """
+    FROM { table_name }
+    WHERE nome_do_produto LIKE '{item_name}%'; """
 
     response = await base_de_dados.query(sql_query)
 
+    return response
+
+
+async def search_on_stock_preview( item_name ):
+    
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+    table_name = base_de_dados.product_table_name
+
+    sql_query = f"""
+    SELECT
+        id_item,
+        nome_do_produto,
+        marca,
+        quantidade_do_item
+
+    FROM { table_name }
+    WHERE nome_do_produto LIKE '{item_name}%'; """
+
+    response = await base_de_dados.query(sql_query)
+
+    return response
+
+
+@app.post("/search-stock")
+async def search_on_stock_api(data : dict):
+    item_name = data['itemName']
+
+    response = await search_on_stock_preview( item_name )
 
     return response
 
@@ -319,7 +472,7 @@ async def alter_product_on_stock( data : dict ):
         "content": "Error"
     }
 
-    print("alter product on stock: ", data, flush=1)
+    #print("alter product on stock: ", data, flush=1)
 
     id_product = data['idProduct']
     product_name = data['productName']
@@ -372,7 +525,7 @@ async def delete_product_from_stock_api(data : dict):
         "content" : "Error"
     }
 
-    print(" DELETE PRODUCT: ", data)
+    #print(" DELETE PRODUCT: ", data)
 
     if not data:
         return response
@@ -383,6 +536,347 @@ async def delete_product_from_stock_api(data : dict):
     response = await delete_product_from_stock( idProduct )
 
     return response
+
+
+async def record_history_product(type_register, id_product, quantity, id_user = None, observation = ''): 
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+    
+    if not id_user:
+        id_user = __USER_LOGGED["id_user"]
+
+    current_date = date.today()
+    table_name = base_de_dados.history_register_product_table_name
+
+
+    column_list = [
+        'tipo_registro',
+        'id_produto',
+        'quantidade',
+        'id_usuario_responsavel',
+        'observacao',
+        'data'
+    ]
+
+    value_list = [
+        type_register,
+        id_product,
+        quantity,
+        id_user,
+        observation,
+        current_date
+    ]
+
+    response = await base_de_dados.insert( table_name, column_list, value_list)
+
+    return response
+
+
+async def inventory_adjustment( id_product, type_of_adjustment, adjust_value, id_user = None, observation=''):
+    global INPUT_TYPE, OUTPUT_TYPE
+    if not id_user:
+        id_user = None
+
+    #print(" INVENTORY ADJUSTMENT... ")
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+    column_list = [
+        'quantidade_do_item'
+    ]
+    value_list = []
+
+
+    try:
+        type_of_adjustment = int( type_of_adjustment )
+    
+    except Exception as error:
+        response["content"] = f"Ocorreu um erro ao processar o valor do tipo de ajuste: {error}"
+        return response
+
+
+    try:
+        adjust_value = float( adjust_value )
+    
+    except Exception as error:
+        response["content"] = f"Ocorreu um erro ao processar o valor da nova quantidade: {error}"
+        return response
+
+
+    sql_query = f" SELECT quantidade_do_item FROM {base_de_dados.product_table_name} WHERE id_item = {id_product};"
+    old_quantity =  await base_de_dados.query(sql_query)
+    old_quantity = float( old_quantity["content"][0][0])
+
+    new_quantity = 0
+    
+    if type_of_adjustment == INPUT_TYPE:
+        new_quantity = old_quantity + adjust_value 
+
+        value_list.append(  new_quantity )
+        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, id_column='id_item', id_value=id_product)
+
+    if type_of_adjustment == OUTPUT_TYPE:
+        new_quantity = old_quantity - adjust_value
+        value_list.append( new_quantity ) 
+        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, id_column='id_item', id_value=id_product)
+
+
+    if type_of_adjustment == ADJUST_TYPE:
+        value_list.append(adjust_value)
+        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, id_column='id_item', id_value=id_product)
+
+
+
+
+
+    await record_inventory_adjustment_history(id_product, type_of_adjustment, old_quantity, adjust_value, new_quantity, observation)
+    await record_history_product(type_of_adjustment, id_product, adjust_value, id_user, observation)
+
+    #print( "RESPONSE: ", response)
+    return response
+    
+
+@app.post("/inventoty-adjustment")
+async def inventory_adjustment_api( data : dict ):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+    #print(" inventory_adjustment_api DATA: ", data)
+    id_product = data["idProduct"]
+    type_of_adjustment = data['typeOfAdjustment']
+    new_quantity = data["newQuantity"]
+    observation = data["observation"]
+    id_user = __USER_LOGGED["id_user"]
+
+    try:
+        type_of_adjustment = int( type_of_adjustment )
+    
+    except Exception as error:
+        response["content"] = f"Ocorreu um erro ao processar o valor do tipo de ajuste: {error}"
+        return response
+
+
+    try:
+        new_quantity = float( new_quantity )
+    
+    except Exception as error:
+        response["content"] = f"Ocorreu um erro ao processar o valor da nova quantidade: {error}"
+        return response
+
+    response = await inventory_adjustment(id_product, type_of_adjustment, new_quantity, id_user, observation = observation)
+
+    return response
+
+async def record_inventory_adjustment_history( id_product, type_of_adjustment, old_quantity, adjust_value, new_quantity, id_user = None):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    if not id_user:
+        id_user = __USER_LOGGED['id_user']
+
+    column_list = [
+        "tipo_ajuste",
+        "id_produto",
+        "valor_anterior",
+        "valor_do_ajuste",
+        "valor_atual",
+        "id_usuario_responsavel",
+        "data"        
+    ]
+
+    value_list = [
+        id_product,
+        old_quantity,
+        adjust_value,
+        new_quantity,
+        type_of_adjustment,
+        id_user,
+        date.today()
+
+    ]
+
+    response = await base_de_dados.insert(
+        base_de_dados.history_adjustment_invetory_table_name, column_list, value_list
+    )
+
+    return response
+
+@app.post("/record_inventory_adjustment_history")
+async def record_inventory_adjustment_history_api( data : dict ):
+
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+    
+    id_user = __USER_LOGGED["id_user"]
+
+    id_product = data["idProduct"]
+    type_of_adjustment = data["typeOfAdjustment"]
+    old_quantity = data["oldQuantity"]
+    adjust_quantity = data["oldQuantity"]
+    new_quantity = data["newQuantity"]
+    
+
+    response = await record_inventory_adjustment_history( id_product, type_of_adjustment, old_quantity, adjust_quantity, new_quantity, id_user )
+
+    return response
+
+
+
+async def record_withdraw_item( id_saida, id_product, quantity ):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    id_user = __USER_LOGGED['id_user']
+    current_date = date.today()
+
+    column_values = [
+        'id_saida',
+        'id_usuario',
+        'id_produto',
+        'quantidade',
+        'data_saida'
+    ]
+
+    value_list = [
+        id_saida,
+        id_user,
+        id_product,
+        quantity,
+        current_date
+    ]
+
+    table_name = base_de_dados.item_output_table_name
+
+    response = await base_de_dados.insert(
+        table_name,
+        column_values,
+        value_list
+    )
+
+    return response
+
+
+@app.post("/record-withdraw-item")
+async def record_withdraw_item_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : "Error"
+    }
+
+    id_cesta = data["idBasket"]
+    id_product = data["idProduct"]
+    quantity = data["quantity"]
+
+    response = await record_withdraw_item(id_cesta, id_product, quantity, OUTPUT_TYPE)
+
+    return response
+
+
+async def record_outputs( id_basket, id_family, id_church, output_type, basket_quantity, out_donation, id_user = None ):
+    response = {
+        "stauts" : 90,
+        "content" : "Error"
+    }
+    if not id_user:
+        id_user = __USER_LOGGED["id_user"]
+    
+    current_date = date.today()
+    table_name = base_de_dados.output_table_name
+
+    last_id_output = await base_de_dados.getSequence('saida')
+    last_id_output = last_id_output["content"]
+    #print(" LAST ID: ", last_id_output)
+    new_id_output = last_id_output +1 
+    #print(" CURRENT ID: ", new_id_output)
+    column_list = [
+        "id_saida",
+        'id_cesta',
+        "id_usuario",
+        "id_familia",
+        "id_congregacao",
+        'quantidade_cesta',
+        "data_saida",
+        "tipo_saida",
+        "doacao_fora"
+    ]
+
+    value_list = [
+        new_id_output,
+        id_basket,
+        id_user,
+        id_family,
+        id_church,
+        basket_quantity,
+        current_date,
+        output_type,
+        out_donation
+    ]
+
+    response = await base_de_dados.insert(
+        table_name,
+        column_list,
+        value_list
+    )
+    #print(" RESPONSE : ", response)
+    response["content"] = new_id_output
+
+    return response
+
+@app.post("/record-outputs")
+async def record_outputs_api( data : dict ):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    output_type = data["outputType"]
+    
+    response = await record_outputs(
+        output_type
+    )
+
+    return response
+
+
+async def register_item_issue():
+    pass
+
+#==================================================
+#= Stock - Graph Function
+#===============================================
+
+async def get_collection_data_for_graph( initial_date= '', end_date = '' ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    return response
+
+
+@app.post('/get-collection-data-for-graph')
+async def get_collection_data_for_graph_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    initial_date = data['initialDate']
+    end_date = data['endDate']
+
+    response = await get_collection_data_for_graph( initial_date, end_date)
+
+    return response
+
 
 
 #==============================================
@@ -445,7 +939,7 @@ async def delete_priority_registration( data : DeletePriorityRegistration ):
 
 
     verification = await base_de_dados.query(f"SELECT * FROM familia WHERE id_prioridade = {id_priority}")
-    print(" VERIFICATION: ", verification, type(verification['content']), flush=1)
+    #print(" VERIFICATION: ", verification, type(verification['content']), flush=1)
     if type(verification['content']).__name__ != 'str':
         if len(verification['content']) > 0:
             response["content"] = "Existe Familias com essa prioridade cadastrada. Para remover, ninguem deve estar utilizando essa prioridade"
@@ -456,7 +950,7 @@ async def delete_priority_registration( data : DeletePriorityRegistration ):
     table = "prioridade"
     param = f"id_prioridade= {id_priority}"
     response = await base_de_dados.delete( table, param )
-    print(" RETORNO: ", response)
+    #print(" RETORNO: ", response)
     return response
 
     
@@ -512,11 +1006,11 @@ def get_priority_registration_name_by_id_func( id_value ):
 
     priority_data = get_priority_registration_data()
     priority_list = priority_data['content']
-    print("IDVALUE: ", id_value, type(id_value), flush=1)
+    #print("IDVALUE: ", id_value, type(id_value), flush=1)
     for priority in priority_list:
-        print("Priority ID: ", priority['id'], flush=1)    
+        #print("Priority ID: ", priority['id'], flush=1)    
         if id_value == priority['id']:
-            print("Priority: ", priority, flush=1)    
+            #print("Priority: ", priority, flush=1)    
             return priority['Prioridade']
 
     return None
@@ -575,7 +1069,7 @@ async def get_priority_registration_name_by_id( data : str = '' ):
 
 @app.get("/get-priority-registration-id-by-name")
 async def get_priority_registration_id_by_name( namePriority ):
-    print("DATA: ", namePriority)
+    #print("DATA: ", namePriority)
     if not namePriority:
         return {
             'status' : 90,
@@ -643,7 +1137,7 @@ async def get_all_family_data():
     #get_family_list = family_list.copy()
     response = await base_de_dados.query(" SELECT * FROM familia")
     for I in range( len(response['content']) ):
-#        print(" RESPONSE: ", list(response["content"][I]))
+        #print(" RESPONSE: ", list(response["content"][I]))
         response['content'][I] = list(response['content'][I])
 
     return response
@@ -655,20 +1149,36 @@ async def get_family_list():
     #priority_list = await get_priority_registration_data()
     #print("PRIOLIST: ", priority_list, flush=1)
     #print("family LIST1: ", family_data_list['content'])
-    sql_query= """
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+    family_table_name = base_de_dados.family_table_name
+    church_table_name = base_de_dados.church_table_name
+    priority_table = base_de_dados.priority_table_name
+
+    sql_query = f"""
         SELECT
-            id_familia,
-            representante,
-            membros,
-            cidade,
-            bairro,
-            rua,
-            numero_da_casa,
-            telefone,
-            id_prioridade,
-            id_congregacao
-        FROM familia"""
+            f.id_familia,
+            f.representante,
+            f.membros,
+            f.cidade,
+            f.bairro,
+            f.rua,
+            f.numero_da_casa,
+            f.uf,
+            f.cep,
+            f.telefone,
+            p.descricao,
+            c.nome
+        FROM {family_table_name} as f
+        LEFT JOIN {church_table_name} as c
+        ON c.id_congregacao = f.id_congregacao
+        LEFT JOIN {priority_table} as p
+        ON p.id_prioridade = f.id_prioridade;"""
+
     family_data_list = await base_de_dados.query(sql_query)
+
     for I in range( len(family_data_list['content']) ):
         #print(" RESPONSE: ", list(family_data_list["content"][I]))
         family_data_list['content'][I] = list(family_data_list['content'][I])
@@ -678,30 +1188,40 @@ async def get_family_list():
 
 @app.get("/get-family-data-resolve-ids")
 async def get_family_list_resolved():
-    #family_data_list = await get_family_data()
-    #priority_list = await get_priority_registration_data()
-    #print("PRIOLIST: ", priority_list, flush=1)
-    #print("family LIST1: ", family_data_list['content'])
-    sql_query= """
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+
+    family_table_name = base_de_dados.family_table_name
+    church_table_name = base_de_dados.church_table_name
+    priority_table = base_de_dados.priority_table_name
+
+    sql_query = f"""
         SELECT
-            familia.id_familia,
-            familia.representante,
-            familia.membros,
-            familia.cidade,
-            familia.bairro,
-            familia.rua,
-            familia.numero_da_casa,
-            familia.telefone,
-            prioridade.descricao,
-            congregacao.nome
-        FROM familia
-        INNER JOIN prioridade
-        ON familia.id_prioridade = prioridade.id_prioridade
-        INNER JOIN congregacao
-        ON familia.id_congregacao = congregacao.id_congregacao """
+            f.id_familia,
+            f.representante,
+            f.membros,
+            f.cidade,
+            f.bairro,
+            f.rua,
+            f.numero_da_casa,
+            f.uf,
+            f.cep,
+            f.telefone,
+            p.descricao,
+            c.nome
+        FROM {family_table_name} as f
+        LEFT JOIN {church_table_name} as c
+        ON f.id_congregacao=  c.id_congregacao
+        LEFT JOIN {priority_table} as p
+        ON f.id_prioridade= p.id_prioridade;"""
+    
     family_data_list = await base_de_dados.query(sql_query)
+    #print(" RESpONSe OF REsoLVING FAmILY DATA: ", family_data_list)
+
     for I in range( len(family_data_list['content']) ):
-        #print(" RESPONSE: ", list(response["content"][I]))
+        #print(" RESPONSE: ", list(family_data_list["content"][I]), flush=1)
         family_data_list['content'][I] = list(family_data_list['content'][I])
     
     return family_data_list        
@@ -709,45 +1229,87 @@ async def get_family_list_resolved():
 
 @app.post("/search-for-family")
 async def search_on_family_register(data: SearchRegisterFamilyRequest):
-    print("search for family...", data, flush=1)
-    family_register_data = await get_family_data()
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+    #print("search for family...", flush=1)
+    #family_register_data = await get_family_data()
     
     representativeRecive = data.representativeRecive
-    columnName = data.columnName
-    found_registers = []
-    if representativeRecive == '':
-        print("Return all data")
-        return  {"status" : 0, "content" : family_register_data["content"]}
-    
-    try:
-        for index in family_register_data["content"]:
-            #print("index: ", index)
-            for key, value in index.items():
-                if key == columnName:
-                    #print(" register: ", str(value[:len(representativeRecive)]), str(value[:len(representativeRecive)]) == representativeRecive)
-                    if representativeRecive == value[:len(representativeRecive)]:
-                        #print("REGISTRO ENCONTRADO: ", index)
-                        found_registers.append(index)
 
-    except Exception as error:
-        print( error)
-        return {"status" : 90, "content" : str(error)}
+    if representativeRecive == '':
+        #print("Return all data")
+        tmp_family_data = await get_family_list_resolved()
+        return  {"status" : 0, "content" : tmp_family_data["content"]}
     
-    #print("Return result of search: ", found_registers)
-    return {"status" : 0, "content" : found_registers}
+    family_table_name = base_de_dados.family_table_name
+    church_table_name = base_de_dados.church_table_name
+    priority_table = base_de_dados.priority_table_name
+
+    sql_query = f"""
+        SELECT
+            f.id_familia,
+            f.representante,
+            f.membros,
+            f.cidade,
+            f.bairro,
+            f.rua,
+            f.numero_da_casa,
+            f.cep,
+            f.uf,
+            f.telefone,
+            p.descricao,
+            c.nome
+        FROM {family_table_name} as f
+        LEFT JOIN {church_table_name} as c
+        ON c.id_congregacao = f.id_congregacao
+        LEFT JOIN {priority_table} as p
+        ON p.id_prioridade = f.id_prioridade
+        WHERE f.representante LIKE '{representativeRecive}%'; """
+
+    response = await base_de_dados.query( sql_query )
+    return response
+
+
+async def search_for_duplicate_family( representative, city, neighborhood, street, building_number, uf, cep ):
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+
+    table_name = base_de_dados.family_table_name
+
+    sql_query = f"""
+    SELECT
+        id_familia, representante
+    FROM {table_name}
+    WHERE
+        representante = {representative}
+        AND cidade = {city}
+        AND bairro = {neighborhood}
+        AND rua = {street}
+        AND numero_da_cada = {building_number}
+        AND uf = {uf}
+        AND cep = {cep}
+    """
+
+    response = await base_de_dados.query(sql_query)
+
+    return response
 
 
 
 @app.post("/search-for-family-by-id")
 async def search_on_family_register_by_id(data: SearchRegisterFamilyByIdRequest ):
-    print("search for family...", data, flush=1)
+    #print("search for family...", data, flush=1)
     
     
     idFamily = data.idFamily
     #print(" idFamily: ", idFamily)
     found_registers = []
     if idFamily == '':
-        print("Return all data")
+        #print("Return all data")
         #family_register_data = await get_family_data()
         #return  {"status" : 0, "content" : family_register_data["content"]}
         return await get_all_family_data()
@@ -762,6 +1324,8 @@ async def search_on_family_register_by_id(data: SearchRegisterFamilyByIdRequest 
                 familia.bairro,
                 familia.rua,
                 familia.numero_da_casa,
+                familia.cep,
+                familia.uf,
                 familia.telefone,
                 familia.id_prioridade,
                 familia.id_congregacao
@@ -823,9 +1387,99 @@ async def search_on_family_register_by_id_resolved(data: SearchRegisterFamilyByI
 
 
 #=================================================
+# = Family - Record
+# =============================
+
+async def record_history_family( id_family, type_register, id_user):
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+
+    if not id_user:
+        id_user = __USER_LOGGED["id_user"]
+
+    table_name = base_de_dados.history_register_family_table_name
+    current_date = date.today()
+
+    column_list = [
+        'tipo_registro',
+        'id_familia',
+        'id_usuario_responsavel',
+        'data'
+    ]
+
+    value_list = [
+        type_register,
+        id_family,
+        id_user,
+        current_date
+    ]
+
+    response = await base_de_dados.insert( table_name, column_list, value_list)
 
 
+    return response
 
+
+async def record_alter_family(id_family, id_user):
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+
+    response = await record_history_family( id_family, ALTERATION_TYPE, id_user)
+
+    return response
+
+async def alter_family_register(id_family, representative, members, city, neighborhood, street, building_number, cep, uf, telephone, priority_id, id_church, id_user= None):
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+
+    if not id_user:
+        id_user = __USER_LOGGED["id_user"]
+
+
+    current_date = date.today()
+
+    column_list = [
+        'representante',
+        'membros',
+        'cidade',
+        'bairro',
+        'rua',
+        'numero_da_casa',
+        'cep',
+        'uf',
+        'telefone',
+        'id_prioridade',
+        'id_congregacao',
+        'ultima_alteracao'
+        ]
+    values = [
+        representative,
+        members,
+        city,
+        neighborhood,
+        street,
+        building_number,
+        cep,
+        uf,
+        telephone,
+        priority_id,
+        id_church,
+        current_date
+    ]
+
+    
+    response = await base_de_dados.alter( 'familia', column_list, values, 'id_familia', id_family )
+    if response['status'] == 0:
+        await record_alter_family(id_family, id_user)
+
+
+    return response
 
 @app.post("/alter-family-data")
 async def alter_family_data(data : dict = None ):
@@ -847,6 +1501,8 @@ async def alter_family_data(data : dict = None ):
     neighborhood       = data['neighborhood']
     street             = data['street']
     building_number    = data['buildingNumber']
+    cep                = data['cep']
+    uf                 = data['uf']
     telephone          = data["telephoneNumber"]
     priority_id        = data["currentPriority"]
     print(" PRIORITY ID: ", priority_id, type(priority_id))
@@ -856,68 +1512,56 @@ async def alter_family_data(data : dict = None ):
         else:
             priority_id = int(priority_id)
 
-    #response = await get_family_data()
-    #family_data = response['content']
+    id_user = __USER_LOGGED["id_user"]
 
-    column_list = [
-        'representante',
-        'membros',
-        'cidade',
-        'bairro',
-        'rua',
-        'numero_da_casa',
-        'telefone',
-        'id_prioridade',
-        'id_congregacao',
-        'ultima_alteracao'
-        ]
-    values = [
-        representative,
-        members,
-        city,
-        neighborhood,
-        street,
-        building_number,
-        telephone,
-        priority_id,
-        id_church,
-        date.today()
-    ]
+    response = await alter_family_register( id_family, representative, members, city, neighborhood, street, building_number, cep, uf, telephone, priority_id, id_church, id_user )
 
-    
-    await base_de_dados.alter( 'familia', column_list, values )
-    
+    return response
 
-    return {
-        "status" : 0,
-        "content" : True
+
+
+async def record_register_family( id_family, id_user = None ):
+    response = {
+        "status" : 90,
+        "content" : "Error"
     }
 
+    if not id_user:
+        id_user = __USER_LOGGED["id_user"]
 
-@app.post("/registration-family-data")
-async def registration_family_data(data : dict = None ):
+    table_name = base_de_dados.history_register_family_table_name
+    current_date = date.today()
+
+
+    column_list = [
+        'tipo_registro',
+        'id_familia',
+        'id_usuario_responsavel',
+        'data'
+    ]
+
+    value_list = [
+        REGISTRATION_TYPE,
+        id_family,
+        id_user,
+        current_date
+    ]
+
+    response = await base_de_dados.insert( table_name, column_list, value_list )
+
+    return response
+
+
+async def registration_family(church_id, representative, city, members, neighborhood, street, building_number, cep, uf, telephone, priority_id, registration_status, id_user = None):
     #global family_list
     response = {
         "status" : 90,
         "content" : "Erro"
     }
-    print("data: ", data)
 
-    if not data:
-        response["content"] = "Sem informação para adicionar"
-        return response
-    
-    church_id          = data["idChurch"]
-    representative     = data['representative']
-    city               = data['city']
-    members            = data['members']
-    neighborhood       = data['neighborhood']
-    street             = data['street']
-    building_number    = data['buildingNumber']
-    telephone          = data["telephoneNumber"]
-    priority_id        = data["currentPriority"]
-    registration_status = data["registrationStatus"]
-    
+    if not id_user:
+        id_user = __USER_LOGGED["id_user"]
+
     if type(priority_id).__name__ != 'int' and priority_id != '':
         print(" priority_id: ", priority_id, type(priority_id))
         priority_id = int( priority_id )
@@ -929,6 +1573,21 @@ async def registration_family_data(data : dict = None ):
         church_id = int( church_id )
         response["content"] = "ID da congregação invalido"
         return response
+    
+
+    valid = await search_for_duplicate_family( representative, city, neighborhood, street, building_number, uf, cep )
+    if len(valid['content']) > 0 :
+        response['status'] = 2067
+        response['content'] = "Já existe uma familia cadastrada com essas informações"
+
+    id_family = await base_de_dados.getSequence( base_de_dados.family_table_name )
+    if id_family['content']:
+        id_family = id_family["content"] + 1
+
+    else:
+        id_family = 1
+
+
 
     #id = len(family_list) + 1
     column_list = [
@@ -940,6 +1599,8 @@ async def registration_family_data(data : dict = None ):
                     'bairro',
                     'rua',
                     'numero_da_casa',
+                    'cep',
+                    'uf',
                     'telefone',
                     'status_cadastro',
                     'data_cadastro',
@@ -954,6 +1615,8 @@ async def registration_family_data(data : dict = None ):
                     neighborhood,
                     street, 
                     building_number,
+                    cep,
+                    uf,
                     telephone,
                     registration_status,
                     str(date.today()),
@@ -964,10 +1627,40 @@ async def registration_family_data(data : dict = None ):
     if registration_response["status"] == 0:
         response["status"] = 0
         response["content"] = "Registro adicionado com sucesso!"
+
+        await record_register_family( id_family, id_user )
         return response
 
 
     return registration_response
+
+@app.post("/registration-family-data")
+async def registration_family_data(data : dict = None ):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    #print(" ( registration family data ): ", data)
+
+    church_id          = data["idChurch"]
+    representative     = data['representative']
+    city               = data['city']
+    members            = data['members']
+    neighborhood       = data['neighborhood']
+    street             = data['street']
+    building_number    = data['buildingNumber']
+    telephone          = data["telephoneNumber"]
+    priority_id        = data["currentPriority"]
+    registration_status = data["registrationStatus"]
+    cep = data["cep"]
+    uf = data['uf']
+
+    id_user = __USER_LOGGED["id_user"]
+
+    response = await registration_family(church_id, representative, city, members, neighborhood, street, building_number, cep, uf, telephone, priority_id, registration_status, id_user)
+
+    return response
 
 
 @app.post("/delete-family-data")
@@ -981,41 +1674,380 @@ async def delete_family_data( data : dict = None ):
         response["content"] = "ID invalido"
         return response
     
-    id_family = data["if_family"]
+    id_family = data["id_family"]
 
     param = f"id_familia= {id_family}"
 
     db_response = await base_de_dados.delete(base_de_dados.family_table_name, param)
+
+    type_register_table_name = base_de_dados.type_record_table_name
+    delete_type = await base_de_dados.query(f"""
+    SELECT
+        id_tipo,
+        nome
+    FROM {type_register_table_name}
+    WHERE nome = 'REMOCAO';""")
+
+    delete_type = delete_type['content'][0][0]
+
     if db_response["status"] == 0:
         response["status"] = 0
         response["content"] = "Deletado com sucesso"
-    
+
+        response = await record_history_family(id_family, delete_type, id_user=None)
+
     return response
 
+#================================================
+#= Family - Graph Function
+#==================================================
+
+async def get_data_family_helped_for_graph( initial_date = '', end_date = '' ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    current_year = date.today().year
+    current_month = int(str(date.today().month))
+    current_month = f'0{current_month}' if int(current_month) < 10 else current_month
+    
+    #print(f"current date: YEAR: {current_year} -- MONTH: {current_month}")
+    months = [f'0{month}' if month < 10 else month for month in range(1, int(current_month)+1)]
+    last_days = [calendar.monthrange(current_year, month)[1] for month in range(1, int(current_month)+1)]
+
+    #print( 'months -- last_days: ', months, last_days, flush=1)
+
+    
+
+    family_helped_count_month = []
+    for i in range(len(months)):
+        query_data = {}
+        date_initial = f'{current_year}-{months[i]}-01'
+        date_finaly = f'{current_year}-{months[i]}-{last_days[i]}'
+        #print(" SEARCH FOR DATA: ", date_initial, date_finaly, flush=1)
+        query_data = await get_all_input_and_output_basket(date_initial, date_finaly)
+
+        if query_data['status'] != 0:
+            return query_data
+        
+        
+
+        family_helped_count = 0
+        #print(" DATA FOUND: ", query_data, flush=1)
+        for data in query_data['content']:
+            
+            if data[2]:
+                family_helped_count += 1
+
+        #print(f" MONTH: {months[i]} - F: ", family_helped_count, query_data)
+        family_helped_count_month.append(family_helped_count)
+    
+    response['status'] = 0
+    response['content'] = family_helped_count_month
+
+
+    #print("get_data_family_helped_for_graph: ", family_helped_count_month)
+    return response
+
+
+@app.post('/get-data-family-helped-for-graph')
+async def get_data_family_helped_for_graph_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    initial_date = data['initialDate']
+    end_date = data['endDate']
+
+    response = await get_data_family_helped_for_graph(initial_date, end_date)
+
+    return response
+
+
+# =================================================
 
 
 #==============================================
 #= Church
 #===============================================
 
+# ================
+# = CHURCH - Data =
+# ================
 async def get_church_data():
     response = await base_de_dados.query("SELECT * FROM congregacao")
-    #for I in range( len(response['content']) ):
-#        print(" RESPONSE: ", list(response["content"][I]))
-    #    response['content'][I] = list(response['content'][I])
-
-    #print(" RESPONSE: ", response)
     return response
 
 
 @app.get("/get-church-list")
+async def get_church_data_for_display():
+
+    sql_query = f"""
+    SELECT
+        id_congregacao,
+        nome,
+        representante,
+        membros,
+        cidade,
+        bairro,
+        rua,
+        numero,
+        cep,
+        uf
+    FROM congregacao
+    """
+    response = await base_de_dados.query( sql_query )
+
+    return response
+
+
+@app.get("/get-church-list-raw-data")
 async def get_church_list():
     return await get_church_data()
 
 
+    # ===============
+    # = Search =
+    # ===============
+
+
+async def register_church(church_name, representative, member_number, city, neighborhood, street, building_number, cep, uf, registration_status, id_user = None ):
+    response = {
+        "status" : 90,
+        "content" : 'Error'
+    }
+
+    if id_user == None:
+        id_user = __USER_LOGGED["id_user"]
+
+    if not church_name or not representative or not member_number or not city or not neighborhood or not street or not building_number or not cep or not uf:
+        empty_column = []
+
+        if not church_name:
+            empty_column.append('nome')
+
+        if not representative:
+            empty_column.append('representante')
+
+        if not member_number:
+            empty_column.append('membros')
+
+        if not city:
+            empty_column.append('cidade')
+
+        if not neighborhood:
+            empty_column.append('bairro')
+
+        if not street:
+            empty_column.append('rua')
+
+        if not building_number:
+            empty_column.append('numero')
+
+        if not cep:
+            empty_column.append('cep')
+
+        if not uf:
+            empty_column.append('uf')
+
+        response["content"] = f"Valores vazios não são aceitos para cadastro. Corrigir os valores de:\n ({', '.join(empty_column)})"
+        return response
+
+    current_sequence_id_church = await base_de_dados.getSequence('congregacao')
+    if not current_sequence_id_church["content"]:
+        current_sequence_id_church["content"] = 0
+
+    id_church = current_sequence_id_church['content'] + 1
+    #print(" ID_CHURCH: ", id_church)
+    current_data = date.today()
+
+    column_list = [
+        'id_congregacao',
+        'nome',
+        'representante',
+        'membros',
+        'cidade',
+        'bairro',
+        'rua',
+        'numero',
+        'cep',
+        'uf',
+        'status_cadastro',
+        'id_usuario_responsavel',
+        'data_criacao',
+        'ultima_alteracao',
+    ]
+
+    value_list = [
+        id_church,
+        church_name,
+        representative,
+        member_number,
+        city,
+        neighborhood,
+        street,
+        building_number,
+        cep,
+        uf,
+        registration_status,
+        id_user,
+        current_data,
+        current_data,
+    ]
+
+    table_name = base_de_dados.church_table_name
+    
+    register_response = await base_de_dados.insert(table_name, column_list, value_list)
+
+    if register_response['status'] == 0:
+        await record_register_church(id_church, id_user)
+
+    response = register_response
+
+    return response
+
+
+@app.post("/register-church")
+async def register_church_api( data : dict ):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+
+    #print(f" registration_church_api: ", data, flush=1)
+    church_name = data["churchName"]
+    representative = data["representative"]
+    member_number = data["memberNumber"]
+    city = data["city"]
+    neighborhood = data["neighborhood"]
+    street = data["street"]
+    building_number = data["buildingNumber"]
+    cep = data['cep']
+    uf = data['uf']
+    registration_status = data['registrationStatus']
+
+    id_user = __USER_LOGGED["id_user"]
+
+    response = await register_church( church_name, representative, member_number, city, neighborhood, street, building_number, cep, uf, registration_status, id_user)
+
+    return response
+
+
+async def alter_church_data(id_church, church_name, representative, city, members, neighborhood, street, building_number, cep, uf, register_status, id_user = None):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    current_date = date.today()
+
+    if not id_user:
+        id_user = __USER_LOGGED["id_user"]
+
+    table_name = base_de_dados.church_table_name
+
+    column_list = [
+        'nome',
+        'representante',
+        'membros',
+        'cidade',
+        'bairro',
+        'rua',
+        'numero',
+        'cep',
+        'uf',
+        'status_cadastro',
+        'id_usuario_responsavel',
+        'ultima_alteracao'
+    ]
+
+    value_list = [
+        church_name,
+        representative,
+        members,
+        city,
+        neighborhood,
+        street,
+        building_number,
+        cep,
+        uf,
+        register_status,
+        id_user,
+        current_date
+    ]
+
+
+    condition = f'id_congregacao = {id_church}'
+    response = await base_de_dados.alter(table_name, column_list, value_list, conditions = condition)
+    print(" ALTER CHURHC DATA: ", response)
+    return response
+
+#+ Precisa refatorar
+@app.post("/alter-church-data")
+async def alter_church_data_api(data : dict = None ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    print( 'alter church data: ', data)
+
+    id_church           = data['idChurch']
+    church_name         = data['churchName']
+    representative     = data['representative']
+    city               = data['city']
+    members            = data['members']
+    neighborhood       = data['neighborhood']
+    street             = data['street']
+    building_number     = data['buildingNumber']
+    cep = data['cep']
+    uf = data['uf']
+    register_status = data['registerStatus']
+    id_user = __USER_LOGGED["id_user"]
+
+    response = await alter_church_data(id_church, church_name, representative, city, members, neighborhood, street, building_number, cep, uf, register_status, id_user)
+
+
+    return response
+
+
+async def delete_church_register( id_church ):
+    response = {
+        'status': 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.church_table_name
+    condition = f'id_congregacao = {id_church}'
+    response = await base_de_dados.delete(table_name, condition)
+
+    return response
+
+
+@app.post('/delete-church-register')
+async def delete_church_register_api( data : dict ): 
+    response = {
+        'status': 90,
+        'content' : []
+    }
+
+    id_church = data['idChurch']
+
+    response = await delete_church_register(id_church)
+
+    return response
+
+
+
+# =======================
+# = CHURCH - SEARCH = 
+# ========================
+
 @app.post("/search-for-church")
 async def search_on_church_register(data: SearchRegisterChurchRequest):
-    print(f" ({data.churchName}) search for church...", flush=1)
+    #print(f" ({data.churchName}) search for church...", flush=1)
     church_register_data = get_church_data()
 
     churchName = data.churchName
@@ -1026,11 +2058,11 @@ async def search_on_church_register(data: SearchRegisterChurchRequest):
     
     try:
         for index in church_register_data["content"]:
-            print("index: ", index)
+            #print("index: ", index)
             for key, value in index.items():
                 if key == columnName:
                     if churchName == value[:len(churchName)]:
-                        print("REGISTRO ENCONTRADO: ", index)
+                        #print("REGISTRO ENCONTRADO: ", index)
                         found_registers.append(index)
 
     except Exception as error:
@@ -1048,32 +2080,29 @@ async def search_church_by_id(data : SearchRegisterChurchByIdRequest):
     response = {
         "status" : 90,
         "content" : None
-    }    
-    #print( "DATA: ", data)
+    } 
+
+    table_name = base_de_dados.church_table_name
+    print( "DATA: ", data)
     idChurch = data.idChurch
-    church_data = await base_de_dados.query(f"""
-                                      SELECT *
-                                      FROM congregacao
-                                      WHERE id_congregacao= {idChurch}
-                                      """)
+    sql_query = f"""
+                SELECT *
+                FROM {table_name}
+                WHERE id_congregacao= {idChurch}
+                """
+    church_data = await base_de_dados.query(sql_query)
     
-    response["status"] = 0
-    response["content"] = church_data["content"][0]
-    #print(" RESPONSE: ", response)
+    if church_data['status'] == 0:
+        response["status"] = 0
+        response["content"] = church_data["content"]
+    print(" RESPONSE: ", response)
     return response
 
 
-def get_church_goals_data():
-    get_goals_data = goals_data.copy()
-    return {"status" : 0, "content": get_goals_data}
-
-@app.get("/get-church-goals")
-def get_church_goals():
-    return get_church_goals_data()
 
 @app.post("/search-for-church-goals-item")
 async def search_on_church_goals(data: SearchForChurchGoalItem):
-    print(f" ({data.churchId})({data.goalItemName}) search for basket...", flush=1)
+    #print(f" ({data.churchId})({data.goalItemName}) search for basket...", flush=1)
     goal_items_data = get_church_goals_data()
 
     churchId = data.churchId
@@ -1091,7 +2120,7 @@ async def search_on_church_goals(data: SearchForChurchGoalItem):
             for key, value in index.items():
                 if key == columnName:
                     if goalItemName == value[:len(goalItemName)]:
-                        print("REGISTRO ENCONTRADO: ", index)
+                        #print("REGISTRO ENCONTRADO: ", index)
                         found_registers.append(index)
 
     except Exception as error:
@@ -1103,47 +2132,857 @@ async def search_on_church_goals(data: SearchForChurchGoalItem):
     
     return {"status" : 0, "content" : found_registers}
 
-#================================================
-#================================================
 
 
-@app.post("/alter-church-data")
-async def alter_church_data(data : dict = None ):
 
-    id_church           = data['idChurch']
-    church_name         = data['churchName']
-    representative     = data['representative']
-    city               = data['city']
-    members            = data['members']
-    neighborhood       = data['neighborhood']
-    street             = data['street']
-    building_number     = data['buildingNumber']
+# =======================
+# = CHURCH - Goals = 
+# ========================
 
-    response = get_church_data()
-    church_data = response['content']
-    for index in range(len(church_data)):
-        print(church_data)
-        if  church_data[index]['id'] == id_church:
-            church_data[index]['id'] = id_church
-            church_data[index]['Nome'] = church_name
-            church_data[index]['Representante'] = representative
-            church_data[index]['Membros'] = members
-            church_data[index]['Cidade'] = city
-            church_data[index]['Bairro'] = neighborhood
-            church_data[index]['Rua'] = street
-            church_data[index]['Numero'] = building_number
-            church_register[index] = church_data[index]
-            print(church_register)
-            return {
-                "status" : 0,
-                "content" : True
-            }
-
-    
-    return {
+async def get_church_goals_data(id_church, date_init, date_end, resolve_church_name=0):
+    response = {
         "status" : 90,
-        "content" : False
+        "content": []
     }
+
+    await update_church_goal()
+
+    cdate = str(date.today())
+    current_date = datetime.strptime(cdate, "%Y-%m-%d")
+    table_name = base_de_dados.church_goals_table_name
+    sql_query = f'''
+    SELECT
+        id_meta,
+        id_congregacao,
+        status,
+        data_criacao,
+        prazo
+    FROM {table_name}
+'''
+    if resolve_church_name:
+        table_church_name = base_de_dados.church_table_name
+        sql_query = f'''
+    SELECT
+        mt.id_meta,
+        c.nome,
+        mt.status,
+        mt.data_criacao,
+        mt.prazo
+    FROM {table_name} mt
+    INNER JOIN {table_church_name} c
+    ON mt.id_congregacao = c.id_congregacao
+'''
+    if date_init or date_end:
+        sql_query += f"""
+    WHERE mt.id_congregacao = {id_church} AND mt.data_criacao BETWEEN '{date_init}' AND '{date_end}';
+"""
+    else:
+        sql_query += f"""
+    WHERE mt.id_congregacao = {id_church};
+"""
+
+    response = await base_de_dados.query( sql_query )
+    #print("RESPONSE : ", response)
+    for i in range( len( response['content'] ) ):
+        response["content"][i] = list(response["content"][i])
+
+    return response
+
+@app.post("/get-church-goals")
+async def get_church_goals_api( data : dict ):
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+
+    #print(" Data: ", data)
+
+    id_church = data['idChurch']
+    date_init = data['dateInitial']
+    date_end  = data['dateEnd']
+    viewParams = data['viewParams']
+    resolve_status = data['resolveStatus']
+    resolve_church_name = data['resolveChurchName']
+
+    response = await get_church_goals_data(id_church, date_init, date_end, resolve_church_name)
+    #print("goals response1: ", response)
+    if resolve_status == 1:
+        for i, goal in enumerate(response['content']):
+            
+            try:
+                goal[2] = int(goal[2])
+
+            except:
+                goal[2] = 0
+            
+            match goal[2]:
+                case 0:
+                    goal[2] = 'CANCELADA'
+
+                case 1:
+                    goal[2] = 'ATRASADA'
+
+                case 2:
+                    goal[2] = 'PENDENTE'    
+
+                case 3:
+                    goal[2] = 'COMPLETA'
+
+            response['content'][i] = goal
+    
+    
+    #print("goals response2: ", response)
+    return response
+
+
+async def get_church_goal_by_id( id_goal, id_church):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    ctime = str(date.today())
+    current_date = datetime.strptime(ctime, "%Y-%m-%d")
+
+    table_name = base_de_dados.church_goals_table_name
+
+    sql_query = ''
+    if id_goal:
+        sql_query = f'''
+    SELECT
+        id_meta,
+        id_congregacao,
+        status,
+        data_criacao,
+        prazo
+    
+    FROM {table_name}
+    WHERE id_meta = {id_goal}
+    AND id_congregacao = {id_church};
+    '''
+    else:
+        sql_query = f'''
+    SELECT
+        id_meta,
+        id_congregacao,
+        status,
+        data_criacao,
+        prazo
+    
+    FROM {table_name}
+    WHERE id_congregacao = {id_church};
+
+        '''    
+
+
+    response = await base_de_dados.query( sql_query )
+    for i, goal in enumerate(response['content']):
+        response['content'][i] = list(response['content'][i])
+
+    for i, goal in enumerate(response['content']):
+        tmpGoalStatus = response['content'][i][2]
+        if tmpGoalStatus == 0:
+            continue
+        tmpGoalTime = goal[4]
+        #print("DATAS: ", current_date, tmpGoalTime, flush=1)
+        try:
+            goal_date = datetime.strptime(tmpGoalTime, "%Y-%m-%d")
+        
+        except:
+            goal_date = 0
+
+        if goal_date == 0:
+            tmpGoalStatus = 0
+
+        elif current_date > goal_date:
+            tmpGoalStatus = 1
+
+        else:
+            tmpGoalStatus = 2
+
+        
+
+        response["content"][i][2] = tmpGoalStatus
+                
+
+    return response
+
+
+@app.post('/get-church-goal-by-id')
+async def get_church_goal_by_id_api( data : dict ):
+    response = {
+        "status" : 90,
+        "content" : []
+    }
+
+    id_goal = data['idGoal']
+    id_church = data['idChurch']
+
+
+    response = await get_church_goal_by_id( id_goal, id_church )
+
+    return response
+
+
+async def get_goal_list_item( id_goal, id_church):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    table_name = base_de_dados.church_item_goals_table_name
+    goal_table_name = base_de_dados.church_goals_table_name
+    product_table_name = base_de_dados.product_table_name
+
+    sql_query = f'''
+SELECT
+    mi.id_produto,
+    p.nome_do_produto,
+    mi.quantidade
+FROM {table_name} mi
+INNER JOIN { goal_table_name } mt
+ON mi.id_meta = mt.id_meta
+INNER JOIN {product_table_name} p
+ON mi.id_produto = p.id_item
+WHERE mt.id_congregacao = {id_church}
+    AND mi.id_meta = {id_goal};
+    '''
+
+    response = await base_de_dados.query( sql_query )
+    
+
+    return response
+
+
+@app.post('/get-goal-list-item')
+async def get_goal_list_item_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    #print("(get_goal_list_item_api) : ", data)
+    id_goal = data['idGoal']
+    id_church = data['idChurch']
+
+    response = await get_goal_list_item(id_goal, id_church)
+
+    return response
+
+
+
+async def get_all_church_goal():
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.church_goals_table_name
+    church_table_name = base_de_dados.church_table_name
+
+    sql_query = f'''
+    SELECT 
+        meta.id_meta,
+        ch.nome,
+        meta.status,
+        meta.quantidade_alimento,
+        prazo
+    FROM {table_name} meta
+    LEFT JOIN { church_table_name } ch
+    ON meta.id_congregacao = ch.id_congregacao
+    '''
+
+    response = await base_de_dados.query( sql_query )
+
+    return response
+
+
+
+@app.post('/get-all-church-goal')
+async def get_all_church_goal_api( ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    response = await get_all_church_goal()
+
+    return response
+    
+
+
+async def change_church_goal_list( id_goal, id_church, new_goal_list, goal_time, goal_status ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+
+    table_goal_table = base_de_dados.church_goals_table_name
+    coditions = [
+        f'id_meta = {id_goal} AND id_congregacao = {id_church}'
+    ]
+
+    column_list = [
+        'status',
+        'prazo'
+    ]
+
+    value_list = [
+        goal_status,
+        goal_time
+    ]
+
+
+    responseAlterTime = await base_de_dados.alter( table_goal_table, column_list, value_list, conditions=coditions )
+    #print(" SQL : ", responseAlterTime)
+
+    old_goal_list = await get_goal_list_item( id_goal, id_church )
+    old_goal_list = old_goal_list['content']
+    
+    
+    old_list_id = [line[0] for line in old_goal_list ]
+    new_list_id = [line[0] for line in new_goal_list]
+    item_found = []
+    for line in old_list_id:    
+        for new_line in new_goal_list:
+            if line == new_line[0]:
+                item_found.append(new_line[0])
+                
+    #print(" OLD GOAL: ", old_list_id)
+    #print('NEW LIST: ', new_list_id)
+    #print(" FOUND IDS: ", item_found, flush=1)
+
+
+    table_name = base_de_dados.church_item_goals_table_name
+
+
+    for line in new_goal_list:
+        #print(" NEW ID: ", line)
+        if line[0] in item_found:
+            tmp_quantity = float(line[2])
+            tmp_sql_query = f'''
+                UPDATE {table_name} SET 
+                    quantidade = {tmp_quantity}
+                WHERE
+                    id_meta = {id_goal}
+                    AND id_produto = {line[0]};
+            '''
+            await base_de_dados.query(tmp_sql_query )
+
+        else:
+            #print(" ADITIONING NEW ID: ", line)
+            await add_item_on_goal_list(id_goal, line[0], line[2])
+            #print( 'insertResponse: ', insertResponse)
+
+    for line in old_list_id:
+        if not line in new_list_id:
+            #print(" REMOVENDO : ", line, flush=1)
+            await remove_item_of_goal_list(id_goal, line)
+
+
+    return response
+
+
+@app.post('/change-church-goal-list')
+async def change_church_goal_list_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    id_goal = data['idGoal']
+    id_church = data['idChurch']
+    new_goal_list = data['newGoalList']
+    goal_time = data['goalTime']
+    goal_status = data['goalStatus']
+
+    response = await change_church_goal_list(id_goal, id_church, new_goal_list, goal_time, goal_status)
+
+    return response
+
+
+async def create_church_goal( id_church, end_time, goal_status, goal_item_list):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.church_goals_table_name
+    table_item_name = base_de_dados.church_item_goals_table_name
+    current_date = date.today()
+    id_user = __USER_LOGGED["id_user"]
+    last_id_goal = await base_de_dados.getSequence('meta')
+    last_id_goal = last_id_goal['content']
+    id_goal = last_id_goal + 1
+
+    column_list = [
+        'id_meta',
+        'id_congregacao',
+        'status',
+        'id_usuario_responsavel',
+        'data_criacao',
+        'prazo'
+    ]
+
+    value_list = [
+        id_goal,
+        id_church,
+        goal_status,
+        id_user,
+        current_date,
+        end_time
+    ]
+
+    response = await base_de_dados.insert( table_name, column_list, value_list)
+    if response['status'] == 0:
+
+        column_list = [
+            'id_meta',
+            'id_produto',
+            'quantidade'
+        ]
+
+        for item in goal_item_list:
+            value_list = [
+                id_goal,
+                item[0],
+                item[2]
+
+            ]
+            response = await base_de_dados.insert( table_item_name, column_list, value_list)
+            if response['status'] != 0:
+                return response
+
+    if response['status'] == 0:
+        response['content'] = id_goal
+
+    return response
+
+
+
+async def add_item_on_goal_list(id_goal, id_product, quantity):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    quantity = float(quantity)
+
+    table_name = base_de_dados.church_item_goals_table_name
+    column_list = [
+        'id_meta',
+        'id_produto',
+        'quantidade'
+    ]
+
+    value_list = [
+        id_goal,
+        id_product,
+        quantity
+    ]
+
+    response = await base_de_dados.insert(table_name, column_list, value_list)
+
+    return response
+
+
+@app.post('/add-item-on-goal-list')
+async def add_item_on_goal_list_api( data : dict):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    id_goal = data['idGoal']
+    id_product = data['idProduct']
+    quantity = data['quantity']
+
+    response = await add_item_on_goal_list(id_goal, id_product, quantity)
+
+    return response
+
+
+
+async def remove_item_of_goal_list(id_goal, id_product):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.church_item_goals_table_name
+
+    condition = f'id_meta = {id_goal} AND id_produto = {id_product}'
+
+    response = await base_de_dados.delete(table_name, condition)
+
+    return response
+
+
+@app.post('/remove-item-of-goal-list')
+async def remove_item_of_goal_list_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    id_goal = data['idGoal']
+    id_product = data['idProduct']
+
+    response = await remove_item_of_goal_list( id_goal, id_product )
+
+    return response
+
+@app.post('/create-church-goal-list')
+async def create_church_goal_api( data : dict ):
+    response = {
+        "status" : 90,
+        'content' : []
+    }
+
+    id_church = data['idChurch']
+    end_time = data['endTime']
+    goal_status = data['goalStatus']
+    goal_item_list = data['goalItemList']
+
+
+    response = await create_church_goal(id_church, end_time, goal_status, goal_item_list)
+
+    return response
+
+
+async def remove_goal_of_church(id_goal, id_church):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.church_goals_table_name
+
+    params = f'id_meta = {id_goal} AND id_congregacao = {id_church}'
+
+    response = await base_de_dados.delete(table_name, params)
+
+    return response
+
+
+
+@app.post('/remove-goal-of-church')
+async def remove_goal_of_church_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    id_goal = data['idGoal']
+    id_church = data['idChurch']
+
+    response = await remove_goal_of_church(id_goal, id_church)
+    print(" REMOVE GOAL OF CHURHC: ", response)
+    return response
+
+
+
+
+async def update_church_goal():
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.church_goals_table_name
+
+    sql_query = f'''
+    SELECT
+        id_meta,
+        id_congregacao,
+        status,
+        prazo
+    FROM {table_name};
+    '''
+
+    current_date = datetime.strptime(str(date.today()), "%Y-%m-%d")
+
+    response = await base_de_dados.query( sql_query )
+
+    #print(" RESPONSE : ", response)
+
+    for i in range( len( response['content'] ) ):
+        response["content"][i] = list(response["content"][i])
+
+        tmpGoalStatus = response['content'][i][2]
+        if tmpGoalStatus == 0 or tmpGoalStatus == 3:
+            continue
+
+        tmpGoalTime = response['content'][i][3]
+        #print("DATAS: ", current_date, tmpGoalTime, flush=1)
+        try:
+            goal_date = datetime.strptime(tmpGoalTime, "%Y-%m-%d")
+        
+        except:
+            goal_date = 0
+
+        if goal_date == 0:
+            tmpGoalStatus = 0
+
+        elif current_date > goal_date:
+            tmpGoalStatus = 1
+
+        else:
+            tmpGoalStatus = 2
+
+        response["content"][i][2] = tmpGoalStatus
+
+    column_list = [
+        'status',
+        'prazo'
+    ]
+
+    for i in range(len(response["content"])):
+        value_list = [
+            response["content"][i][2],
+            response['content'][i][3]
+        ]
+        condition = f'id_meta = {response["content"][i][0]} AND id_congregacao = {response["content"][i][1]}'
+        await base_de_dados.alter(table_name, column_list, value_list, conditions=condition)
+
+    #print( response, flush=1)
+
+    return response
+
+
+@app.post('/update-churches-goals')
+async def update_church_goal_api():
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    response = await update_church_goal()
+
+
+    return response
+
+
+
+# =======================
+# = CHURCH - RECORDS = 
+# ========================
+
+async def record_register_church( id_church, id_user = None):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    if id_user == None:
+        id_user = __USER_LOGGED['id_user']
+
+    current_data = date.today()
+
+    table_name = base_de_dados.history_register_church_table_name
+
+    column_list = [
+        'id_congregacao',
+        'tipo_registro',
+        'id_usuario_responsavel',
+        'data'
+    ]
+
+    value_list = [
+        id_church,
+        REGISTRATION_TYPE,
+        id_user,
+        current_data
+    ]
+
+    response = await base_de_dados.insert(table_name, column_list, value_list)
+
+
+    return response
+
+
+async def record_church_goals_completed(initial_date = '', end_date = ''):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.church_goals_table_name
+    church_table_name = base_de_dados.church_table_name
+    sql_query = f'''
+    SELECT
+        mt.id_meta,
+        c.nome,
+        mt.prazo,
+        mt.status
+    FROM {table_name} mt
+    INNER JOIN {church_table_name} c
+    ON mt.id_congregacao = c.id_congregacao
+    WHERE status = 3 '''
+    
+    if initial_date and end_date:
+        sql_query += f" AND prazo BETWEEN '{initial_date}' AND '{end_date}'"
+
+    elif initial_date:
+        sql_query += f" AND prazo => '{initial_date}'"
+    
+    elif end_date:
+        sql_query += f" AND prazo <= '{end_date}'"
+
+
+    sql_query += f' ;'
+    
+
+    #print(" SQL QUERY: ", sql_query)
+    response = await base_de_dados.query( sql_query )
+    #print(" RETORNO METAS: ", response)
+    if len(response['content']) == 0:
+        return response
+    
+    for i, goal in enumerate(response['content']):
+        response['content'][i] = list(response['content'][i])
+        tmpStatus = ''
+        match goal[3]:
+            case 0:
+                tmpStatus = 'CANCELADO'
+            
+            case 1:
+                tmpStatus = 'ATRASADO'
+
+            case 2:
+                tmpStatus = 'PENDENTE'
+            
+            case 3:
+                tmpStatus = 'COMPLETO'
+
+        
+        
+        response['content'][i][3] = tmpStatus
+
+
+    return response
+
+@app.post('/record-church-goal-completed')
+async def record_church_goals_completed_api( data : dict):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    #print(" record GOALS COMPLETED: ", data)
+    initial_date = data['initialDate']
+    end_date = data['endDate']
+
+    response = await record_church_goals_completed(initial_date, end_date)
+
+    return response
+
+
+
+async def record_church_withdraw_basket(initial_date = '', end_date = ''):
+    global OUTPUT_TYPE
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.output_table_name
+    table_item_name = base_de_dados.item_output_table_name
+    church_table_name = base_de_dados.church_table_name
+    user_table_name = base_de_dados.user_table_name
+
+
+    sql_query = f''' 
+    SELECT 
+        exit.id_saida,
+        ch.nome,
+        exit.quantidade_cesta,
+        exit.data_saida,
+        exit.doacao_fora,
+        user.nome_do_usuario
+    FROM {table_name} exit
+    LEFT JOIN {church_table_name} ch
+    ON exit.id_congregacao = ch.id_congregacao
+    LEFT JOIN {user_table_name} user
+    ON exit.id_usuario = user.id_usuario
+    WHERE
+    '''
+
+    if initial_date and end_date:
+        sql_query += f" data_saida BETWEEN '{initial_date}' AND '{end_date}' "
+
+    elif initial_date:
+        sql_query += f" data_saida >= '{initial_date}'"
+
+    elif end_date:
+        sql_query += f" data_saida <= '{end_date}'"
+
+    sql_query += 'exit.tipo_saida = {OUTPUT_TYPE};'
+
+
+    response = await base_de_dados.query( sql_query )
+
+    for i, output in enumerate(response["content"]):
+        response["content"][i] = list(response["content"][i])
+        if output[4] == 1:
+            response["content"][i][4] = 'EXTERNA'
+        
+        else:
+            response['content'][i][4] = 'INTERNA'
+
+
+    return response
+
+@app.post('/record-church-withdraw-basket')
+async def record_church_withdraw_basket_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    initial_date = data['initialDate']
+    end_date = data['endDate']
+
+    response = await record_church_withdraw_basket(initial_date, end_date)
+
+    return response
+
+
+#==============================================
+#= Church - Graph Function
+#===============================================
+
+
+
+@app.post('/get-all-church-goal-data-graph')
+async def get_all_church_goal_data_graph_api( ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    query_data = await get_all_church_goal()
+
+    if query_data['status'] != 0:
+        return query_data
+
+    goal_data = query_data['content']
+
+    goal_completed_count = 0
+    goal_incompleted_count = 0
+
+
+    for goal in goal_data:
+        if goal[2] == 3:
+            goal_completed_count += 1
+
+        else:
+            goal_incompleted_count += 1
+
+
+    total = goal_completed_count + goal_incompleted_count
+    porcentage = int((goal_completed_count / total) * 100)
+
+    response['status'] = 0
+    response['content'] = [goal_completed_count, goal_incompleted_count, porcentage]
+
+    return response
 
 
 #==============================================
@@ -1198,9 +3037,9 @@ async def register_basket_food_model(data : dict):
     ]
 
     responseInsert = await base_de_dados.insert("cesta_basica", column_list, value_list)
-    print(" RESPONSE INSERT: ", responseInsert)
+    #print(" RESPONSE INSERT: ", responseInsert)
     responseBasket = await search_on_basket_register_by_name(nameBasicFoodBasket)
-    print(" RESPONSE BaSkET: ", responseBasket)
+    #print(" RESPONSE BaSkET: ", responseBasket)
     #basket_item_list.append(basketItemForRegister)
     if responseInsert['status'] == 0:
         response["status"] = 0
@@ -1223,8 +3062,8 @@ async def register_item_on_basket_model( data : dict ):
     }
     data = data["basketData"]
 
-    print(" register_item_on_basket_model: ", data, flush=1)
-    idProduct = data["productId"]
+    #print(" register_item_on_basket_model: ", data, flush=1)
+    idProduct = data["idProduct"]
     idBasket = data["idBasket"]
     nameItem = data["productName"]
     quantityProduct = data["productQuantity"]
@@ -1250,10 +3089,8 @@ async def register_item_on_basket_model( data : dict ):
         response["content"] = "O Item já está adicionado a essa cesta"
         return response
 
-    result = await base_de_dados.insert("item_cesta_basica", column_list, value_list)
+    response = await base_de_dados.insert("item_cesta_basica", column_list, value_list)
 
-    response["status"] = result['status']
-    response["content"] = result['content']
     return response
 
 
@@ -1264,7 +3101,7 @@ async def remove_registration_basket_model(data : dict):
         "content" : "Error"
     }
     idBasket = data["idBasket"]
-    print("DATA: ", idBasket)
+    #print("DATA: ", idBasket)
 
     param = f'id_cesta= {idBasket}'
 
@@ -1541,19 +3378,19 @@ async def get_backet_items_list( data : GetBasketModelItemList = Depends() ):
         return response
     
     idBasket = data.idBasket
-    
-    response = await base_de_dados.query(f"""
+    sql_query = f"""
         SELECT
             icb.id_item,
             produto.nome_do_produto,
             produto.marca,
-            icb.quantidade_do_item
+            icb.quantidade_do_item,
+            produto.quantidade_do_item
         FROM item_cesta_basica AS icb
-        INNER JOIN produto ON
+        LEFT JOIN produto ON
             icb.id_item = produto.id_item
-        WHERE icb.id_cesta = {idBasket}
-
-    """)
+        WHERE icb.id_cesta = {idBasket};
+    """
+    response = await base_de_dados.query(sql_query)
 
 
     #print("RETURN BASKETS DATA: ", response)
@@ -1704,7 +3541,173 @@ async def get_history_basket_model_items(data : SearchByHistoryBasketModel = Dep
 #=============================================
 #==============================================
 
+#================================================
+# ==== IO BASKET
+#===============================================
 
+
+async def output_basket( id_basket, id_family, id_church, item_list, basket_quantity, observation = '', out_donation = 0 ):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    register_output = await record_outputs( id_basket, id_family, id_church, OUTPUT_TYPE, basket_quantity, out_donation )
+    #print(" REGISTER OUTPUT: ", register_output, flush=1)
+    #print(" item_list : ", item_list, flush=1)
+    id_output = register_output['content']
+    for item in item_list:
+        id_product = item[0]
+        quantity_product = item[3]
+
+
+        await inventory_adjustment( id_product, OUTPUT_TYPE, quantity_product, observation=observation)
+        await record_withdraw_item( id_output, id_product, quantity_product)
+
+    response["status"] = 0
+    response['content'] = id_output
+    return response
+
+
+@app.post("/output-basket")
+async def output_basket_api( data : dict):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    #print(" Output Basket...")
+    print(" DATA: ", data)
+    id_family, id_church, id_basket = None, None, None
+    item_list = data["itemList"]
+
+    if data.get('idBasket'):
+        id_basket = data["idBasket"]
+    if data.get('idFamily'):
+        id_family = data["idFamily"]
+    
+    if data.get("idChurch"):
+        id_church = data["idChurch"]
+
+    basket_quantity = data["basketQuantity"]
+    observation = data["observation"]
+    out_donation = data["outDonation"]
+
+    response = await output_basket(id_basket, id_family, id_church, item_list, basket_quantity, observation, out_donation)
+
+    return response
+    
+# Futura implementação
+#Implementar uma função para gerar relatorios de saida de cestas
+async def basket_delivery_report():
+    pass
+
+
+@app.post("/basket-delivery-report")
+async def basket_delivery_report_api( data : dict ):
+    response = {
+        "status" : 90,
+        "content" : "Error"
+    }
+
+    response = await  basket_delivery_report()
+
+    return response
+
+
+
+#==============================================
+# = IO - RECORDS
+# ============================================
+
+
+async def get_all_input_and_output_basket(initial_date = '', end_date = ''):
+    global INPUT_TYPE, OUTPUT_TYPE
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    table_name = base_de_dados.output_table_name
+    church_table_name = base_de_dados.church_table_name
+
+    sql_query = f'''
+    SELECT 
+        exit.id_saida,
+        exit.id_cesta,
+        exit.id_familia,
+        church.nome,
+        exit.quantidade_cesta,
+        exit.tipo_saida,
+        exit.doacao_fora,
+        exit.data_saida
+    FROM { table_name } exit
+    LEFT JOIN {church_table_name} church
+    ON exit.id_congregacao = church.id_congregacao
+    WHERE ( exit.tipo_saida = {OUTPUT_TYPE} OR exit.tipo_saida = {INPUT_TYPE} ) '''
+    if initial_date and end_date:
+        sql_query += f" AND exit.data_saida BETWEEN '{initial_date}' AND '{end_date}' "
+
+
+    elif initial_date:
+        sql_query = f" AND exit.data_saida > '{initial_date}' "
+        
+
+    elif end_date:
+        sql_query = f" AND exit.data_saida > '{end_date}' "
+
+
+    sql_query += f';'
+    #print(' SQL QUERY: ', sql_query)
+    response = await base_de_dados.query( sql_query )
+    #print(" get_all_input_and_output_basket: ", response)
+    return response
+
+
+async def input_and_output_basket_data_graph():
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+
+    query_data = await get_all_input_and_output_basket()
+    #print("input_and_output_basket_data_graph1 - query_data: ", query_data)
+    if query_data['status'] != 0:
+        return query_data
+    
+    ioData = query_data["content"]
+    
+    output_counts = 0
+    input_counts = 0
+
+    for action in ioData:
+        if action[5] == 1:
+            input_counts += 1
+
+        elif action[5] == 2:
+            output_counts += 1
+
+    total = input_counts + output_counts
+    porcentage = int((output_counts / total) * 100)
+
+    response['status'] = 0
+    response['content'] = [input_counts, output_counts, porcentage]
+
+    #print("input_and_output_basket_data_graph-2: ", response, flush=1)
+
+    return response
+
+
+@app.post('/get-all-input-and-output-data-graph')
+async def input_and_output_basket_data_graph_api():
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    response = await input_and_output_basket_data_graph()
+    #print("input_and_output_basket_data_graph_api: ", response)
+    return response
 
 
 #==============================================

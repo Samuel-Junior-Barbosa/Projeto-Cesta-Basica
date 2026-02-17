@@ -3,3 +3,9 @@ node_modules
 frontend/dist
 *.txt
 *.rar
+*.dia
+*.db
+
+*.pyc
+*.pyd
+*.autosave
