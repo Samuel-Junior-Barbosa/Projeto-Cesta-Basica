@@ -1,7 +1,8 @@
+#!/bin/python3.10
 import sqlite3
 
 class GCBBase:
-    def __init__(self, dbname = "/home/limin/Documentos/gcb_banco.db"):
+    def __init__(self, dbname):
         self.dbname = dbname
         self.banco_de_dados = sqlite3.connect( self.dbname )
         self.placeholder_type = '?'
@@ -25,6 +26,9 @@ class GCBBase:
 
         self.init_db()
 
+
+    def get_connection( self ):
+        return sqlite3.connect( self.dbname)
 
     def init_db(self):
         cursor_do_banco = self.banco_de_dados.cursor()
@@ -477,7 +481,8 @@ class GCBBase:
 
 
         try:
-            cursor_do_banco = self.banco_de_dados.cursor()
+            conn = self.get_connection()
+            cursor_do_banco = conn.cursor()
             if value_list:
                 cursor_do_banco.execute(sql_query, value_list)
 
@@ -488,6 +493,7 @@ class GCBBase:
             #print(" FUNCTION: ", res)
             response["content"] = res
             cursor_do_banco.close()
+            conn.close()
 
             response["status"] = 0
             return response
@@ -513,11 +519,15 @@ class GCBBase:
         sql_query = f"""INSERT INTO {table} ({', '.join([str(column) for column in columns])}) VALUES ({', '.join([ self.placeholder_type for value in range(len(values))]) });"""
         #print(" SQL: ", sql_query)
         try:
-            cursor_do_banco = self.banco_de_dados.cursor()
+            conn = self.get_connection()
+            cursor_do_banco = self.conn.cursor()
             cursor_do_banco.execute(sql_query, values)
-            res = cursor_do_banco.fetchall()
-            self.banco_de_dados.commit()
+            #res = cursor_do_banco.fetchall()
+            conn.commit()
+
             cursor_do_banco.close()
+            conn.close()
+
             #print(" FUNCTION: ", res)
             response["status"] = 0
             response["content"] = True
@@ -571,20 +581,24 @@ class GCBBase:
             
         sql_query = ''
         if column_name and id_value:
-            sql_query = f'UPDATE {table} SET {", ".join([f"{col}=?" for col in columns])} { f"WHERE {column_name}={id_value}" if column_name else ""} '
+            sql_query = f'UPDATE {table} SET {", ".join([f"{col}=?" for col in columns])} { f"WHERE {column_name}={id_value}" if column_name else None}; '
 
         elif conditions:
-            sql_query = f'UPDATE {table} SET {", ".join([f"{col}=?" for col in columns])} WHERE {''.join([condition for condition in conditions])}; '
+            sql_query = f'UPDATE {table} SET {", ".join([f"{col}=?" for col in columns])} WHERE {"".join([condition for condition in conditions])}; '
 
         else:
-            sql_query = f'UPDATE {table} SET {", ".join([f"{col}=?" for col in columns])}'
+            sql_query = f'UPDATE {table} SET {", ".join([f"{col}=?" for col in columns])};'
         
         #print(" ALTER QUERY: ", sql_query)
         try:
-            cursor = self.banco_de_dados.cursor()
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
             cursor.execute(sql_query, values)
             self.banco_de_dados.commit()
+            
             cursor.close()
+            conn.close()
 
             response["status"] = 0
             response["content"] = True
@@ -621,9 +635,13 @@ class GCBBase:
     
 
         delete_query = f"DELETE FROM {table} {condition};"
-        cursor = self.banco_de_dados.cursor()
+        conn = self.get_connection()
+        
+        cursor = conn.cursor()
         cursor.execute( delete_query )
+
         cursor.close()
+        conn.close()
         self.banco_de_dados.commit()
 
         response["status"] = 0
@@ -645,12 +663,19 @@ class GCBBase:
         sql_query = f"SELECT * FROM {table}"
 
         try:
-            cursor_do_banco = self.banco_de_dados.cursor()
+            conn = self.get_connection()
+            
+            cursor_do_banco = conn.cursor()
+
             cursor_do_banco.execute(sql_query)
             res = cursor_do_banco.fetchall()
+            
             #print(" FUNCTION: ", res)
             response["content"] = res
+            
+            
             cursor_do_banco.close()
+            conn.close()
 
             response["status"] = 0
             return response
@@ -671,9 +696,12 @@ class GCBBase:
             table
         ]
         try:
-            cursor = self.banco_de_dados.cursor()
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
             cursor.execute( sql_query, values )
             sequence_response = cursor.fetchall()
+            
             response["status"] = 0
             print("sequence: ", sequence_response, flush=1)
             if sequence_response:
@@ -685,6 +713,7 @@ class GCBBase:
             response['content'] = sequence_response
 
             cursor.close()
+            conn.close()
 
         except Exception as error:
             response["status"] = 90

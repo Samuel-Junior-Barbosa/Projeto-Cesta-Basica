@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 const postFunction = async (url, params = null) => {
 
     let response;
+
     //console.log("POST FUNCTION: URL: ", url, params)
     if( params ) {
         response = await axios.post(url, params)

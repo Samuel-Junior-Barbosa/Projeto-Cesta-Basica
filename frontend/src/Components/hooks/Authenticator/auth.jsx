@@ -23,7 +23,7 @@ export async function authenticator(username, password) {
     //const user = users.find( u => u.username === username && u.password === password);
 
     const users = await authenticator_get_credentials(username, password)
-    //console.log("authenticator: ", users)
+    console.log("authenticator: ", users)
     if( users.status === 0) {
         setCurrentUser(users.content)
         localStorage.setItem("isAuthenticated", "true")

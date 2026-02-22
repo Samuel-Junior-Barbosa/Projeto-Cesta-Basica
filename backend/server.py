@@ -1,18 +1,60 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+
+from pathlib import Path
 from pydantic import BaseModel
 import uvicorn
-import asyncio
-import json
 from fastapi import Depends
 from datetime import date, datetime
 import calendar
+import os
+import sys
+import time
+import threading
 
 
 import db_conection
+import webview
 
-base_de_dados = db_conection.GCBBase()
+
+
+# Detecta se está rodando empacotado
+if getattr(sys, "frozen", False):
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.dirname(__file__)
+
+
+static_path = os.path.join(BASE_DIR, "static")
+
+data_base_address = str( Path(__file__).parent ) + '/db_banco.db'
+
+
+print("static_path: ", data_base_address, flush=1)
+base_de_dados = db_conection.GCBBase( data_base_address )
 
 app = FastAPI()
+
+
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 
 __USER_LOGGED = {
     "username" : "",
@@ -1220,8 +1262,11 @@ async def get_family_list_resolved():
         ON f.id_prioridade= p.id_prioridade;"""
     
     family_data_list = await base_de_dados.query(sql_query)
-    #print(" RESpONSe OF REsoLVING FAmILY DATA: ", family_data_list)
-
+    print(" RESpONSe OF REsoLVING FAmILY DATA: ", family_data_list)
+    if family_data_list['status'] != 0:
+        return family_data_list
+    
+    
     for I in range( len(family_data_list['content']) ):
         #print(" RESPONSE: ", list(family_data_list["content"][I]), flush=1)
         family_data_list['content'][I] = list(family_data_list['content'][I])
@@ -2903,22 +2948,25 @@ async def record_church_withdraw_basket(initial_date = '', end_date = ''):
     ON exit.id_congregacao = ch.id_congregacao
     LEFT JOIN {user_table_name} user
     ON exit.id_usuario = user.id_usuario
-    WHERE
-    '''
+    WHERE exit.tipo_saida = {OUTPUT_TYPE} '''
 
     if initial_date and end_date:
-        sql_query += f" data_saida BETWEEN '{initial_date}' AND '{end_date}' "
+        sql_query += f" AND exit.data_saida BETWEEN '{initial_date}' AND '{end_date}' "
 
     elif initial_date:
-        sql_query += f" data_saida >= '{initial_date}'"
+        sql_query += f" AND exit.data_saida >= '{initial_date}'"
 
     elif end_date:
-        sql_query += f" data_saida <= '{end_date}'"
+        sql_query += f" AND exit.data_saida <= '{end_date}'"
 
-    sql_query += 'exit.tipo_saida = {OUTPUT_TYPE};'
+    sql_query += f' ;'
 
 
     response = await base_de_dados.query( sql_query )
+    print(" RESPONSE: ", response, sql_query)
+    if response['status'] != 0:
+        return response
+    
 
     for i, output in enumerate(response["content"]):
         response["content"][i] = list(response["content"][i])
@@ -2979,7 +3027,9 @@ async def get_all_church_goal_data_graph_api( ):
 
 
     total = goal_completed_count + goal_incompleted_count
-    porcentage = int((goal_completed_count / total) * 100)
+    porcentage = 0
+    if total > 0 and goal_completed_count > 0:
+        porcentage = int((goal_completed_count / total) * 100)
 
     response['status'] = 0
     response['content'] = [goal_completed_count, goal_incompleted_count, porcentage]
@@ -3661,7 +3711,7 @@ async def get_all_input_and_output_basket(initial_date = '', end_date = ''):
     sql_query += f';'
     #print(' SQL QUERY: ', sql_query)
     response = await base_de_dados.query( sql_query )
-    #print(" get_all_input_and_output_basket: ", response)
+    print(" get_all_input_and_output_basket: ", response)
     return response
 
 
@@ -3690,7 +3740,9 @@ async def input_and_output_basket_data_graph():
             output_counts += 1
 
     total = input_counts + output_counts
-    porcentage = int((output_counts / total) * 100)
+    porcentage = 0
+    if total > 0 and porcentage > 0:
+        porcentage = int((output_counts / total) * 100)
 
     response['status'] = 0
     response['content'] = [input_counts, output_counts, porcentage]
@@ -3717,5 +3769,52 @@ async def input_and_output_basket_data_graph_api():
 #===============================================
 
 
+
+
+app.mount(
+    "/assets",
+    StaticFiles(directory=os.path.join(static_path, "assets")),
+    name="assets"
+)
+
+
+@app.get("/")
+async def root():
+    return FileResponse(os.path.join(static_path, "index.html"))
+
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    file_path = os.path.join(static_path, full_path)
+
+    # se for arquivo real, serve ele
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+
+    # senão retorna index.html (SPA)
+    return FileResponse(os.path.join(static_path, "index.html"))
+
+def start_server():
+    uvicorn.run(app, host="127.0.0.1", port=8080)
+
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8080, reload=True)
+
+    start_server()
+
+    '''
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
+
+
+    time.sleep(1.5)
+
+
+    webview.create_window(
+        "Meu Sistema",
+        "http://127.0.0.1:8080"
+        
+    )
+    webview.start(private_mode=False)
+    '''
+    print("Aplicação encerrada")
+

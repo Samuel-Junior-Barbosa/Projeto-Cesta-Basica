@@ -5,7 +5,16 @@ frontend/dist
 *.rar
 *.dia
 *.db
-
 *.pyc
 *.pyd
 *.autosave
+*.toc
+*.pyz
+*.cache
+*.pkg
+*.override
+*.xml
+*.conf
+*.so
+/backend/dist/*
+/backend/build/*

@@ -63,7 +63,11 @@ import ColorSelectorComp from './Components/ColorSelector';
 
 
 const App = () => {
-
+  const storage = window.localStorage ?? {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {}
+  };
   return (
       <div id="app">
 
