@@ -861,6 +861,8 @@ async def get_collection_data_for_graph( initial_date= '', end_date = '' ):
         'content' : []
     }
 
+    
+
     return response
 
 
