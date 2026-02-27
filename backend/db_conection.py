@@ -8,6 +8,8 @@ class GCBBase:
         self.placeholder_type = '?'
         self.church_table_name = 'congregacao'
         self.basket_table_name = 'cesta_basica'
+        self.input_table_name = 'entrada'
+        self.input_item_table_name = 'entrada_item'
         self.family_table_name = 'familia'
         self.history_adjustment_invetory_table_name = "historico_ajuste_produto"
         self.history_register_church_table_name = 'historico_congregacao'
@@ -28,7 +30,7 @@ class GCBBase:
 
 
     def get_connection( self ):
-        return sqlite3.connect( self.dbname)
+        return sqlite3.connect( self.dbname )
 
     def init_db(self):
         cursor_do_banco = self.banco_de_dados.cursor()
@@ -137,9 +139,9 @@ class GCBBase:
             self.banco_de_dados.commit()
 
         # ========================================================
-        if not self.exist_table( self.item_output_table_name ):
+        if not self.exist_table( self.basket_item_table_name ):
             cursor_do_banco.execute(f"""
-                                    CREATE TABLE {self.item_output_table_name} (
+                                    CREATE TABLE {self.basket_item_table_name} (
                                         id_item INTEGER NOT NULL,
                                         id_cesta INTEGER NOT NULL,
                                         quantidade_do_item INTEGER NOT NULL,
@@ -182,6 +184,7 @@ class GCBBase:
                                     )""")
             self.banco_de_dados.commit()
 
+
         # ========================================================
         if not self.exist_table( self.item_output_table_name ):
             cursor_do_banco.execute(f"""
@@ -197,6 +200,48 @@ class GCBBase:
                                     )""")
             self.banco_de_dados.commit()
 
+
+
+
+
+        # ========================================================
+        if not self.exist_table( self.input_table_name ):
+            cursor_do_banco.execute(f"""
+                                    CREATE TABLE {self.input_table_name} (
+                                        id_entrada INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        id_cesta INTEGER,
+                                        id_familia INTEGER,
+                                        id_congregacao INTEGER,
+                                        quantidade_cesta INTEGER NOT NULL,
+                                        data_entrada DATE NOT NULL,
+                                        tipo_entrada INTEGER NOT NULL,
+                                        doacao_fora BOOLEAN,
+                                        id_usuario INTEGER NOT NULL,
+                                        UNIQUE(id_entrada),
+                                        FOREIGN KEY (id_cesta) REFERENCES cesta(id_cesta),
+                                        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+                                        FOREIGN KEY (id_familia) REFERENCES familia(id_familia),
+                                        FOREIGN KEY (id_congregacao) REFERENCES congregacao(id_congregacao)
+                                    )""")
+            self.banco_de_dados.commit()
+
+
+        # ========================================================
+        if not self.exist_table( self.input_item_table_name ):
+            cursor_do_banco.execute(f"""
+                                    CREATE TABLE {self.input_item_table_name} (
+                                        id_entrada INTEGER NOT NULL,
+                                        id_produto INTEGER NOT NULL,
+                                        quantidade INTEGER NOT NULL,
+                                        id_usuario INTEGER NOT NULL,
+                                        FOREIGN KEY (id_entrada) REFERENCES entrada(id_entrada),
+                                        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+                                        FOREIGN KEY (id_produto) REFERENCES produto(id_item)
+                                    )""")
+            self.banco_de_dados.commit()
+
+
+
         # ========================================================
         if not self.exist_table( self.product_table_name ):
             cursor_do_banco.execute(f"""
@@ -205,6 +250,7 @@ class GCBBase:
                                         nome_do_produto TEXT NOT NULL,
                                         marca TEXT,
                                         quantidade_do_item INTEGER NOT NULL,
+                                        peso INTEGE,
                                         status_cadastro BOOLEAN NOT NULL,
                                         id_usuario_responsavel INTEGER,
                                         data_criacao DATE,
@@ -213,6 +259,72 @@ class GCBBase:
                                         FOREIGN KEY (id_usuario_responsavel) REFERENCES usuario(id_usuario)
                                     )""")
             self.banco_de_dados.commit()
+
+            self.banco_de_dados.execute(f"""
+                                    INSERT INTO {self.product_table_name} (
+                                    nome_do_produto,
+                                    marca,
+                                    quantidade_do_item,
+                                    peso,
+                                    status_cadastro,
+                                    id_usuario_responsavel,
+                                    data_criacao,
+                                    ultima_alteracao
+                                    ) VALUES (
+                                    'BOLACHA',
+                                    'GENERICA',
+                                    100,
+                                    0.150,
+                                    'true',
+                                    1,
+                                    '2026-01-01',
+                                    '2026-01-01'                                    
+                                    );""")
+            self.banco_de_dados.commit()
+
+            self.banco_de_dados.execute(f"""
+                                    INSERT INTO {self.product_table_name} (
+                                    nome_do_produto,
+                                    marca,
+                                    quantidade_do_item,
+                                    peso,
+                                    status_cadastro,
+                                    id_usuario_responsavel,
+                                    data_criacao,
+                                    ultima_alteracao
+                                    ) VALUES (
+                                    'MACARRAO',
+                                    'GENERICA',
+                                    50,
+                                    0.150,
+                                    'true',
+                                    1,
+                                    '2026-01-01',
+                                    '2026-01-01'                                    
+                                    );""")
+            self.banco_de_dados.commit()
+            self.banco_de_dados.execute(f"""
+                                    INSERT INTO {self.product_table_name} (
+                                    nome_do_produto,
+                                    marca,
+                                    quantidade_do_item,
+                                    peso,
+                                    status_cadastro,
+                                    id_usuario_responsavel,
+                                    data_criacao,
+                                    ultima_alteracao
+                                    ) VALUES (
+                                    'CAFE',
+                                    'GENERICA',
+                                    20,
+                                    0.500,
+                                    'true',
+                                    1,
+                                    '2026-01-01',
+                                    '2026-01-01'                                    
+                                    );""")
+            self.banco_de_dados.commit()
+
 
         # ========================================================
         if not self.exist_table( self.user_table_name ):
@@ -520,7 +632,7 @@ class GCBBase:
         #print(" SQL: ", sql_query)
         try:
             conn = self.get_connection()
-            cursor_do_banco = self.conn.cursor()
+            cursor_do_banco = conn.cursor()
             cursor_do_banco.execute(sql_query, values)
             #res = cursor_do_banco.fetchall()
             conn.commit()
@@ -595,7 +707,7 @@ class GCBBase:
             cursor = conn.cursor()
 
             cursor.execute(sql_query, values)
-            self.banco_de_dados.commit()
+            conn.commit()
             
             cursor.close()
             conn.close()
@@ -622,6 +734,7 @@ class GCBBase:
             "status" : 90,
             "content" : None
         }
+
         if not table:
             return response
         
@@ -633,22 +746,30 @@ class GCBBase:
         if param:
             condition = f'WHERE {param}'
     
-
         delete_query = f"DELETE FROM {table} {condition};"
-        conn = self.get_connection()
-        
-        cursor = conn.cursor()
-        cursor.execute( delete_query )
 
-        cursor.close()
-        conn.close()
-        self.banco_de_dados.commit()
+        try:
 
-        response["status"] = 0
-        response["content"] = True
+            conn = self.get_connection()
+            
+            cursor = conn.cursor()
+            cursor.execute( delete_query )
 
-        return response
-        
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            response["status"] = 0
+            response["content"] = True
+            #print(delete_query)
+
+            return response
+
+        except Exception as error:
+            response["status"] = 90,
+            response['content'] = error
+
 
     async def getAllData( self, table ):
         response = {

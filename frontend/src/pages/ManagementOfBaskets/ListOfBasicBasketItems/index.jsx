@@ -28,15 +28,22 @@ const ListOfBasicBasketItems = () => {
     const tabelaRef = useRef();
     const [ removingItem, setRemovingItem ] = useState(false)
     const [, forceUpdate] = useReducer(x => x + 1, 0);
+    const location = useLocation();
     const columnList = [
         'ID',
         'PRODUTO',
         'MARCA',
-        'QUANTIDADE'
+        'QUANT. SELECIONADA'
     ]
-    
+    const columnListStock = [
+        'ID',
+        'PRODUTO',
+        'MARCA',
+        'ESTOQUE',
+        'QUANT. SELECIONADA'
+    ]
 
-    const location = useLocation();
+    
 
     const {
         basketName,
@@ -89,7 +96,6 @@ const ListOfBasicBasketItems = () => {
     const handleSetItemSearch = (nameItem) => {
         nameItem = nameItem.toUpperCase()
         setItemSearch(nameItem)
-        //console.log('itemSearch: ', nameItem)
     }
 
     const handleSearchItemInputKey = ( keypressed ) => {
@@ -108,7 +114,7 @@ const ListOfBasicBasketItems = () => {
     }
 
 
-    const handleRemoveItemOnTable = () => {
+    const handleRemoveItemOnTable = async () => {
         if( !tabelaRef.current ) {
             return
         }
@@ -120,16 +126,16 @@ const ListOfBasicBasketItems = () => {
         }
 
         let removeItens = tabelaRef.current.listarItensSelecionados()
-        //tabelaRef.current.removerItensSelecionados()
-        
 
         for( let i = 0; i < removeItens.length; i ++ ) {
             let tmp_item = Object.values(removeItens[i])
-            console.log(" REMOVING ITEM: ", tmp_item, basketId)
-            removeItemOfBasketModel(basketId, tmp_item[0])
+            //console.log(" REMOVING ITEM: ", tmp_item, basketId)
+            await removeItemOfBasketModel(basketId, tmp_item[0])
         }
 
-        get_basket_items()
+        setTimeout(() => {
+            get_basket_items()
+        }, 100)
 
     }
 
@@ -142,18 +148,18 @@ const ListOfBasicBasketItems = () => {
             goToPage('/cestas-basicas')
         }
         //let basketData = {};
-        console.log(" basketItemList: ", basketItemList)
-        console.log(" basketItemsForAdd: ", basketItemsForAdd)
+        //console.log(" basketItemList: ", basketItemList)
+        //console.log(" basketItemsForAdd: ", basketItemsForAdd)
         if( !basketId ) {
             alert(" Nenhuma Cesta selecionada.")
             return 
         }
         let listOfItens = await tabelaRef.current.retornarDadosDeLinhasDaTabela()
-        console.log(" LINHAS DA TABELA: ", listOfItens)
+        //console.log(" LINHAS DA TABELA: ", listOfItens)
 
 
         for( let i = 0; i < basketItemList.length; i ++ ) {
-            console.log(" DELETEING: ", i,  ' - ', basketId, basketItemList[i][0])
+            //console.log(" DELETEING: ", i,  ' - ', basketId, basketItemList[i][0])
             removeItemOfBasketModel( basketId, basketItemList[i][0])
         }
 
@@ -165,13 +171,30 @@ const ListOfBasicBasketItems = () => {
                 productQuantity : Number(listOfItens[i][3])
             }
 
-            console.log(" basketDATA index: ", basketData)
+            //console.log(" basketDATA index: ", basketData)
             registerItemOnBasketModelFunction( basketData )
         }
 
         goToPage('/cestas-basicas')
         
     }
+
+    const handleGetStockItem = async () => {
+        const response = await get_stock_itens()
+        if( response.status != 0 ) {
+            return response
+        }
+        let tmp_response = response
+        for( let i = 0; i < tmp_response.content.length; i ++ ) {
+            tmp_response.content[i].push(1)
+        }
+
+        //console.log(" HANDLE GET STOCK RETURNING: ", tmp_response)
+
+        return tmp_response
+
+
+    }  
 
     const get_basket_items = async () => {
         const response = await getBasketItemsList( basketId )
@@ -193,30 +216,26 @@ const ListOfBasicBasketItems = () => {
     }, [basketName])
 
 
-    useLayoutEffect(() => {
-        console.log(" addItemCOntent: ", addItemContent, Object.keys(addItemContent).length )
+    useEffect(() => {
+        //console.log(" addItemCOntent: ", addItemContent, Object.keys(addItemContent).length )
         if( addItemContent && Object.keys(addItemContent).length > 0) {
             
             let basketData = {
-                "productId" : addItemContent[0],
+                "idProduct" : addItemContent[0],
                 "productName" : addItemContent[1],
-                "productQuantity" : Number(addItemContent[3]),
+                "productQuantity" : Number(addItemContent[4]),
                 "idBasket" : basketId
             }
 
-            //setBasketItemList ( prevItens => [ ...prevItens,  basketData ])
-            //setBasketItemForAdd( prevItens => [ ...prevItens,  basketData ])
 
+            //console.log(" BASKET INFO: ", basketData)
             registerItemOnBasketModelFunction(basketData)
-
-            //setBasketItemList ( tmp_list )
-            //setBasketItemForAdd( tmp_list )
-            //console.log(" basketData: ", tmp_list)
-            //console.log(" basketItems: ", basketItemList)
-            
-            //registerItemOnBasketModelFunction( basketData )
             setAddItemContent([])
-            get_basket_items()
+
+            setTimeout(() => {
+                get_basket_items()
+            }, 100)
+            
 
 
         }
@@ -225,7 +244,11 @@ const ListOfBasicBasketItems = () => {
     useEffect(() => {
         if( Array.isArray(basketItemList) ) {
             if( basketItemList.length === 0 ) {
-                get_basket_items()
+                //get_basket_items()
+                setTimeout(() => {
+                    get_basket_items()
+                }, 10)
+
             }
         }
     }, [])
@@ -255,24 +278,33 @@ const ListOfBasicBasketItems = () => {
 
                 />
             </div>
-            {(addingItemOnList === true ) && (
-                <AddItemLookupList
-                    controlIframe={setAddingItemOnList}
-                    titleName={"Escolha o item a ser adicionado no modelo"}
-                    dataContent={ setAddItemContent }
-                    queryFunction={ get_stock_itens }
-                    quantityItemSelection={1}
-                    editableColumn={[3]}
-                /> )
+            {addingItemOnList === true && (
+                    <AddItemLookupList
+                        controlIframe={ setAddingItemOnList }
+                        titleName={ "Escolha o item a ser adicionado no modelo" }
+                        columnList={ columnListStock }
+                        dataContent={ setAddItemContent }
+                        queryFunction={ handleGetStockItem }
+                        quantityItemSelection={ 1 }
+                        inputColumn={ [4] }
+                        contentColumnList = {{
+                            'quantidade' : 4,
+                            'estoque' : 3
+                        }}
+                    />
+                )
             }
             <div className={styles.divTabelaMeta}>
                 
                 <TabelaListaDeProdutos
-                    ref={tabelaRef}
-                    listaDeItens={basketItemList}
-                    nameClass={styles.tabelaCestas}
-                    editableCel={[3]}
+                    ref={ tabelaRef }
+                    listaDeItens={ basketItemList }
+                    nameClass={ styles.tabelaCestas }
+                    inputColumn={ [4] }
                     columnList= { columnList }
+                    contentColumnList = {{
+                        'quantidade' : 4
+                    }}
                 />
 
             </div>

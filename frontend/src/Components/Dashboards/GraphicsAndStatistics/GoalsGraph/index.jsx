@@ -12,13 +12,15 @@ ChartJS.register(CategoryScale, ArcElement, Title, LinearScale, Tooltip, Legend)
 
 const GoalsGraph = () => {
 
+  const label = ['Completas', 'Não Completas']
   const [ porcentage, setPorcentage ] = useState(0)
-  const [ dataGoalsCount, setDataGoalsCount ] = useState([])
-  const labels = ['Completas', 'Não Completas']
+  const [ titleLabels, setTitleLabels ] = useState(['NENHUMA INFORMAÇÃO ENCONTRADA', ''])
+  const [ dataGoalsCount, setDataGoalsCount ] = useState([1])
+  const [ dataLoaded, setDataLoaded ] = useState(false)
 
 
   let dataGraph = {
-    labels: labels,
+    labels: titleLabels,
     datasets: [
       {
         label: ['Meta(s)'],
@@ -57,28 +59,35 @@ const GoalsGraph = () => {
 
   const reciveDataGoals = async () => {
     let response = await GetAllDataChurchGoalForGraphApi()
-
+    //console.log(' GOAL DATA GRAPH: ', response)
     if( response.status != 0) {
       alert('Ocorreu um erro ao obter lista de METAS para o dashboard')
       return
     }
-    //console.log(' GOAL DATA GRAPH: ', response)
+    
     let goalList = response['content']
     let tmpData = [goalList[0], goalList[1]]
+    
+    setTitleLabels( label )
 
     setDataGoalsCount( tmpData )
     setPorcentage(  goalList[2] );
-
+    
     return tmpData
   }
 
 
   useEffect(() => {
-    if( dataGraph.datasets[0].data.length > 0 ) {
+    /*if( dataGraph.datasets[0].data.length > 0 ) {
+      return
+    }*/
+    if( dataLoaded ) {
       return
     }
 
+    setDataLoaded(true)
     reciveDataGoals();
+    
     
   }, [])
 

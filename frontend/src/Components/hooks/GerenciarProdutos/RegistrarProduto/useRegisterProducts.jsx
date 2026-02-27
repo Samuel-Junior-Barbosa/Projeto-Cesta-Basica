@@ -8,13 +8,13 @@ export function useRegisterProducts() {
     const [RegisterProductLoading, setLoading] = useState(false);
     const [RegisterProductMessage, setMessage] = useState(null);
     
-    const handleRegisterProduct = async (idProduct, productName, marchName, quantity) => {
+    const handleRegisterProduct = async (idProduct, productName, marchName, quantity, productWeight) => {
         setLoading(true);
         setMessage(null);
         let message = ''
 
         try {
-            const response = await RegisterProductOnStock(idProduct, productName, marchName, quantity);
+            const response = await RegisterProductOnStock(idProduct, productName, marchName, quantity, productWeight);
             if (response.status === 0) {
                 message = 'Registrado com sucesso.'
             }

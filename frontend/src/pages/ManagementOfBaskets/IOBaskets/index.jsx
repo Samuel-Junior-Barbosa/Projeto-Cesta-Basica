@@ -30,6 +30,7 @@ import getBasketItemsList from '../../../Functions/Basket/GetBasketItems';
 import OutputBasketFunction from '../../../Functions/IOBasket/OutputBasket';
 import inventoryAdjustment from '../../../Functions/Stock/InvetoryAdjustment';
 import getFamilyData from '../../../Functions/Family/getFamilyData';
+import InputItemOnStock from '../../../Functions/Stock/InputItemOnStock';
 
 const IOBaskets = () => {
     const tabelaRef = useRef();
@@ -74,8 +75,8 @@ const IOBaskets = () => {
         "ID",
         "Nome do produto",
         "Marca",
-        "Quant. Selecionada",
-        "ESTOQUE"
+        "ESTOQUE",
+        "Quant. Selecionada"
     ]
 
     const columnListFamily = [
@@ -120,8 +121,8 @@ const IOBaskets = () => {
     ]
 
     const columnListContent = {
-        "quantidade" : 3,
-        "estoque" : 4
+        "quantidade" : 4,
+        "estoque" : 3
     }
     
 
@@ -131,11 +132,16 @@ const IOBaskets = () => {
     const [ inputQuantityPerItem, setInputQuantityPerItem ] = useState('');
     const [ inputBasketWithdrawQuantity, setIinputBasketWithdrawQuantity ] = useState('');
     const [ donorsName, setDonorsName ] = useState('');
+    const [ congregationId, setCongregationId ] = useState(0)
     const [ congregationName, setCongregationName ] = useState('');
     const [ inputAddress, setInputAddress ] = useState('');
     const [ observationInput, setObservationInput ] = useState('');
     const [ whoRecivedBasicBasketFood, setWhoRecivedBasicBasketFood ] = useState('');
     const [ familyRepresentative, setFamilyRepresentative ] = useState('');
+    const [ familyId, setFamilyId ] = useState(0);
+    const [ idBasket, setIdBasket ] = useState(0)
+
+    
 
     const [ showChurchListWindows, setShowChurchListWindows ] = useState(false);
     const [ showBasketHistoryItemListWindow, setShowBasketHistoryItemListWindow ] = useState(false);
@@ -286,9 +292,22 @@ const IOBaskets = () => {
             return
         }
 
+        let tmpDonation = 0
+        if( donationFromOutside ) {
+            tmpDonation = 1
+        }
+
+        let tmpListProduct = []
+        for( let i = 0; i < itensSelecionados.length; i ++ ){
+            tmpListProduct.push([itensSelecionados[i][0], itensSelecionados[i][4]])
+        }
+        InputItemOnStock(idBasket, familyId, congregationId, 0, 1, tmpDonation, tmpListProduct)
+
+        /*
         for( let i = 0; i < itensSelecionados.length; i ++ ) {
             inventoryAdjustment(itensSelecionados[i][0], 1, itensSelecionados[i][3], observationInput)
         }
+            */
 
         alert("Itens adicionados com sucesso")
         setItensSelecionados([])
@@ -319,6 +338,7 @@ const IOBaskets = () => {
             const response = await get_stock_itens()
             for(let i = 0; i < response.content.length; i ++ ) {
                 response.content[i][4] = response.content[i][3]
+                
             }
             return response
         }
@@ -696,6 +716,7 @@ const IOBaskets = () => {
         }
 
         handleSelectItensOnTable(modelBasketData)
+        setIdBasket(modelBasketData[0])
     }, [modelBasketData])
 
 
@@ -733,6 +754,7 @@ const IOBaskets = () => {
             return
         }
 
+        setCongregationId(iframeContent[0])
         setCongregationName(iframeContent[1])
         
         const address = `${iframeContent[6]}, ${iframeContent[7]}, ${iframeContent[5]} - ${iframeContent[4]} `
@@ -809,12 +831,13 @@ const IOBaskets = () => {
         
 
         let tmpL = listItemSelected
-        tmpL[4] = listItemSelected[3]
+        //tmpL[4] = listItemSelected[3]
+        tmpL[4] = 1
         //console.log(" listItemSelected: ", listItemSelected)
         setListItemSelected(tmpL)
 
         setItensSelecionados([...itensSelecionados, listItemSelected])
-        console.log(" ITENS SELECIONADOS: ", [...itensSelecionados, listItemSelected])
+        //console.log(" ITENS SELECIONADOS: ", [...itensSelecionados, listItemSelected])
         
     }, [listItemSelected])
 
@@ -833,8 +856,9 @@ const IOBaskets = () => {
         if( !familySelected.length ) {
             return
         }
+        setFamilyId( familySelected[0] )
         setFamilyRepresentative( familySelected[1])
-        console.log("familySelected: ", familySelected, familyRepresentative)
+        //console.log("familySelected: ", familySelected, familyRepresentative)
 
     }, [familySelected])
 
@@ -1019,7 +1043,7 @@ const IOBaskets = () => {
                                         ref={tabelaRef}
                                         nameClass={styles.listProductsTable}
                                         listaDeItens= { itensSelecionados }
-                                        limitarMaxNumber={[3]}
+                                        limitarMaxNumber={[4]}
                                         columnList={columnList}
                                         contentColumnList={
                                             columnListContent
@@ -1168,7 +1192,7 @@ const IOBaskets = () => {
                                             nameClass={styles.listProductsTable}
                                             listaDeItens= { itensSelecionados }
                                             columnList={columnList}
-                                            inputColumn={[3]}
+                                            inputColumn={[4]}
                                             contentColumnList = {
                                                 columnListContent
                                             }
@@ -1182,7 +1206,7 @@ const IOBaskets = () => {
                                     </div>
                                 </>
                             
-                            }
+                            
                         </div>
                     )
                 }

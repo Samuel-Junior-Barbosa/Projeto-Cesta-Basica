@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import styles from './TabelaCadastroDeItens.module.css'
 
 
-const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, fontSize}) => {
+const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, contentColumnList, inputColumn, fontSize}) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -86,7 +86,7 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
         for(let I = 0; I < listLinesChecked.length; I ++ ) {
             copyChecekdList[I]['checked'] = false
         }
-        console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
+        //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
         setCheckedList(copyChecekdList)
         setCheckBoxAll(false)
 
@@ -171,6 +171,34 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
     }, [columnsTemplate]);
 
     const retornarLinhasDaTabela = async () => {
+        let classN = `${styles.ListaDeProdutosCadastrados} ${nameClass}`;
+        let tableClass = classN.replaceAll(' ', '.')
+        let tBody = window.document.querySelector(`.${tableClass} > tbody`)
+        //let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > tr`)
+        //let childList = []
+
+        //console.log(' ( retornarLinhas ) tBody: ', tBody)
+        //console.log(' ( retornarLinhas ) tBody.length: ', tBody.childNodes.length)
+        //console.log(' ( retornarLinhas ) tBody.child: ', tBody.childNodes)
+        if( !tBody && !Array.isArray(tBody.childNodes) ) {
+            //console.log("RETURNING not array or not object valid")
+            return null;
+        }
+        else if ( !tBody.childNodes ) {
+            //console.log("RETURNING without childnodes")
+            return null
+        }
+
+        else if ( tBody.childNodes.length  === 0 ) {
+            //console.log("RETURNING length invalid")
+            return null
+        }
+
+        return tBody.childNodes;
+    }
+
+    /*
+    const retornarLinhasDaTabelaOld = async () => {
         let classN = `${styles.ListaDeItensCadastrados} ${nameClass}`;
         let tableClass = classN.replaceAll(' ', '.')
         let tBody = window.document.querySelectorAll(`.${tableClass} > tbody > td`)
@@ -190,6 +218,7 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
         }
         return childList;
     }
+    */
 
     const getCurrentItens = useCallback(() => {
         return itens
@@ -281,6 +310,70 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
         }
 
     }, [])
+
+
+    const handleContentChange = async(lineIndex, columnIndex, value) => {
+        //console.log(" HANDLE CONTENT: ", lineIndex, columnIndex, value)
+        listaDeCadastros[lineIndex][columnIndex] = value
+        //console.log("HANDLE CONTENT: ", listaDeItens[lineIndex][columnIndex])
+
+    }
+
+
+    const getLineIndexByIdProduct = (id) => {
+
+        let copylist = getCheckedList()
+
+        id = String( id )
+        let currentIndex = -1
+
+
+        for( let i = 0; i < copylist.length; i++ ) {
+            if( copylist[i].id === id ) {
+                currentIndex = i
+                break
+            }
+        }
+
+        return currentIndex
+    }
+
+
+    const handleChangeCheckInputLine = async (index, colunaContentName, comp) => {
+        //console.log(comp)
+        let tmp_index = getLineIndexByIdProduct(index)
+        //console.log(" TMP_INDEX: ", tmp_index)
+        //console.log(" listaDeItens: ", listaDeCadastros)
+        //console.log(" ITENS: ", itens)
+        let lines = await retornarLinhasDaTabela()
+        //console.log(" LINES: ", lines)
+        if( !lines ) {
+            return
+        }
+        for(let i = 0; i < lines.length; i ++ ) {
+            //console.log( "LINE1: ", lines[i], contentColumnList)
+            if( i == tmp_index && contentColumnList ) {
+                //console.log( "LINE2: ", lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].value, lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].childNodes[0].value)
+                if( !lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].value ) {
+                    lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].childNodes[0].value = String( comp )
+                    listaDeCadastros[i][ contentColumnList[ colunaContentName ] ] = String( comp )
+                    itens[i][ contentColumnList[ colunaContentName ]  ] = String( comp )
+                    //console.log(" TMP ITENS: ", listaDeItens[i], itens[i])
+                    //  console.log( "LINE3: ", contentColumnList, comp)
+
+                }
+
+                else {
+                    lines[i].childNodes[ contentColumnList[ colunaContentName ] ].value = comp
+                }
+                
+                
+            }
+        }
+        
+
+
+    }
 
     const handleChangeInputQuantity = useCallback((key) => {
         const inputQuantity = key.target
@@ -568,20 +661,57 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
                                                         <label
                                                             contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
                                                             suppressContentEditableWarning={true}
+                                                            onInput={(e) =>(
+                                                                handleChangeCheckInputLine(index, index2, e.target.textContent)
+                                                            )}
                                                             >
 
                                                                 {item[item2]}
                                                         </label>
                                                      )
                                         ) : (
+                                        (inputColumn ? (
+                                            inputColumn.includes(index2) ? (
+                                                <input 
+                                                    type={'number'}
+                                                    min={'0'} 
+                                                    value={ item[ contentColumnList['quantidade']] ?  item[ contentColumnList['quantidade']] : "0" }
+                                                    className={styles.inputTableEditable}
+                                                    onChange={(e) => {
+                                                        handleChangeCheckInputLine(item[0], 'quantidade', e.target.value)
+                                                    }}
+                                                    key={index}
+                                                    id={`IQ_${index}`}
+                                                    
+                                                />
+                                            ) : (
+                                                <label
+                                                    contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
+                                                    suppressContentEditableWarning={true}
+                                                    onInput={(e) =>(
+                                                        handleContentChange(index, index2, e.target.textContent)
+                                                    )}
+                                                >
+
+                                                    {item[item2]}
+                                                    
+                                                </label>
+                                            )
+                                        ) : (
                                             <label
                                                 contentEditable={ editableColumnIndex && (editableColumnIndex.includes(index2) ? 'true' : 'false' )}
                                                 suppressContentEditableWarning={true}
+                                                onInput={(e) =>(
+                                                    handleContentChange(index, index2, e.target.textContent)
+                                                )}
                                             >
+
                                                 {item[item2]}
                                                 
                                             </label>
-                                        )}
+                                        ))
+
+                                    )}
                                     </td>
                                 ))}
                                     

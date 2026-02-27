@@ -42,8 +42,12 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:5173/*",
+    "http://127.0.0.1:5173/*",
     "http://localhost:8080",
     "http://127.0.0.1:8080",
+    "http://localhost:8080/*",
+    "http://127.0.0.1:8080/*",
 ]
 
 app.add_middleware(
@@ -323,7 +327,7 @@ async def record_register_product(id_product, quantity, id_user):
     return response
 
 
-async def register_product_on_stock(id_product = 0, product_name = '', march_name = '', quantity = '', id_user = None):
+async def register_product_on_stock(id_product = 0, product_name = '', march_name = '', quantity = '', product_weight = 0, id_user = None):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -374,6 +378,7 @@ async def register_product_on_stock(id_product = 0, product_name = '', march_nam
         'nome_do_produto',
         'marca',
         'quantidade_do_item',
+        'peso',
         'status_cadastro',
         'id_usuario_responsavel',
         'data_criacao',
@@ -385,6 +390,7 @@ async def register_product_on_stock(id_product = 0, product_name = '', march_nam
         product_name,
         march_name,
         quantity,
+        product_weight,
         True,
         id_user,
         date.today(),
@@ -396,6 +402,7 @@ async def register_product_on_stock(id_product = 0, product_name = '', march_nam
         #value_list.pop(0)
     #print(" REGISTRANDO PRODUTO: ", value_list)
     response = await base_de_dados.insert("produto", column_list, value_list)
+    #print(" REGISTER PRODUCT RESPONSE: ", response)
     if response['status'] == 0:
         response = await record_register_product(id_product, quantity, id_user)
         if response['status'] != 0:
@@ -419,6 +426,9 @@ async def register_product_on_stock_api(data : dict):
     product_name = data["productName"]
     march_name = data["marchName"]
     quantity = data["quantity"]
+    product_weight = data['productWeight']
+
+
     try:
         id_product = int(id_product)
 
@@ -426,7 +436,7 @@ async def register_product_on_stock_api(data : dict):
         id_product = 0
 
     #print(" OLD ID_PRODUTO: ", id_product)
-    response = await register_product_on_stock(id_product, product_name, march_name, quantity)
+    response = await register_product_on_stock(id_product, product_name, march_name, quantity, product_weight)
 
     #print(" RESPONSE REGISTRATION: ", response)
     return response
@@ -540,7 +550,7 @@ async def alter_product_on_stock( data : dict ):
         alter_data
     ]
 
-    await base_de_dados.alter(table=base_de_dados.product_table_name, columns=column_list, values=value_list, id_column='id_item', id_value= id_product)
+    await base_de_dados.alter(table=base_de_dados.product_table_name, columns=column_list, values=value_list, column_name='id_item', id_value= id_product)
 
     return response
 
@@ -658,17 +668,18 @@ async def inventory_adjustment( id_product, type_of_adjustment, adjust_value, id
         new_quantity = old_quantity + adjust_value 
 
         value_list.append(  new_quantity )
-        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, id_column='id_item', id_value=id_product)
+        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, column_name='id_item', id_value=id_product)
 
-    if type_of_adjustment == OUTPUT_TYPE:
+
+    elif type_of_adjustment == OUTPUT_TYPE:
         new_quantity = old_quantity - adjust_value
         value_list.append( new_quantity ) 
-        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, id_column='id_item', id_value=id_product)
+        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, column_name='id_item', id_value=id_product)
 
 
-    if type_of_adjustment == ADJUST_TYPE:
+    elif type_of_adjustment == ADJUST_TYPE:
         value_list.append(adjust_value)
-        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, id_column='id_item', id_value=id_product)
+        response = await base_de_dados.alter( base_de_dados.product_table_name, column_list, value_list, column_name='id_item', id_value=id_product)
 
 
 
@@ -712,6 +723,102 @@ async def inventory_adjustment_api( data : dict ):
     response = await inventory_adjustment(id_product, type_of_adjustment, new_quantity, id_user, observation = observation)
 
     return response
+
+
+
+async def input_item_on_stock( id_basket, id_family, id_church, basket_quantity, type_of_input, donation_from_outside, list_product, id_user):
+    response = {
+        'status' : 90,
+        'content' : None
+    }
+
+    current_data = str(date.today())
+
+    last_id_input = await base_de_dados.getSequence('entrada')
+    last_id_input = int(last_id_input['content']) + 1
+    #print(" LAST ID: ", last_id_input)
+    #print(" current_data: ", current_data)
+    input_table_name = base_de_dados.input_table_name
+    input_item_table_name = base_de_dados.input_item_table_name
+
+    column_list = [
+        'id_entrada',
+        'id_cesta',
+        'id_familia',
+        'id_congregacao',
+        'quantidade_cesta',
+        'data_entrada',
+        'tipo_entrada',
+        'doacao_fora',
+        'id_usuario'
+    ]
+
+    value_list = [
+        last_id_input,
+        id_basket,
+        id_family,
+        id_church,
+        basket_quantity,
+        current_data,
+        type_of_input,
+        donation_from_outside,
+        id_user
+    ]
+
+    response = await base_de_dados.insert( input_table_name, column_list, value_list)
+    #if response['status'] == 0:
+        
+
+    column_list_item = [
+        'id_entrada',
+        'id_usuario',
+        'id_produto',
+        'quantidade'
+    ]
+
+    for item in list_product:
+        id_product = item[0]
+        product_quantity = item[1]
+        value_list_item = [
+            last_id_input,
+            id_user,
+            id_product,
+            product_quantity
+
+        ]
+
+        response = await base_de_dados.insert( input_item_table_name, column_list_item, value_list_item)
+        if response['status'] == 0:
+            await inventory_adjustment(id_product, type_of_input, product_quantity, id_user)
+
+    return response
+
+
+@app.post('/input-item-on-stock')
+async def input_item_on_stock_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    #print(" DATA: ", data)
+
+    id_basket = data['idBasket']
+    id_family = data['idFamily']
+    id_church = data['idChurch']
+    basket_quantity = data['basketQuantity']
+    type_of_input = data['typeOfInput']
+    donation_from_outside = data['donationFromOutside']
+    list_product = data['listProduct']
+
+    id_user = __USER_LOGGED["id_user"]
+
+    response = await input_item_on_stock( id_basket, id_family, id_church, basket_quantity, type_of_input, donation_from_outside, list_product, id_user)
+
+
+    return response
+
+
 
 async def record_inventory_adjustment_history( id_product, type_of_adjustment, old_quantity, adjust_value, new_quantity, id_user = None):
     response = {
@@ -897,7 +1004,13 @@ async def register_item_issue():
 #= Stock - Graph Function
 #===============================================
 
-async def get_collection_data_for_graph( initial_date= '', end_date = '' ):
+
+
+
+
+
+async def get_collection_report( initial_date= '', end_date='' ):
+
     response = {
         'status' : 90,
         'content' : []
@@ -905,6 +1018,165 @@ async def get_collection_data_for_graph( initial_date= '', end_date = '' ):
 
     
 
+    output_table_name = base_de_dados.output_table_name
+    output_item_table_name = base_de_dados.item_output_table_name
+    church_table_name = base_de_dados.church_table_name
+    product_table_name = base_de_dados.product_table_name
+
+    sql_query= f'''
+SELECT 
+    church.id_congregacao,
+    church.nome,
+    SUM(exit.quantidade_cesta) AS 'total de cestas',
+    SUM(si.quantidade * p.peso) AS peso_total
+FROM {output_table_name} exit
+LEFT JOIN {church_table_name} church
+ON exit.id_congregacao = church.id_congregacao
+LEFT JOIN {output_item_table_name} si
+ON exit.id_saida = si.id_saida
+LEFT JOIN {product_table_name} p
+ON p.id_item = si.id_produto
+WHERE ( exit.tipo_saida = {INPUT_TYPE} )
+
+    '''
+
+    if initial_date and end_date:
+        sql_query += f" AND exit.data_saida BETWEEN '{initial_date}' AND '{end_date}' "
+
+
+    elif initial_date:
+        sql_query = f" AND exit.data_saida > '{initial_date}' "
+        
+
+    elif end_date:
+        sql_query = f" AND exit.data_saida > '{end_date}' "
+
+
+
+    sql_query += ''' GROUP BY
+	church.id_congregacao,
+    church.nome; '''
+
+    response = await base_de_dados.query(sql_query)
+
+
+    return response
+
+
+@app.post('/get-collection-report')
+async def get_collection_report_api( data : dict):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    initial_date = data['initialDate']
+    end_date = data['endDate']
+
+    response = await get_collection_report(initial_date, end_date)
+    
+
+    return response
+
+
+
+async def get_collection_report_data_for_dashboard(initial_date='', end_date=''):
+    
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    
+
+    output_table_name = base_de_dados.output_table_name
+    output_item_table_name = base_de_dados.item_output_table_name
+    church_table_name = base_de_dados.church_table_name
+    product_table_name = base_de_dados.product_table_name
+
+    sql_query= f'''
+SELECT 
+    SUM(si.quantidade * p.peso) AS peso_total
+FROM {output_table_name} exit
+LEFT JOIN {church_table_name} church
+ON exit.id_congregacao = church.id_congregacao
+LEFT JOIN {output_item_table_name} si
+ON exit.id_saida = si.id_saida
+LEFT JOIN {product_table_name} p
+ON p.id_item = si.id_produto
+WHERE ( exit.tipo_saida = {INPUT_TYPE} )
+
+    '''
+
+    if initial_date and end_date:
+        sql_query += f" AND exit.data_saida BETWEEN '{initial_date}' AND '{end_date}' "
+
+
+    elif initial_date:
+        sql_query = f" AND exit.data_saida > '{initial_date}' "
+        
+
+    elif end_date:
+        sql_query = f" AND exit.data_saida > '{end_date}' "
+
+
+
+    sql_query += ''' GROUP BY
+	church.id_congregacao,
+    church.nome; '''
+
+    response = await base_de_dados.query(sql_query)
+
+
+    return response
+
+
+async def get_collection_data_for_graph( ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    current_year = date.today().year
+    current_month = int(str(date.today().month))
+    current_month = f'0{current_month}' if int(current_month) < 10 else current_month
+    
+    #print(f"current date: YEAR: {current_year} -- MONTH: {current_month}")
+    months = [f'0{month}' if month < 10 else month for month in range(1, int(current_month)+1)]
+    last_days = [calendar.monthrange(current_year, month)[1] for month in range(1, int(current_month)+1)]
+
+    #print( 'months -- last_days: ', months, last_days, flush=1)
+
+    
+
+    collection_count_month = []
+    for i in range(len(months)):
+        query_data = {}
+        date_initial = f'{current_year}-{months[i]}-01'
+        date_finaly = f'{current_year}-{months[i]}-{last_days[i]}'
+        print(" SEARCH FOR DATA: ", date_initial, date_finaly, flush=1)
+        query_data = await get_collection_report(date_initial, date_finaly)
+
+        if query_data['status'] != 0:
+            return query_data
+        
+        
+
+        collection_count = 0
+        #print(" DATA FOUND: ", query_data, flush=1)
+        for data in query_data['content']:
+            
+            if data[3]:
+                collection_count += float(data[3])
+
+        #print(f" MONTH: {months[i]} - F: ", family_helped_count, query_data)
+        collection_count_month.append(collection_count)
+    
+    response['status'] = 0
+    response['content'] = collection_count_month
+
+
+    print("collection_count_month: ", collection_count_month)
     return response
 
 
@@ -917,10 +1189,55 @@ async def get_collection_data_for_graph_api( data : dict ):
     initial_date = data['initialDate']
     end_date = data['endDate']
 
-    response = await get_collection_data_for_graph( initial_date, end_date)
+    response = await get_collection_data_for_graph()
 
     return response
 
+
+async def get_collection_report_for_circle_graph( initial_date='', end_date=''):
+    response = {
+        'status' : 90,
+        'content' : None
+    }
+
+    current_year = date.today().year
+    current_month = int(str(date.today().month))
+    last_days = [calendar.monthrange(current_year, current_month)]
+    current_month = f'0{current_month}' if int(current_month) < 10 else str(current_month)
+
+    current_day = date.today().today
+
+    
+
+    if not initial_date and not end_date:
+        initial_date = f'{current_year}-{current_month}-01'
+        end_date = f'{current_year}-{current_month}-{last_days}'
+
+    elif not initial_date:
+        initial_date = f'{current_year}-{current_month}-01'
+
+    elif not end_date:
+        end_date = f'{current_year}-{current_month}-{last_days}'
+
+
+    response = await get_collection_report(initial_date, end_date)
+
+    return response
+
+
+@app.post('/get-collection-report-for-circle-graph-api')
+async def get_collection_report_for_circle_graph_api( data : dict ):
+    response = {
+        'status' : 90,
+        'content' : None
+    }
+
+    initial_date = data['initialDate']
+    end_date = data['endDate']
+
+    response = await get_collection_report_for_circle_graph(initial_date, end_date)
+
+    return response
 
 
 #==============================================
@@ -3244,10 +3561,15 @@ async def remove_item_from_basket_model( idBasket, idProduct ):
         "status" : 90,
         "content" : None
     }
-    param = f'id_item = {idProduct} and id_cesta= {idBasket}'
+    idProduct = int(idProduct)
+    idBasket = int(idBasket)
 
-    response = await base_de_dados.delete(base_de_dados.basket_item_table_name, param)
+    param = f'id_item= {idProduct} AND id_cesta= {idBasket} '
+    table_name = base_de_dados.basket_item_table_name
 
+
+    response = await base_de_dados.delete(table_name, param)
+    #print(" DELETING ITEM OF BASKET MODEL RESPONSE: ", response)
     return response
 
 
@@ -3435,8 +3757,7 @@ async def get_backet_items_list( data : GetBasketModelItemList = Depends() ):
             icb.id_item,
             produto.nome_do_produto,
             produto.marca,
-            icb.quantidade_do_item,
-            produto.quantidade_do_item
+            icb.quantidade_do_item
         FROM item_cesta_basica AS icb
         LEFT JOIN produto ON
             icb.id_item = produto.id_item
@@ -3764,6 +4085,11 @@ async def input_and_output_basket_data_graph_api():
     return response
 
 
+
+
+
+
+
 #==============================================
 #=
 #===============================================
@@ -3795,11 +4121,12 @@ async def serve_spa(full_path: str):
     return FileResponse(os.path.join(static_path, "index.html"))
 
 def start_server():
-    uvicorn.run(app, host="127.0.0.1", port=8080)
+    #uvicorn.run(app, host="127.0.0.1", port=8080)
+    uvicorn.run('server:app', host="127.0.0.1", port=8080, reload=True)
 
 if __name__ == "__main__":
 
-    start_server()
+    start_server()    
 
     '''
     server_thread = threading.Thread(target=start_server, daemon=True)

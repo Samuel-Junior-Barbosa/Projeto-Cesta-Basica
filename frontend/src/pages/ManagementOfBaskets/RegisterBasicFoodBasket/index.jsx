@@ -25,7 +25,8 @@ const RegisterBasicFoodBasket = () => {
         'ID',
         'NOME DO PRODUTO',
         'MARCA',
-        'ESTOQUE'
+        'ESTOQUE',
+        'QUANT. SELECIONADA'
     ]
     
     const [ listarItensSelecionados, setListarItensSelecionados ] = useState(() => () => {});
@@ -43,6 +44,9 @@ const RegisterBasicFoodBasket = () => {
     const reciveItemData = async () => {
 
         const data = await GetStockItens()
+        for( let i = 0; i < data.content.length; i ++ ) {
+            data.content[i].push(1)
+        }
         return data;
     }
     
@@ -72,10 +76,10 @@ const RegisterBasicFoodBasket = () => {
             //productsOfBasket: listaDeProdutos,
         }
 
-        let itemList = []
-        const getBody = tabelaRef.current.getTableBody();
+        //let itemList = tabelaRef.current.listar
+        //const getBody = tabelaRef.current.getTableBody();
         //console.log(' getBody: ', getBody);
-        const currentItens = tabelaRef.current.getCurrentItens();
+        //const currentItens = tabelaRef.current.getCurrentItens();
         
 
 
@@ -95,17 +99,27 @@ const RegisterBasicFoodBasket = () => {
             return
         }
 
+        let itemList = []
+        for( let i = 0; i < listItemRecived.length; i ++ ) {
+            for( let ii = 0; ii < listaDeProdutos.length; ii ++ ) {
+                if( listItemRecived[i][0] == listaDeProdutos[ii][0]) {
+                    itemList.push(listItemRecived[i])
+                }
+            }
+        }
 
 
-        for( let i = 0; i < currentItens.length; i ++ ) {
+
+        for( let i = 0; i < itemList.length; i ++ ) {
             let tmp_item = {}
-            tmp_item["idProduct"] = currentItens[i][0]
-            tmp_item["idBasket"] = registerBasket["content"][0]
-            tmp_item["productName"] = currentItens[i][1]
-            tmp_item['productQuantity'] = currentItens[i][3]
 
-            console.log(' currentItens: ', currentItens[i]);
-            console.log(' tmp_item: ', tmp_item);
+            tmp_item["idProduct"] = itemList[i][0]
+            tmp_item["idBasket"] = registerBasket["content"][0]
+            tmp_item["productName"] = itemList[i][1]
+            tmp_item['productQuantity'] = itemList[i][4]
+
+            //console.log(' currentItens: ', itemList[i]);
+            //console.log(' tmp_item: ', itemList);
             
             
             registerItemOnBasketModelFunction(tmp_item)
@@ -221,8 +235,9 @@ const RegisterBasicFoodBasket = () => {
 
     useLayoutEffect(() => {
         const fetchData = async () => {
-            const itensRecived = await reciveItemData();
+            let itensRecived = await reciveItemData();
             //console.log("ITENS RECIVED: ", itensRecived)
+
             setListItemRecived( itensRecived.content );
         };
 
@@ -261,7 +276,7 @@ const RegisterBasicFoodBasket = () => {
                         <label
                             className={styles.messageInstruct}
                         >
-                                Selecione os itens da cesta
+                            Selecione os itens da cesta
                         </label>
                         <div>
                             <input
@@ -297,10 +312,16 @@ const RegisterBasicFoodBasket = () => {
                         <div className={styles.divListaDeItensDaCestaBasica}>
                             
                             <TabelaListaDeProdutos
-                                ref={tabelaRef}
-                                nameClass={styles.listProductTable}
-                                listaDeItens={listItemRecived}
+                                ref={ tabelaRef }
+                                nameClass={ styles.listProductTable }
+                                listaDeItens={ listItemRecived }
                                 columnList={ columnList }
+                                inputColumn={ [4] }
+                                limitarMaxNumber={ [4] }
+                                contentColumnList={{
+                                    'quantidade' : 4,
+                                    'estoque' : 3
+                                }}
                             />
 
                             

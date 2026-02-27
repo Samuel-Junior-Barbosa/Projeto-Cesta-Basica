@@ -114,7 +114,7 @@ const GenerateBasicFoodBaskets = () => {
         const getBasketProductsDataFunction = async () => {
             const response = await searchForBasketItem(modelId, 'id da cesta')
             if( response.status ) {
-                console.log('dataModel: ', response.content)
+                //console.log('dataModel: ', response.content)
                 setCurrentModel(response.content);
             }
             return []

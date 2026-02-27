@@ -111,7 +111,7 @@ const ChangeChurchRegistration = () => {
                         required
                         value={churchName}
                         onChange={(e) => {
-                            setChurchName(e.target.value.toUpperCase().trim())
+                            setChurchName(e.target.value.toUpperCase())
                         }}
                     />
                     <label> Representante: </label>
@@ -120,7 +120,7 @@ const ChangeChurchRegistration = () => {
                         required
                         value={representative}
                         onChange={(e) => {
-                            setRepresentative(e.target.value.toUpperCase().trim())
+                            setRepresentative(e.target.value.toUpperCase())
                         }}
                     />
 
@@ -132,7 +132,7 @@ const ChangeChurchRegistration = () => {
                         min={0}
                         value={members}
                         onChange={(e) => {
-                            setMembers(e.target.value.toUpperCase().trim())
+                            setMembers(e.target.value.toUpperCase())
                         }}
                     />
                     <label> Cidade: </label>
@@ -141,7 +141,7 @@ const ChangeChurchRegistration = () => {
                         required
                         value={city}
                         onChange={(e) => {
-                            setCity(e.target.value.toUpperCase().trim())
+                            setCity(e.target.value.toUpperCase())
                         }}
                     />
                     <label> Bairro: </label>
@@ -150,7 +150,7 @@ const ChangeChurchRegistration = () => {
                         required
                         value={neighborhood}
                         onChange={(e) => {
-                            setNeighborhood(e.target.value.toUpperCase().trim())
+                            setNeighborhood(e.target.value.toUpperCase())
                         }}
                     />
 
@@ -160,7 +160,7 @@ const ChangeChurchRegistration = () => {
                         required
                         value={street}
                         onChange={(e) => {
-                            setStreet(e.target.value.toUpperCase().trim())
+                            setStreet(e.target.value.toUpperCase())
                         }}
                     />
 
@@ -172,7 +172,7 @@ const ChangeChurchRegistration = () => {
                         min={0}
                         value={buildingNumber}
                         onChange={(e) => {
-                            setBuildingNumber(e.target.value.toUpperCase().trim())
+                            setBuildingNumber(e.target.value.toUpperCase())
                         }}
 
                     />
@@ -183,7 +183,7 @@ const ChangeChurchRegistration = () => {
                         required
                         value={cep}
                         onChange={(e) => {
-                            setCep(e.target.value.toUpperCase().trim())
+                            setCep(e.target.value.toUpperCase())
                         }}
                     />
                     
@@ -193,7 +193,7 @@ const ChangeChurchRegistration = () => {
                         required
                         value={uf}
                         onChange={(e) => {
-                            setUf(e.target.value.toUpperCase().trim())
+                            setUf(e.target.value.toUpperCase())
                         }}
                     />
 

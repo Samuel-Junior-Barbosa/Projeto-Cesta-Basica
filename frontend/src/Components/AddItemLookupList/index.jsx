@@ -9,28 +9,44 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 
 const AddItemLookupList = ({
-                                controlIframe,
-                                titleName,
-                                queryFunction,
-                                dataContent,
-                                quantityItemSelection=-1,
-                                editableColumn=[],
-                                columnList=[],
-                                fontSize='1.5rem'
+                            controlIframe,
+                            titleName,
+                            queryFunction,
+                            dataContent,
+                            quantityItemSelection=-1,
+                            editableColumn=[],
+                            columnList=[],
+                            inputColumn=[],
+                            contentColumnList={},
+                            fontSize='1.5rem',
                             }) => {
     const tabelaRef = useRef()
     const [ dataList, setDataList ] = useState([])
 
 
     const handleSendButton = (e) => {
-        e.preventDefault();
+        //e.preventDefault();
 
         if( !tabelaRef.current ) {
             return
         }
 
-        let selectedRegistration = tabelaRef.current.listarItensSelecionados()
+        let tmpSelected = []
 
+        let selectedRegistration = tabelaRef.current.listarItensSelecionados()
+        for( let i = 0; i < dataList.length; i ++ ) {
+
+            for( let ii = 0; ii < selectedRegistration.length; ii ++ ) {
+                if( Object.values(selectedRegistration[ii][0]) == dataList[i][0]) {
+                    //console.log(" DATALIST: ", dataList[i])
+                    tmpSelected.push(dataList[i])
+                }
+
+            }
+
+        }
+        /*
+        console.log(" SELECTED REGISTERS: ", selectedRegistration, dataList)
         if( selectedRegistration.length < 1 ) {
             alert(`Selecione no minimo 1 registro`)
             return
@@ -43,12 +59,13 @@ const AddItemLookupList = ({
 
 
         if( Array.isArray(selectedRegistration) ) {
-            //console.log("selectedRegistration: ", selectedRegistration)
+            console.log("selectedRegistration: ", selectedRegistration)
             selectedRegistration = Object.values(selectedRegistration[0])
         }
+        */
 
-        //console.log(" SELECIONANDO ITEM: ", selectedRegistration)
-        dataContent(selectedRegistration)
+        //console.log(" SELECIONANDO ITEM: ", tmpSelected)
+        dataContent(tmpSelected[0])
         
         controlIframe(false);
 
@@ -91,11 +108,14 @@ const AddItemLookupList = ({
 
                 <div className={styles.AddingItemOnWindowForm}>
                     <TabelaCadastroDeItens
-                        ref={tabelaRef}
-                        listaDeCadastros={dataList}
-                        editableCel={editableColumn}
-                        columnList = {columnList}
+                        ref={ tabelaRef }
+                        listaDeCadastros={ dataList }
+                        editableCel={ editableColumn }
+                        columnList = { columnList }
                         fontSize = { fontSize }
+                        inputColumn = { inputColumn }
+                        contentColumnList = { contentColumnList }
+                        
                     />
                     <SimpleButton 
                         textButton="Adicionar"

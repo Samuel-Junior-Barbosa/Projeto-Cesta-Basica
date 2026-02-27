@@ -2,7 +2,7 @@ import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEf
 import PropTypes from 'prop-types';
 import styles from './TabelaListaDeProdutos.module.css'
 
-const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, contentColumnList, inputColumn}) => {
+const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, contentColumnList, inputColumn, fontSize}) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -182,10 +182,10 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                 //console.log( "LINE2: ", lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].value, lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].childNodes[0].value)
                 if( !lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].value ) {
                     lines[i].childNodes[ contentColumnList[ colunaContentName ] +1 ].childNodes[0].value = String( comp )
-                    listaDeItens[i][3] = String( comp )
-                    itens[i][3] = String( comp )
+                    listaDeItens[i][ contentColumnList[ colunaContentName ] ] = String( comp )
+                    itens[i][ contentColumnList[ colunaContentName ]  ] = String( comp )
                     //console.log(" TMP ITENS: ", listaDeItens[i], itens[i])
-                    //console.log( "LINE3: ", contentColumnList, comp)
+                    //  console.log( "LINE3: ", contentColumnList, comp)
 
                 }
 
@@ -302,20 +302,8 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         let response = []
         let linesFromTable = await retornarLinhasDaTabela()
 
-        console.log(" RETURN LINES OF TABLE")
+        //console.log(" RETURN LINES OF TABLE")
 
-        /*if( columnList ) {
-            console.log(" COLUMNLIST: ", columnList)
-            for( let i = 0; i < linesFromTable.length; i ++ ) {
-                for( let ii = 0; ii < columnList.length; ii ++ ) {
-                    response.push( { 
-                            [`${columnList[ii]}`] : linesFromTable[i].childNodes[ii+1].textContent
-                        }
-                    )
-                }
-            }
-            console.log(" response: ", linesFromTable)
-        } else { */
         for( let i = 0; i < linesFromTable.length; i ++ ) {
             let tmp_line = []
             for( let ii = 1; ii < linesFromTable[i].childNodes.length; ii ++ ) {
@@ -635,7 +623,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     return (
         <>
             <div className={styles.ListaDeProdutosCadastradosDiv}>
-                <table className={`${styles.ListaDeProdutosCadastrados} ${nameClass}`}>
+                <table className={`${styles.ListaDeProdutosCadastrados} ${nameClass}`}  style={{ fontSize: fontSize  }} >
                     <thead>
                         <tr className={styles.linhaTabela} >
 

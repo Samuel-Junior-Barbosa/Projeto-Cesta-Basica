@@ -8,6 +8,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import TabelaListaDeProdutos from '../../Components/TabelaListaDeProdutos';
 import getChurchGoalCompletedApi from '../../Functions/Reports/GetChurchGoalCompleted';
 import getChurchWithdrawBasketApi from '../../Functions/Reports/RecordOutput';
+import getCollectionReportApi from '../../Functions/Reports/GetCollectionReport';
 
 
 
@@ -34,22 +35,12 @@ const GerarRelatorios = () => {
     const GenerateLogs = async () => {
         // Implementar uma logica de geração de relatorios
         let tmpLogsTypeList = [];
-        console.log(" TYPE RECORD: ", generateType)
+        //console.log(" TYPE RECORD: ", generateType)
         if( generateType == 0 ) {
-            /*
-            tmpLogsTypeList = [
-                {
-                    "data" : "01/02/2025",
-                    "tipo de ação:" : "Meta batida",
-                    "Quantidade da arrecadação:" : "10kg alimentos",
-                    "Congregação: " : "Estufa II"
-                }
-            ]
-            */
 
             let responseRecords = await getChurchGoalCompletedApi(initialDate, endDate)
             responseRecords = responseRecords['content']
-            console.log(" RECORDS: ", responseRecords)
+            //console.log(" RECORDS: ", responseRecords)
             for(let i = 0; i < responseRecords.length; i ++ ) {
                 tmpLogsTypeList.push({
                     'ID META' : responseRecords[i][0],
@@ -67,7 +58,7 @@ const GerarRelatorios = () => {
                 'STATUS',
             ])
             
-            console.log(" REPONSE RECORDS: ", tmpLogsTypeList)
+            //console.log(" REPONSE RECORDS: ", tmpLogsTypeList)
 
         }
 
@@ -76,7 +67,7 @@ const GerarRelatorios = () => {
 
             let responseRecords = await  getChurchWithdrawBasketApi(initialDate, endDate)
             responseRecords = responseRecords['content']
-            console.log(" RECORDS: ", responseRecords)
+            //console.log(" RECORDS: ", responseRecords)
             for(let i = 0; i < responseRecords.length; i ++ ) {
                 tmpLogsTypeList.push({
                     'ID SAIDA' : responseRecords[i][0],
@@ -101,25 +92,27 @@ const GerarRelatorios = () => {
         }
 
         else if( generateType == 2 ) {
-            alert('RELATORIO NÃO IMPLEMENTADO AINDA')
-            return
-            tmpLogsTypeList = [
-                {
-                    "data" : "01/02/2025",
-                    "tipo de ação:" : "Arrecadação",
-                    "Quantidade da arrecadação:" : "5kg arroz, 3kg feijão, 2kg café de 500g" ,
-                    "Congregação" : "Estufa II",
-                    "Meta:" : "Concluida",
-                },
-                {
-                    "data" : "01/03/2025",
-                    "tipo de ação:" : "Arrecadação",
-                    "Quantidade da arrecadação:" : "1kg arroz, 2kg feijão, 1kg café de 500g" ,
-                    "Congregação" : "Estufa I",
-                    "Meta:" : "Pendente",
-                }
 
-            ]
+            let responseRecords = await getCollectionReportApi(initialDate, endDate)
+            responseRecords = responseRecords['content']
+
+            //console.log(" RESPONSE: ", responseRecords)
+            for(let i = 0; i < responseRecords.length; i ++ ) {
+                tmpLogsTypeList.push({
+                    'ID CONGREGACAO' : responseRecords[i][0],
+                    'CONGREGAÇÃO' : responseRecords[i][1],
+                    'QUANTIDADE ARRECADA' : responseRecords[i][2],
+                    'TOTAL DE ALIMENTO ARRECADADO (KG)' : responseRecords[i][3]
+                })
+            }
+
+
+            setColumnList([
+                'ID CONGREGACAO',
+                'CONGREGAÇÃO',
+                'QUANTIDADE ARRECADA',
+                'TOTAL DE ALIMENTO ARRECADADO (KG)'
+            ])
         }
 
         else {
@@ -138,7 +131,7 @@ const GerarRelatorios = () => {
     const handleTypeGenerate = ( value ) => {
         if( value ) {
             setGenerateType(value);
-            console.log( 'generateType: ', value)
+            //console.log( 'generateType: ', value)
         }
     }
 

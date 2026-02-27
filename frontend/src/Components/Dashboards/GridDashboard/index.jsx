@@ -8,6 +8,7 @@ import RequestsGraph from '../GraphicsAndStatistics/RequestsGraph'
 import FamilyHelped from '../GraphicsAndStatistics/FamilyHelped';
 import SwitchGraphs from '../SwitchGraphs';
 import LabelTopOptions from '../LabelTopOptions';
+import CollectionGraph from '../GraphicsAndStatistics/CollectionGraph';
 
 
 
@@ -82,7 +83,7 @@ const GridDashboards = () => {
             </div>
 
             <div id={styles.DB10}>
-                <SwitchGraphs  textLabelGraph={["Arrecadação", "Familias Ajudadas"]} Graphs={[<GoalsGraph />, <FamilyHelped />]} /> 
+                <SwitchGraphs  textLabelGraph={["Arrecadação", "Familias Ajudadas"]} Graphs={[<CollectionGraph />, <FamilyHelped />]} /> 
             </div>
         </div>
     );

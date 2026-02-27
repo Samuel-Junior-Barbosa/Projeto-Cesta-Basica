@@ -4,6 +4,7 @@ import { Chart as ChartJS, CategoryScale, ArcElement, Title, Tooltip, Legend } f
 
 import styles from './FamilyHelped.module.css'
 import GetFamilyHelpedDataForGraph from '../../../../Functions/Graph/GetFamilyHelpedApi';
+import getCollectionReportForGraphApi from '../../../../Functions/Reports/GetCollectionDataForGraph';
 
 const FamilyHelped = () => {
   const [ familyHelpedData, setFamilyHelpedData ] = useState([])
@@ -67,7 +68,7 @@ const FamilyHelped = () => {
       alert('Ocorreu um erro ao obter lista de FAMILIAS AJUDADAS para o dashboard')
       return
     }
-    console.log(' setFamilyHelpedData: ', response)
+    //console.log(' setFamilyHelpedData: ', response)
     let familyHelpList = response['content']
     let tmpData = [familyHelpList[0], familyHelpList[1]]
 
@@ -77,15 +78,16 @@ const FamilyHelped = () => {
   }
 
   const reciveDataMontlyCollection = async () => {
-    let response = await GetFamilyHelpedDataForGraph()
+    let response = await getCollectionReportForGraphApi()
 
     if( response.status != 0) {
       alert('Ocorreu um erro ao obter lista de ARRECADAÇÃO para o dashboard')
       return
     }
-    console.log(' setFoodDriveData: ', response)
+    //console.log(' setFoodDriveData: ', response['content'])
     let collectionData = response['content']
-    let tmpData = [collectionData[0], collectionData[1]]
+    let tmpData = [...collectionData]
+    
 
     setFoodDriveData( tmpData )
 
@@ -100,7 +102,7 @@ const FamilyHelped = () => {
     }
 
     reciveDataFamilyHelpedMouth()
-    //reciveDataMontlyCollection()
+    reciveDataMontlyCollection()
 
   }, [])
 

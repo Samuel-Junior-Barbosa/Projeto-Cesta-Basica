@@ -1,6 +1,6 @@
 import postFunction from "../../PostFunction";
 
-const RegisterProductOnStock = async (idProduct, productName, marchName, quantity) => {
+const RegisterProductOnStock = async (idProduct, productName, marchName, quantity, productWeight) => {
 
     const url = "http://localhost:8080/register-product-on-stock"
 
@@ -8,7 +8,8 @@ const RegisterProductOnStock = async (idProduct, productName, marchName, quantit
         idProduct,
         productName,
         marchName,
-        quantity
+        quantity,
+        productWeight
     }
 
     const response = await postFunction(url, param)

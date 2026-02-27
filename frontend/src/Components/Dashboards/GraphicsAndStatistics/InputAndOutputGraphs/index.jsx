@@ -13,6 +13,7 @@ const InputAndOutputGraphs = () => {
   const [ porcentage, setPorcentage ] = useState(0)
   const [ dataBasketCount, setDataBasketCount ] = useState([])
   const labels = ['Entrada', 'Saida']
+  const [ titleLabels, setTitleLabels ] = useState(['NENHUMA INFORMAÇÃO ENCONTRADA'])
 
   let optionGraph = {
     responsive: true,
@@ -32,7 +33,7 @@ const InputAndOutputGraphs = () => {
     },
   }
   let dataGraph = {
-        labels: labels,
+        labels: titleLabels,
         datasets: [
           {
             label: ['UN'],
@@ -64,7 +65,7 @@ const InputAndOutputGraphs = () => {
     let tmpData = [IOlist[0], IOlist[1]]
 
     setDataBasketCount( tmpData )
-    setPorcentage(  IOlist[2] );
+    setTitleLabels(labels)
 
     return tmpData
   }
@@ -87,9 +88,6 @@ const InputAndOutputGraphs = () => {
         <LabelTopOptions mensagem="Entrada e saida de cestas" />
       <div className={styles.DivGraph}>
         <Graph data={dataGraph} options={optionGraph} width={200} height={200}/>
-        <p className={styles.porcentagem}>
-          {porcentage}% SAIDAS
-        </p>
       </div>
     </div>
     

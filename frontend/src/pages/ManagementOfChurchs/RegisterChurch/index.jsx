@@ -71,7 +71,7 @@ const RegisterChurch = () => {
                         required
                         placeholder='Insira o nome da igreja'
                         onChange={(e) => {
-                            setChurchName(e.target.value.trim().toUpperCase())
+                            setChurchName(e.target.value.toUpperCase())
                         }}
                     />
 
@@ -82,7 +82,7 @@ const RegisterChurch = () => {
                         required
                         placeholder='Insira o nome do responsavel pela igreja'
                         onChange={(e) => {
-                            setRepresentativeName(e.target.value.trim().toUpperCase())
+                            setRepresentativeName(e.target.value.toUpperCase())
                         }}
 
                     />
@@ -107,7 +107,7 @@ const RegisterChurch = () => {
                         required
                         placeholder='Insira a cidade da igreja'
                         onChange={(e) => {
-                            setCityName(e.target.value.trim().toUpperCase())
+                            setCityName(e.target.value.toUpperCase())
                         }}
 
                     />

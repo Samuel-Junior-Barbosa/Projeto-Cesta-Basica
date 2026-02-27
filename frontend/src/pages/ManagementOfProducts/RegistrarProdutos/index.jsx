@@ -23,15 +23,26 @@ const RegistrarProdutos = () => {
     const { handleRegisterProduct, RegisterProductLoading, RegisterProductMessage } = useRegisterProducts();
     const { produto, marca, id, quantidade } = location.state || { produto: '', marca: '', id: '', quantidade: 0 };
     
-    const [ productName, setProductName ] = useState('')
-    const [ marchName, setMarchName ] = useState('')
-    const [ quantity, setQuantity ] = useState('')
-    const [ idProduct, setIdProduct ] = useState(0)
+    const [ productWeight, setProductWeight ] = useState(0);
+    const [ productName, setProductName ] = useState('');
+    const [ marchName, setMarchName ] = useState('');
+    const [ quantity, setQuantity ] = useState('');
+    const [ idProduct, setIdProduct ] = useState(0);
 
     const [ selectId, setSelectId ] = useState(false)
 
     const voltarPagina = () => {
         navigate(-1);
+    };
+
+    const handleSetProductWeight = ( key ) => {
+        //console.log(" KET PRESSED: ", key)
+        if( key == 'Enter' || key == 'NumpadEnter' ) {
+            let tmpW = productWeight
+            tmpW = Number(tmpW).toFixed(3)
+            setProductWeight(tmpW)
+
+        }
     };
 
     const onSubmit = (e) => {
@@ -41,7 +52,8 @@ const RegistrarProdutos = () => {
             idProduct,
             productName,
             marchName,
-            quantity
+            quantity,
+            productWeight
         )
     }
 
@@ -109,9 +121,23 @@ const RegistrarProdutos = () => {
                             setMarchName( e.target.value.toUpperCase() )
                         )}
                     />
+                    <label> Peso do produto: </label>
+                    <input
+                        type='number'
+                        value={productWeight}
+                        required
+                        onChange={(e) => (
+                            setProductWeight( e.target.value )
+                        )}
+
+                        onKeyDown={ (e) => {
+                            handleSetProductWeight(e.code)
+                        }}
+                    />
+
                     <label> Quantidade: </label>
                     <input
-                        min="0"
+                        min={"0"}
                         required
                         type='number'
                         value={quantity}
