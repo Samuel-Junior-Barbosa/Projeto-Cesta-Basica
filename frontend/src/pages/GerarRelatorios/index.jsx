@@ -73,9 +73,10 @@ const GerarRelatorios = () => {
                     'ID SAIDA' : responseRecords[i][0],
                     'CONGREGAÇÃO' : responseRecords[i][1],
                     'QUANTIDADE DE CESTAS' : responseRecords[i][2],
-                    'DATA SAIDA' : responseRecords[i][3],
+                    'QUANTIDADE ALIMENTO (KG)' : responseRecords[i][3],
                     'TIPO DOAÇÃO' : responseRecords[i][4],
-                    'USUARIO RESPONSAVEL' : responseRecords[i][5],
+                    'DATA SAIDA' : responseRecords[i][5],
+                    'USUARIO RESPONSAVEL' : responseRecords[i][6],
                 })
             }
 
@@ -84,8 +85,9 @@ const GerarRelatorios = () => {
                 'ID SAIDA',
                 'CONGREGAÇÃO',
                 'QUANTIDADE DE CESTAS',
-                'DATA SAIDA',
+                'QUANTIDADE ALIMENTO (KG)',
                 'TIPO DOAÇÃO',
+                'DATA SAIDA',
                 'USUARIO RESPONSAVEL'
             ])
 
@@ -101,7 +103,7 @@ const GerarRelatorios = () => {
                 tmpLogsTypeList.push({
                     'ID CONGREGACAO' : responseRecords[i][0],
                     'CONGREGAÇÃO' : responseRecords[i][1],
-                    'QUANTIDADE ARRECADA' : responseRecords[i][2],
+                    'QUANTIDADE DE CESTA ARRECADA' : responseRecords[i][2],
                     'TOTAL DE ALIMENTO ARRECADADO (KG)' : responseRecords[i][3]
                 })
             }
@@ -110,7 +112,7 @@ const GerarRelatorios = () => {
             setColumnList([
                 'ID CONGREGACAO',
                 'CONGREGAÇÃO',
-                'QUANTIDADE ARRECADA',
+                'QUANTIDADE DE CESTA ARRECADA',
                 'TOTAL DE ALIMENTO ARRECADADO (KG)'
             ])
         }

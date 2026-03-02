@@ -1018,10 +1018,35 @@ async def get_collection_report( initial_date= '', end_date='' ):
 
     
 
-    output_table_name = base_de_dados.output_table_name
-    output_item_table_name = base_de_dados.item_output_table_name
+    input_table_name = base_de_dados.input_table_name
+    input_item_table_name = base_de_dados.input_item_table_name
     church_table_name = base_de_dados.church_table_name
     product_table_name = base_de_dados.product_table_name
+
+    # QUERY ALTERNATIVA PARA O RELATORIO
+    """
+            
+SELECT 
+    strftime('%Y-%m', s.data_entrada) AS mes,
+    church.nome,
+    SUM(s.quantidade_cesta) AS total_cestas,
+    ROUND(SUM(i.quantidade * IFNULL(p.peso, 0), 2) AS peso_total
+FROM entrada s
+LEFT JOIN congregacao church
+    ON s.id_congregacao = church.id_congregacao
+LEFT JOIN entrada_item i
+    ON i.id_entrada = s.id_entrada
+LEFT JOIN produto p
+    ON p.id_item = i.id_produto
+WHERE s.tipo_entrada IN (1)
+GROUP BY 
+    strftime('%Y-%m', s.data_entrada),
+    church.nome
+ORDER BY 
+    mes,
+    church.nome;
+    """
+
 
     sql_query= f'''
 SELECT 
@@ -1029,27 +1054,27 @@ SELECT
     church.nome,
     SUM(exit.quantidade_cesta) AS 'total de cestas',
     SUM(si.quantidade * p.peso) AS peso_total
-FROM {output_table_name} exit
+FROM {input_table_name} exit
 LEFT JOIN {church_table_name} church
 ON exit.id_congregacao = church.id_congregacao
-LEFT JOIN {output_item_table_name} si
-ON exit.id_saida = si.id_saida
+LEFT JOIN {input_item_table_name} si
+ON exit.id_entrada = si.id_entrada
 LEFT JOIN {product_table_name} p
 ON p.id_item = si.id_produto
-WHERE ( exit.tipo_saida = {INPUT_TYPE} )
+WHERE ( exit.tipo_entrada = {INPUT_TYPE} )
 
     '''
 
     if initial_date and end_date:
-        sql_query += f" AND exit.data_saida BETWEEN '{initial_date}' AND '{end_date}' "
+        sql_query += f" AND exit.data_entrada BETWEEN '{initial_date}' AND '{end_date}' "
 
 
     elif initial_date:
-        sql_query = f" AND exit.data_saida > '{initial_date}' "
+        sql_query = f" AND exit.data_entrada > '{initial_date}' "
         
 
     elif end_date:
-        sql_query = f" AND exit.data_saida > '{end_date}' "
+        sql_query = f" AND exit.data_entrada > '{end_date}' "
 
 
 
@@ -1074,7 +1099,17 @@ async def get_collection_report_api( data : dict):
     end_date = data['endDate']
 
     response = await get_collection_report(initial_date, end_date)
-    
+    #print(" COLLECT REPORT RESOPNSE: ", response)
+    for i in range(len(response['content'])):
+        response['content'][i] = list(response['content'][i])
+        data = response['content'][i]
+
+        if  data[0] == None: 
+            data[0] = 0
+            data[1] = "ORIGEM NÃO ESPECIFICADA"
+
+        response['content'][i] = data
+        
 
     return response
 
@@ -1165,9 +1200,11 @@ async def get_collection_data_for_graph( ):
         collection_count = 0
         #print(" DATA FOUND: ", query_data, flush=1)
         for data in query_data['content']:
-            
+
             if data[3]:
                 collection_count += float(data[3])
+
+           
 
         #print(f" MONTH: {months[i]} - F: ", family_helped_count, query_data)
         collection_count_month.append(collection_count)
@@ -1579,7 +1616,7 @@ async def get_family_list_resolved():
         ON f.id_prioridade= p.id_prioridade;"""
     
     family_data_list = await base_de_dados.query(sql_query)
-    print(" RESpONSe OF REsoLVING FAmILY DATA: ", family_data_list)
+    #print(" RESpONSe OF REsoLVING FAmILY DATA: ", family_data_list)
     if family_data_list['status'] != 0:
         return family_data_list
     
@@ -3250,9 +3287,9 @@ async def record_church_withdraw_basket(initial_date = '', end_date = ''):
     table_item_name = base_de_dados.item_output_table_name
     church_table_name = base_de_dados.church_table_name
     user_table_name = base_de_dados.user_table_name
+    product_table_name = base_de_dados.product_table_name
 
-
-    sql_query = f''' 
+    ''' 
     SELECT 
         exit.id_saida,
         ch.nome,
@@ -3260,12 +3297,40 @@ async def record_church_withdraw_basket(initial_date = '', end_date = ''):
         exit.data_saida,
         exit.doacao_fora,
         user.nome_do_usuario
+        SUM(ti.quantidade) as total_saida
     FROM {table_name} exit
-    LEFT JOIN {church_table_name} ch
-    ON exit.id_congregacao = ch.id_congregacao
-    LEFT JOIN {user_table_name} user
-    ON exit.id_usuario = user.id_usuario
+        LEFT JOIN {church_table_name} ch
+        ON exit.id_congregacao = ch.id_congregacao
+        LEFT JOIN {user_table_name} user
+        ON exit.id_usuario = user.id_usuario
+        LEFT JOIN {table_item_name} ti
+        ON exit.id_produto = ti.id_produto
+        LEFT JOIN {product_table_name} p
+        ON ti.id_produto = p.id_item
+    
     WHERE exit.tipo_saida = {OUTPUT_TYPE} '''
+
+    sql_query = f'''
+SELECT
+    s.id_saida,
+    c.nome,
+    s.quantidade_cesta,
+    ROUND(SUM(i.quantidade * IFNULL(p.peso, 0)), 2) AS peso_total_saida,
+    s.doacao_fora,
+    s.data_saida,
+    u.nome_do_usuario
+FROM {table_name} s
+LEFT JOIN {table_item_name} i
+    ON i.id_saida = s.id_saida
+LEFT JOIN {product_table_name} p
+    ON p.id_item = i.id_produto
+LEFT JOIN { church_table_name } c
+	ON c.id_congregacao = s.id_congregacao
+LEFT JOIN {user_table_name } u
+    ON u.id_usuario = s.id_usuario
+WHERE ( s.tipo_saida IN (1, 2) ) 
+
+   '''
 
     if initial_date and end_date:
         sql_query += f" AND exit.data_saida BETWEEN '{initial_date}' AND '{end_date}' "
@@ -3276,11 +3341,14 @@ async def record_church_withdraw_basket(initial_date = '', end_date = ''):
     elif end_date:
         sql_query += f" AND exit.data_saida <= '{end_date}'"
 
+    sql_query += '''
+GROUP BY s.id_saida
+ORDER BY s.id_saida'''
     sql_query += f' ;'
 
 
     response = await base_de_dados.query( sql_query )
-    print(" RESPONSE: ", response, sql_query)
+    #print(" RESPONSE: ", response, sql_query)
     if response['status'] != 0:
         return response
     
@@ -3840,19 +3908,39 @@ async def search_on_basket_item_register(data: SearchBasketItemRequest):
 #==============================================
 #==============================================
 
-# PRECISA REFATORAR
-def get_history_basket_models_data():
-    get_history_basket_models_data = history_basket_models_data.copy()
-    
-    return {
-        "status" : 0,
-        "content" : get_history_basket_models_data
+
+async def get_history_basket_models_data():
+    response = {
+        'status' : 90,
+        'content' : []
     }
 
-# PRECISA REFATORAR
+    table_name = base_de_dados.basket_table_name
+
+    sql_query = f'''
+    SELECT
+        id_cesta,
+        nome_da_cesta,
+        cadastro_ativo
+    FROM {table_name}
+    WHERE cadastro_ativo = 1;
+    '''
+
+    response = await base_de_dados.query( sql_query )
+    
+    return response
+
+
 @app.get("/get-history-basket-models-data")
 async def get_history_basket_models():
-    return get_history_basket_models_data()
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    response = await get_history_basket_models_data()
+
+    return response
 
 
 # PRECISA REFATORAR

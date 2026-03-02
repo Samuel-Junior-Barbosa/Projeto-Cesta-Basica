@@ -415,12 +415,12 @@ const IOBaskets = () => {
         
         //console.log('modelo1 ', modelo);
         let maxBasketsGenerate = await GenerateBasket(modelo['modelo1']);
-        //console.log('basketWithdrawQuantity: ', basketWithdrawQuantity)
+        console.log('basketWithdrawQuantity: ', basketWithdrawQuantity)
         if( maxBasketsGenerate < basketWithdrawQuantity ) {
             return 2
         }
         else if( basketWithdrawQuantity <= 0 ) {
-            return 2
+            return 3
         }
 
         const retorno = confirm(`Desejá tirar: ${Number(basketWithdrawQuantity)} unidade(s) de cesta com os seguintes itens: ${msg}\n O maximo de cestas à gerar são: ${maxBasketsGenerate}`);
@@ -436,7 +436,7 @@ const IOBaskets = () => {
     }, [tabelaRef, basketWithdrawQuantity, listaDeItensNoBD, inputBasketWithdrawQuantity, itensSelecionados]);
 
 
-    const withdrawItensOfStock = useCallback(async () => {
+    const withdrawItensOfStock = async () => {
         if( !tabelaRef.current) {
             return;
         }
@@ -449,7 +449,8 @@ const IOBaskets = () => {
         }
 
         const confirmation = await confirmWithdrawItens()
-        if( confirmation === 2 ) {
+        console.log(" CONFIRMATION: ", confirmation)
+        if( confirmation == 2 ) {
             const confirm2 = confirm('Numero de cesta retiradas não condiz com o estoque.\n Deseja Continuar com a saida da cesta?')
             if( !confirm2 ) {
                 return
@@ -457,7 +458,13 @@ const IOBaskets = () => {
             
         }
 
-        else if ( confirmation === 0 ) {
+        else if( confirmation == 3 ) {
+            console.log(" RETURNING {a}: ", confirmation)
+            const confirm2 = alert(" Selecione uma quantidade de cesta maior que 0.")
+            return
+        }
+
+        else if ( confirmation == 0 ) {
             return false
         }
 
@@ -502,7 +509,7 @@ const IOBaskets = () => {
         
 
 
-    }, [tabelaRef, listaDeItensNoBD, basketWithdrawQuantity, itensSelecionados])
+    } //, [tabelaRef, listaDeItensNoBD, basketWithdrawQuantity, itensSelecionados])
 
 
     const addBasketWithdrawalToHistory = useCallback(() => {
@@ -853,6 +860,10 @@ const IOBaskets = () => {
     }, [typeOfAction])
 
     useEffect(() => {
+        if( !Array.isArray(familySelected) ) {
+            return
+        }
+
         if( !familySelected.length ) {
             return
         }

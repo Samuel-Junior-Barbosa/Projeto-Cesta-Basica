@@ -11,6 +11,8 @@ class GCBBase:
         self.input_table_name = 'entrada'
         self.input_item_table_name = 'entrada_item'
         self.family_table_name = 'familia'
+        self.role_table_name = 'funcao'
+        self.role_permission_table_name = 'funcao_permissao'
         self.history_adjustment_invetory_table_name = "historico_ajuste_produto"
         self.history_register_church_table_name = 'historico_congregacao'
         self.history_register_family_table_name = 'historico_familia'
@@ -19,6 +21,7 @@ class GCBBase:
         self.church_goals_table_name = 'meta'
         self.church_item_goals_table_name = 'meta_item'
         self.order_basket_table_name = 'ordem_cesta_basica'
+        self.permission_table_name = 'permissoes'
         self.product_table_name = 'produto'
         self.priority_table_name = 'prioridade'
         self.output_table_name = 'saida'
@@ -202,8 +205,6 @@ class GCBBase:
 
 
 
-
-
         # ========================================================
         if not self.exist_table( self.input_table_name ):
             cursor_do_banco.execute(f"""
@@ -256,7 +257,7 @@ class GCBBase:
                                         data_criacao DATE,
                                         ultima_alteracao DATE,
                                         UNIQUE(id_item, nome_do_produto),
-                                        FOREIGN KEY (id_usuario_responsavel) REFERENCES usuario(id_usuario)
+                                        FOREIGN KEY (id_usuario_responsavel) REFERENCES {self.user_table_name}(id_usuario)
                                     )""")
             self.banco_de_dados.commit()
 
@@ -326,11 +327,46 @@ class GCBBase:
             self.banco_de_dados.commit()
 
 
+        if not self.exist_table( self.permission_table_name ):
+            cursor_do_banco.execute(f'''
+                                    CREATE TABLE { self.permission_table_name } (
+                                        id_permissao INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        nome TEXT,
+                                        descricao TEXT,
+                                        UNIQUE( id_permissao )
+                                    );
+                                    ''')
+
+        if not self.exist_table( self.role_table_name ):
+            cursor_do_banco.execute(f'''
+                                    CREATE TABLE { self.role_table_name } (
+                                        id_funcao INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        nome TEXT,
+                                        descricao TEXT
+                                    );
+                                    ''')
+            
+            self.banco_de_dados.commit()
+            
+
+        if not self.exist_table( self.role_permission_table_name ):
+            cursor_do_banco.execute(f'''
+                                    CREATE TABLE { self.role_permission_table_name } (
+                                        id_serial INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        id_funcao INTEGER,
+                                        id_permissao INTEGER,
+                                        FOREING KEY(id_funcao) REFERENCES {self.role_table_name}(id_funcao),
+                                        FOREING KEY(id_permissao) REFERENCES {self.permission_table_name}(id_permissao)
+                                    ); ''')
+            
+            self.banco_de_dados.commit()
+
         # ========================================================
         if not self.exist_table( self.user_table_name ):
             cursor_do_banco.execute(f"""
                                     CREATE TABLE {self.user_table_name} (
                                         id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        id_funcao INTEGER,
                                         nome_do_usuario TEXT NOT NULL,
                                         senha VARCHAR(500),
                                         email TEXT,
@@ -340,8 +376,9 @@ class GCBBase:
                                         data_criacao DATE,
                                         data_alteracao DATE,
                                         UNIQUE(nome_do_usuario),
-                                        FOREIGN KEY (usuario_responsavel_da_alteracao) REFERENCES usuario(id_usuario),
-                                        FOREIGN KEY (usuario_responsavel_pelo_cadastro) REFERENCES usuario(id_usuario)
+                                        FOREIGN KEY (usuario_responsavel_da_alteracao) REFERENCES {self.user_table_name}(id_usuario),
+                                        FOREIGN KEY (usuario_responsavel_pelo_cadastro) REFERENCES {self.user_table_name}(id_usuario),
+                                        FOREIGN KEY (id_funcao) REFERENCES funcao(id_funcao)
                                     );""")
             self.banco_de_dados.commit()
 

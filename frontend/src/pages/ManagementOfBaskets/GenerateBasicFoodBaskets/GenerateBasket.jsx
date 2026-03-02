@@ -49,7 +49,7 @@ const GenerateBasket = async (modelo) => {
             minValueOfGenerate = mediaDeProdutosGeraveis[I].geravel
         }
     }
-    console.log(' Minimo geravel de cesta nesse modelo: ', minValueOfGenerate)
+    console.log(' Maximo geravel de cesta nesse modelo: ', minValueOfGenerate)
     return minValueOfGenerate;
 }
 

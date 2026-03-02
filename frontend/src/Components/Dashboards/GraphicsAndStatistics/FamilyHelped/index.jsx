@@ -84,7 +84,8 @@ const FamilyHelped = () => {
       alert('Ocorreu um erro ao obter lista de ARRECADAÇÃO para o dashboard')
       return
     }
-    //console.log(' setFoodDriveData: ', response['content'])
+    
+    console.log(' setFoodDriveData: ', response['content'])
     let collectionData = response['content']
     let tmpData = [...collectionData]
     
