@@ -1,17 +1,30 @@
-import React, { useContext, useEffect } from 'react';
-import { AuthProvider } from '../../contexts/AuthenticateContext/AuthContext';
-import { getCurrentUser } from '../../Components/hooks/Authenticator/auth';
-
-import GridDashboard from '../../Components/Dashboards/GridDashboard'
 import styles from './Home.module.css';
 
-const Home = () => {
+import GridDashboard from '../../Components/Dashboards/GridDashboard'
+import { PERMISSIONS } from '../../Components/UserPermission';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-    const currentUser = getCurrentUser();
+const Home = () => {
+    const dashboardPermission = PERMISSIONS.VIEW_DASHBOARD
+    const currentUser = localStorage.getItem('user');
+    const currentUserRole = localStorage.getItem('role')
+    let currentPermission = localStorage.getItem('userPermission')
+    const navigate = useNavigate()
+
+    if( typeof(currentPermission) === 'string') {
+      currentPermission = JSON.parse(currentPermission) || [];
+    }
+
+    useEffect(() => {
+        if( currentUserRole === 'OPERADOR') {
+            navigate('/input-and-output-baskets')
+        }
+    })
 
     return (
         <>
-            {currentUser.role === 'admin' ? (
+            {(currentPermission.includes(dashboardPermission) ) ? (
                 <GridDashboard />
             ) : (
                 <>

@@ -1,8 +1,8 @@
 build/bin
 node_modules
 frontend/dist
-*.txt
 *.rar
+*txtt
 *.dia
 *.db
 *.pyc

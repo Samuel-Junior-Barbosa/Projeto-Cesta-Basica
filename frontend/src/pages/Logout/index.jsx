@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthenticateContext/AuthContext';
 const Logout = () => {
     const navigate = useNavigate()
     const { logout } = useAuth();
+    
     useEffect(() => {
         const timer = setTimeout(() => {
             logout();

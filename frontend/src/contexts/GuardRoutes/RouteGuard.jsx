@@ -1,32 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../AuthenticateContext/AuthContext";
-import { getCurrentUser } from "../../Components/hooks/Authenticator/auth";
 
 
-const RouteGuard = ({AllowedRoles}) => {
-  const { isAuthenticated } = useAuth();
-  const [ user, setUser ] = useState(null);
-
+const RouteGuard = ({AllowedRoles, permission = []}) => {
+  const { user, role, userPermission } = useAuth();
   
-  const userLogged = getCurrentUser();
+  useEffect(() => {
+    //console.log(" ROUTEGUARD: ", user, isAuthenticated)
 
-  
-  if( !isAuthenticated ) {
+  }, [])
+
+
+  if( !user ) {
     return <Navigate to="/login" />;
   }
+  //console.log(" ROUTE GUARD PERMISSION: ", permission, permission.length)
+  if( permission.length > 0 ) {
+    let userPerm = userPermission
+    if( typeof(userPermission) === 'string') {
+      userPerm = JSON.parse(userPermission) || [];
+    }
+     
+    //console.log(" USER PERM: ", userPerm)
+    const hasPermission = permission.every( p => userPerm.includes(p) )
 
-  else if( AllowedRoles ) {
-    if( !AllowedRoles.includes(userLogged.role) ) {
+    //console.log(" hasPermission: ", hasPermission)
+    if( !hasPermission ) {
       return <Navigate to="/nao-autorizado" />;
     }
   }
   
   return <Outlet />;
   
-  
-  // Verifica autenticação antes de renderizar a rota
-  //return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
 
 export default RouteGuard;

@@ -1,13 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-
+from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import BaseModel
 import uvicorn
-from fastapi import Depends
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import calendar
 import os
 import sys
@@ -18,6 +18,21 @@ import threading
 import db_conection
 import webview
 
+load_dotenv()
+
+
+
+from jose import jwt, JWTError
+from passlib.context import CryptContext
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 8
+
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+security = HTTPBearer()
 
 
 # Detecta se está rodando empacotado
@@ -31,8 +46,7 @@ static_path = os.path.join(BASE_DIR, "static")
 
 data_base_address = str( Path(__file__).parent ) + '/db_banco.db'
 
-
-print("static_path: ", data_base_address, flush=1)
+#print("static_path: ", data_base_address, flush=1)
 base_de_dados = db_conection.GCBBase( data_base_address )
 
 app = FastAPI()
@@ -52,7 +66,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -84,6 +98,7 @@ class AuthRequest( BaseModel ):
 class AuthResponse( BaseModel ):
     status: str
     content: dict
+
 
 #===============================================
 # Stock
@@ -217,46 +232,247 @@ class ResponseRequest:
 
 #================================================
 #= Autentication
-#===================================================
-@app.post("/authentication")
-async def authentication(data: AuthRequest):
+#================================================
+
+
+# =========================
+# schemas
+# =========================
+
+class LoginInput(BaseModel):
+    username: str
+    password: str
+
+# =========================
+# helper: carregar permissões
+# =========================
+
+
+
+async def load_user_permissions(user_id: int):
     response = {
-        "status" : 90,
-        "content" : []
+        'status' : 90,
+        'content' : []
     }
-    username = data.username
-    password = data.password
-    
-    #print("Autenticando: ", username, password)
-    user_logged = {"username" : "", "role" : ""}
+    user_table_name = base_de_dados.user_table_name
+    role_permission_table_name = base_de_dados.role_permission_table_name
+    permisson_table_name = base_de_dados.permission_table_name
 
-    #Implementação de uma logica de autenticação
-    if username == "Admin" and password == "admin":
-        user_logged["username"]= username
-        user_logged["role"] = "admin"
-        user_logged['id_user'] = 1
-        response['status'] = 0
+    sql_query = f"""
+        SELECT 
+            rp.id_permissao
+        FROM {user_table_name} u
+        LEFT JOIN {role_permission_table_name} rp
+        ON rp.id_funcao = u.id_funcao
+        LEFT JOIN {permisson_table_name} p
+        ON p.id_permissao = rp.id_permissao
+        WHERE u.id_usuario = {user_id};"""
 
-    elif username == "Operador" and password == "operador":
-        user_logged["username"]= username
-        user_logged["role"] = "operator"
-        user_logged['id_user'] = 2
-        response['status'] = 0
+    response = await base_de_dados.query( sql_query )
 
-    elif username == "Visitante" and password == "visitante":
-        user_logged["username"]= username
-        user_logged["role"] = "visit"
-        user_logged['id_user'] = 3
-        response['status'] = 0
-
-    
-    __USER_LOGGED = user_logged
-
-
-    response["content"] =  user_logged
-    
-    #print("AUTENTICATION FUNCTION RETURN: ", response)
     return response
+
+# =========================
+# LOGIN
+# =========================
+
+
+
+async def get_user_list():
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    table_name = base_de_dados.user_table_name
+
+    sql_query = f''' 
+    SELECT
+        nome_do_usuario
+    FROM {table_name}
+    WHERE status_cadastro = 1;'''
+
+    response = await base_de_dados.query(sql_query)
+    for i in range(0, len(response['content'])):
+        response['content'][i] = list(response["content"][i])
+
+    return response
+
+
+@app.post('/get-user-list')
+async def get_user_list_api():
+    response =  await get_user_list()
+    #print(" GET USER LIST RESPONSE: ", response)
+    return response
+
+
+#@app.post("/login")
+@app.post("/authentication")
+async def login( data: dict):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    #print(" AUTH DATa: ", data,flush=1)
+
+    username = data['username']
+    password = data['password']
+
+    user_table_name = base_de_dados.user_table_name
+    role_table_name = base_de_dados.role_table_name
+
+
+    sql_query = f"""
+        SELECT
+            u.id_usuario,
+            u.nome_do_usuario,
+            u.senha,
+            u.id_funcao,
+            rl.nome,
+            status_cadastro
+        FROM {user_table_name} u
+        LEFT JOIN {role_table_name} rl
+        ON rl.id_funcao = u.id_funcao
+        WHERE nome_do_usuario = '{username}'
+            AND status_cadastro = 1;"""
+    user = await base_de_dados.query( sql_query )
+    #print(" Sql: ", sql_query)
+    #print(f" USER RESPONSE: ", data, ' ---- ', user, flush=1)
+    if user['status'] == 0:
+        if len(user["content"]) > 0:
+            user = user["content"][0]
+        
+        else:
+            user = user['content']
+    
+    if not user:
+        raise HTTPException(401, "Usuário ou senha inválidos")
+
+    if not verify_password(password, user[2]):
+        raise HTTPException(401, "Usuário ou senha inválidos")
+
+    permissions = await load_user_permissions(user[0])
+    permissions = permissions['content']
+    #print(" PERMISSIONS RESPONSE: ", permissions)
+    permissions = [row[0] for row in permissions]
+    
+    token_data = {
+        "id_user": user[0],
+        "username": user[1],
+        "permissions": permissions
+    }
+
+    access_token = create_access_token(token_data)
+    #print( ' token data: ', token_data)
+
+    __USER_LOGGED = {
+        "access_token": access_token,
+        "user": {
+            "id_user": user[0],
+            "username": user[1],
+            "role" : user[4],
+            "permissions": permissions
+        }
+    }
+
+    response = {
+        'status' : 0,
+        'content' : __USER_LOGGED
+    }
+
+    #print(' AUTH REspONSe? ', response)
+
+    return response 
+
+
+
+# =========================
+# senha
+# =========================
+
+def hash_password(password: str) -> str:
+    hash_password = pwd_context.hash(password)
+    return hash_password
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    result= pwd_context.verify(password, password_hash) 
+    return result
+
+# =========================
+# token
+# =========================
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
+
+
+
+
+# =========================
+# usuário logado
+# =========================
+
+def get_current_user(credentials=Depends(security)):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    token = credentials.credentials
+    payload = decode_token(token)
+
+    response = {
+        "id": payload["id_user"],
+        "username": payload["username"],
+        "permissions": payload["permissions"]
+    }
+
+    if not payload:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    return response
+
+# =========================
+# verificação de permissão
+# =========================
+
+def require_permission(permission_id: int):
+    def checker(user=Depends(get_current_user)):
+        print(" checker user: ", user)
+        user_perms = set(user.get("permissions", []))
+
+        if permission_id not in user_perms:
+            raise HTTPException(status_code=403, detail="Sem permissão")
+
+        return user
+
+    return checker
+
+
+async def test_user():
+    sql_query = f'''
+
+SELECT rp.id_permissao
+FROM usuario u
+JOIN funcao_permissao rp ON rp.id_funcao = u.id_funcao
+WHERE u.id_usuario = 1;
+    '''
+
+
+
+
+
+
 
 #==============================================
 #= Stock
@@ -301,7 +517,7 @@ async def record_register_product(id_product, quantity, id_user):
 
     current_date = date.today()
     if not id_user:
-        id_user = __USER_LOGGED['id_user']
+        id_user = __USER_LOGGED['user']['id_user']
 
     table_name = base_de_dados.history_register_product_table_name
     column_list = [
@@ -1189,7 +1405,7 @@ async def get_collection_data_for_graph( ):
         query_data = {}
         date_initial = f'{current_year}-{months[i]}-01'
         date_finaly = f'{current_year}-{months[i]}-{last_days[i]}'
-        print(" SEARCH FOR DATA: ", date_initial, date_finaly, flush=1)
+        #print(" (get_collection_data_for_graph) SEARCH FOR DATA: ", date_initial, date_finaly, flush=1)
         query_data = await get_collection_report(date_initial, date_finaly)
 
         if query_data['status'] != 0:
@@ -1213,16 +1429,17 @@ async def get_collection_data_for_graph( ):
     response['content'] = collection_count_month
 
 
-    print("collection_count_month: ", collection_count_month)
+    #print("(get_collection_data_for_graph) collection_count_month: ", collection_count_month)
     return response
 
 
 @app.post('/get-collection-data-for-graph')
-async def get_collection_data_for_graph_api( data : dict ):
+async def get_collection_data_for_graph_api( data : dict, user=Depends(require_permission(1)) ):
     response = {
         'status' : 90,
         'content' : []
     }
+    print(" OBTENDO DADOS PARA GRAFICO, USUARIO AUTENTICADO: ", user)
     initial_date = data['initialDate']
     end_date = data['endDate']
 
@@ -1508,7 +1725,7 @@ async def get_priority_family_information(data):
     #==================================================
 
 
-async def get_family_data():
+async def get_family_data(user=Depends(require_permission(6))):
     #get_family_list = family_list.copy()
     response = await base_de_dados.query("""
                         SELECT
@@ -1531,7 +1748,7 @@ async def get_family_data():
     return response
 
 
-async def get_all_family_data():
+async def get_all_family_data(user=Depends(require_permission(6))):
     #get_family_list = family_list.copy()
     response = await base_de_dados.query(" SELECT * FROM familia")
     for I in range( len(response['content']) ):
@@ -1542,11 +1759,8 @@ async def get_all_family_data():
 
 
 @app.get("/get-family-data")
-async def get_family_list():
-    #family_data_list = await get_family_data()
-    #priority_list = await get_priority_registration_data()
-    #print("PRIOLIST: ", priority_list, flush=1)
-    #print("family LIST1: ", family_data_list['content'])
+async def get_family_list(user=Depends(require_permission('VIEW_FAMILY_REGISTER')) ):
+
     response = {
         "status" : 90,
         "content" : []
@@ -1581,11 +1795,14 @@ async def get_family_list():
         #print(" RESPONSE: ", list(family_data_list["content"][I]))
         family_data_list['content'][I] = list(family_data_list['content'][I])
     
-    return family_data_list        
+    response['status'] = family_data_list['status']
+    response['content'] = family_data_list['content']
+
+    return response
 
 
 @app.get("/get-family-data-resolve-ids")
-async def get_family_list_resolved():
+async def get_family_list_resolved( user=Depends(require_permission(6)) ):
     response = {
         "status" : 90,
         "content" : []
@@ -1625,11 +1842,15 @@ async def get_family_list_resolved():
         #print(" RESPONSE: ", list(family_data_list["content"][I]), flush=1)
         family_data_list['content'][I] = list(family_data_list['content'][I])
     
+    response['status'] = family_data_list['status']
+    response['content'] = family_data_list['content']
+
+    
     return family_data_list        
 
 
 @app.post("/search-for-family")
-async def search_on_family_register(data: SearchRegisterFamilyRequest):
+async def search_on_family_register(data: SearchRegisterFamilyRequest, user=Depends(require_permission(6))):
     response = {
         "status" : 90,
         "content" : []
@@ -1702,7 +1923,7 @@ async def search_for_duplicate_family( representative, city, neighborhood, stree
 
 
 @app.post("/search-for-family-by-id")
-async def search_on_family_register_by_id(data: SearchRegisterFamilyByIdRequest ):
+async def search_on_family_register_by_id(data: SearchRegisterFamilyByIdRequest, user=Depends(require_permission(6)) ):
     #print("search for family...", data, flush=1)
     
     
@@ -1744,7 +1965,7 @@ async def search_on_family_register_by_id(data: SearchRegisterFamilyByIdRequest 
 
 
 @app.post("/search-for-family-by-id-resolve-ids")
-async def search_on_family_register_by_id_resolved(data: SearchRegisterFamilyByIdRequest ):
+async def search_on_family_register_by_id_resolved(data: SearchRegisterFamilyByIdRequest, user=Depends(require_permission(6)) ):
     print("search for family...", data, flush=1)
     
     
@@ -1883,7 +2104,7 @@ async def alter_family_register(id_family, representative, members, city, neighb
     return response
 
 @app.post("/alter-family-data")
-async def alter_family_data(data : dict = None ):
+async def alter_family_data(data : dict = None, user=Depends(require_permission(4)) ):
     #global family_list
     #print("data: ", data)
 
@@ -2036,7 +2257,7 @@ async def registration_family(church_id, representative, city, members, neighbor
     return registration_response
 
 @app.post("/registration-family-data")
-async def registration_family_data(data : dict = None ):
+async def registration_family_data(data : dict = None, user=Depends(require_permission(3)) ):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -2065,7 +2286,7 @@ async def registration_family_data(data : dict = None ):
 
 
 @app.post("/delete-family-data")
-async def delete_family_data( data : dict = None ):
+async def delete_family_data( data : dict = None, user=Depends(require_permission(5)) ):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -2152,7 +2373,7 @@ async def get_data_family_helped_for_graph( initial_date = '', end_date = '' ):
 
 
 @app.post('/get-data-family-helped-for-graph')
-async def get_data_family_helped_for_graph_api( data : dict ):
+async def get_data_family_helped_for_graph_api( data : dict, user=Depends(require_permission(1)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -2182,7 +2403,7 @@ async def get_church_data():
 
 
 @app.get("/get-church-list")
-async def get_church_data_for_display():
+async def get_church_data_for_display(user=Depends(require_permission(14)) ):
 
     sql_query = f"""
     SELECT
@@ -2204,7 +2425,7 @@ async def get_church_data_for_display():
 
 
 @app.get("/get-church-list-raw-data")
-async def get_church_list():
+async def get_church_list(user=Depends(require_permission(14))):
     return await get_church_data()
 
 
@@ -2310,7 +2531,7 @@ async def register_church(church_name, representative, member_number, city, neig
 
 
 @app.post("/register-church")
-async def register_church_api( data : dict ):
+async def register_church_api( data : dict, user=Depends(require_permission(11)) ):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -2387,7 +2608,7 @@ async def alter_church_data(id_church, church_name, representative, city, member
 
 #+ Precisa refatorar
 @app.post("/alter-church-data")
-async def alter_church_data_api(data : dict = None ):
+async def alter_church_data_api(data : dict = None, user=Depends(require_permission(12)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -2428,7 +2649,7 @@ async def delete_church_register( id_church ):
 
 
 @app.post('/delete-church-register')
-async def delete_church_register_api( data : dict ): 
+async def delete_church_register_api( data : dict, user=Depends(require_permission(13)) ): 
     response = {
         'status': 90,
         'content' : []
@@ -2447,7 +2668,7 @@ async def delete_church_register_api( data : dict ):
 # ========================
 
 @app.post("/search-for-church")
-async def search_on_church_register(data: SearchRegisterChurchRequest):
+async def search_on_church_register(data: SearchRegisterChurchRequest, user=Depends(require_permission(14))):
     #print(f" ({data.churchName}) search for church...", flush=1)
     church_register_data = get_church_data()
 
@@ -2477,7 +2698,7 @@ async def search_on_church_register(data: SearchRegisterChurchRequest):
 
 
 @app.post("/search-for-church-by-id")
-async def search_church_by_id(data : SearchRegisterChurchByIdRequest):
+async def search_church_by_id(data : SearchRegisterChurchByIdRequest, user=Depends(require_permission(14))):
     response = {
         "status" : 90,
         "content" : None
@@ -2502,7 +2723,7 @@ async def search_church_by_id(data : SearchRegisterChurchByIdRequest):
 
 
 @app.post("/search-for-church-goals-item")
-async def search_on_church_goals(data: SearchForChurchGoalItem):
+async def search_on_church_goals(data: SearchForChurchGoalItem, user=Depends(require_permission(14))):
     #print(f" ({data.churchId})({data.goalItemName}) search for basket...", flush=1)
     goal_items_data = get_church_goals_data()
 
@@ -2590,7 +2811,7 @@ async def get_church_goals_data(id_church, date_init, date_end, resolve_church_n
     return response
 
 @app.post("/get-church-goals")
-async def get_church_goals_api( data : dict ):
+async def get_church_goals_api( data : dict, user=Depends(require_permission(15)) ):
     response = {
         "status" : 90,
         "content" : []
@@ -2709,7 +2930,7 @@ async def get_church_goal_by_id( id_goal, id_church):
 
 
 @app.post('/get-church-goal-by-id')
-async def get_church_goal_by_id_api( data : dict ):
+async def get_church_goal_by_id_api( data : dict, user=Depends(require_permission(15)) ):
     response = {
         "status" : 90,
         "content" : []
@@ -2754,7 +2975,7 @@ WHERE mt.id_congregacao = {id_church}
 
 
 @app.post('/get-goal-list-item')
-async def get_goal_list_item_api( data : dict ):
+async def get_goal_list_item_api( data : dict, user=Depends(require_permission(15)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -2883,7 +3104,7 @@ async def change_church_goal_list( id_goal, id_church, new_goal_list, goal_time,
 
 
 @app.post('/change-church-goal-list')
-async def change_church_goal_list_api( data : dict ):
+async def change_church_goal_list_api( data : dict, user=Depends(require_permission(16)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -2986,7 +3207,7 @@ async def add_item_on_goal_list(id_goal, id_product, quantity):
 
 
 @app.post('/add-item-on-goal-list')
-async def add_item_on_goal_list_api( data : dict):
+async def add_item_on_goal_list_api( data : dict, user=Depends(require_permission(16))):
     response = {
         'status' : 90,
         'content' : []
@@ -3018,7 +3239,7 @@ async def remove_item_of_goal_list(id_goal, id_product):
 
 
 @app.post('/remove-item-of-goal-list')
-async def remove_item_of_goal_list_api( data : dict ):
+async def remove_item_of_goal_list_api( data : dict, user=Depends(require_permission(17)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -3032,7 +3253,7 @@ async def remove_item_of_goal_list_api( data : dict ):
     return response
 
 @app.post('/create-church-goal-list')
-async def create_church_goal_api( data : dict ):
+async def create_church_goal_api( data : dict, user=Depends(require_permission(18)) ):
     response = {
         "status" : 90,
         'content' : []
@@ -3066,7 +3287,7 @@ async def remove_goal_of_church(id_goal, id_church):
 
 
 @app.post('/remove-goal-of-church')
-async def remove_goal_of_church_api( data : dict ):
+async def remove_goal_of_church_api( data : dict, user=Depends(require_permission(17)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -3261,7 +3482,7 @@ async def record_church_goals_completed(initial_date = '', end_date = ''):
     return response
 
 @app.post('/record-church-goal-completed')
-async def record_church_goals_completed_api( data : dict):
+async def record_church_goals_completed_api( data : dict, user=Depends(require_permission(19))):
     response = {
         'status' : 90,
         'content' : []
@@ -3365,7 +3586,7 @@ ORDER BY s.id_saida'''
     return response
 
 @app.post('/record-church-withdraw-basket')
-async def record_church_withdraw_basket_api( data : dict ):
+async def record_church_withdraw_basket_api( data : dict, user=Depends(require_permission(20)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -3386,7 +3607,7 @@ async def record_church_withdraw_basket_api( data : dict ):
 
 
 @app.post('/get-all-church-goal-data-graph')
-async def get_all_church_goal_data_graph_api( ):
+async def get_all_church_goal_data_graph_api( user=Depends(require_permission(20)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -4120,7 +4341,7 @@ async def get_all_input_and_output_basket(initial_date = '', end_date = ''):
     sql_query += f';'
     #print(' SQL QUERY: ', sql_query)
     response = await base_de_dados.query( sql_query )
-    print(" get_all_input_and_output_basket: ", response)
+    #print(" get_all_input_and_output_basket: ", response)
     return response
 
 

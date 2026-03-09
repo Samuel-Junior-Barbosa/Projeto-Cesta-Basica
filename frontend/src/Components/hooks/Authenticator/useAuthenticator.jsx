@@ -1,42 +1,54 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { authenticator } from './auth';
+import authenticator from './auth';
+import { useAuth } from "../../../contexts/AuthenticateContext/AuthContext";
 
 export function useAuthenticator() {
-    const [useAutenticatorLoading, useAutenticatorSetLoading] = useState(false);
-    const [useAutenticatorError, useAutenticatorSetError] = useState(null);
-    const [useAutenticatorAuthenticated, useAutenticatorSetAuthenticated] = useState(false);
+    const [useAutenticatorLoading, setLoading] = useState(false);
+    const [useAutenticatorMessage, setMessage] = useState(null);
+    const [useAutenticatorAuthenticated, setContent] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth()
 
     const handleLogin = async (username, password) => {
-        useAutenticatorSetLoading(true);
-        useAutenticatorSetError(null);
-        let response = null
+        setLoading(true);
+        setMessage(null);
+        let response = null;
+        
         try {
             response = await authenticator(username, password);
+            //console.log(" USE AUTH: ", response)
             if (response.status === 0) {
-                useAutenticatorSetAuthenticated(true)
-                useAutenticatorSetError('Logado com sucesso');
-                useAutenticatorSetLoading(false);
+                let userPerm = response.content.user.permissions
+                if( typeof( userPerm ) == 'string' ) {
+                    userPerm = JSON.parse(userPerm) || []
+                }
+                //console.log(" USER PERMISSION: ", userPerm)
+                
+                login(response.content.access_token, response.content.user.username , response.content.user.role, userPerm)
+                setContent(true)
+                setMessage('Logado com sucesso');
+                setLoading(false);
                 return response
             }
             else {
-                useAutenticatorSetAuthenticated(false)
-                useAutenticatorSetError(`${response.message}`)
-                useAutenticatorSetLoading(false);
+                setContent(false)
+                setMessage(`${response.message}`)
+                setLoading(false);
             }
             
             
         } catch (err) {
-            useAutenticatorSetAuthenticated(false)
-                useAutenticatorSetError(`${err.message}`)
-                useAutenticatorSetLoading(false);
+            console.log(" ERROR AUTH: ", err)
+            setContent(false)
+            setMessage(`${err.message}`)
+            setLoading(false);
             
         } finally {
-            useAutenticatorSetLoading(false);
+            setLoading(false);
             return response
         } 
     }
 
-    return { handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorError };
+    return { handleLogin, useAutenticatorAuthenticated, useAutenticatorLoading, useAutenticatorMessage };
 }

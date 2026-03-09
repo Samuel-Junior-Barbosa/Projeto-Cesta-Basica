@@ -4,14 +4,13 @@ import { IoMdHelpCircleOutline as HelpIcon } from "react-icons/io";
 import styles from './TopBarMenu.module.css'
 
 import { Link } from 'react-router-dom';
-import { getCurrentUser } from '../hooks/Authenticator/auth';
 
 // Menu do topo da pagina
 const TopBarMenu = React.memo(() => {
     const [ currentUser, setCurrentUser ] = useState();
 
     useEffect(() => {
-        const userLogged = getCurrentUser();
+        const userLogged = localStorage.getItem('user');
         setCurrentUser(userLogged);
     }, [])
 

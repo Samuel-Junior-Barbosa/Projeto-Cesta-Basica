@@ -99,6 +99,10 @@ const CadastrosDeFamilias = () => {
             //setRegisterList(response.content)
         }
 
+        if( response.status === 403 ) {
+            alert(response.content)
+        }
+
         return response
     }
 

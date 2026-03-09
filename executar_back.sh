@@ -1,2 +1,3 @@
 cd ./backend/
-python3.10 server.py
+source ./.venv/bin/activate
+python server.py

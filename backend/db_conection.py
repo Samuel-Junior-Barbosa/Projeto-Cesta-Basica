@@ -350,14 +350,13 @@ class GCBBase:
             
 
         if not self.exist_table( self.role_permission_table_name ):
-            cursor_do_banco.execute(f'''
+            cursor_do_banco.execute(f"""
                                     CREATE TABLE { self.role_permission_table_name } (
-                                        id_serial INTEGER PRIMARY KEY AUTOINCREMENT,
                                         id_funcao INTEGER,
                                         id_permissao INTEGER,
-                                        FOREING KEY(id_funcao) REFERENCES {self.role_table_name}(id_funcao),
-                                        FOREING KEY(id_permissao) REFERENCES {self.permission_table_name}(id_permissao)
-                                    ); ''')
+                                        FOREIGN KEY(id_funcao) REFERENCES {self.role_table_name}(id_funcao),
+                                        FOREIGN KEY(id_permissao) REFERENCES {self.permission_table_name}(id_permissao)
+                                    ) """)
             
             self.banco_de_dados.commit()
 
@@ -382,21 +381,10 @@ class GCBBase:
                                     );""")
             self.banco_de_dados.commit()
 
-
-            tmp_values = [
-                1,
-                "'Admin'",
-                "''",
-                True,
-                "'2026-01-01'",
-                "'2026-01-01'",
-                1,
-                1,
-            ]
-
             tmp_sql_query = f"""
                             INSERT INTO usuario (
                                     id_usuario,
+                                    id_funcao,
                                     nome_do_usuario,
                                     email,
                                     status_cadastro,
@@ -406,7 +394,34 @@ class GCBBase:
                                     usuario_responsavel_pelo_cadastro
                                 ) VALUES (
                                     1,
+                                    1,
                                     'ADMIN',
+                                    '',
+                                    true,
+                                    '2026-01-01',
+                                    '2026-01-01',
+                                    1,
+                                    1
+                                )
+                                """
+            self.banco_de_dados.execute(tmp_sql_query)
+            self.banco_de_dados.commit()
+
+            tmp_sql_query = f"""
+                            INSERT INTO usuario (
+                                    id_usuario,
+                                    id_funcao,
+                                    nome_do_usuario,
+                                    email,
+                                    status_cadastro,
+                                    data_criacao,
+                                    data_alteracao,
+                                    usuario_responsavel_da_alteracao,
+                                    usuario_responsavel_pelo_cadastro
+                                ) VALUES (
+                                    2,
+                                    2,
+                                    'OPERADOR',
                                     '',
                                     true,
                                     '2026-01-01',
@@ -418,6 +433,8 @@ class GCBBase:
 
             self.banco_de_dados.execute(tmp_sql_query)
             self.banco_de_dados.commit()
+
+
 
         # ========================================================
         if not self.exist_table( self.priority_table_name ):

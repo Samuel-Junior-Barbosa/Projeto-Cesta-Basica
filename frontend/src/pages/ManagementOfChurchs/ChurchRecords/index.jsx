@@ -139,6 +139,10 @@ const ChurchRecords = () => {
                 //setItens(response.content)
                 return response.content
             }
+
+            else if( response.status === 403 ) {
+                alert(response.content)
+            }
         }
         const response = search_function()
         return response
@@ -155,6 +159,7 @@ const ChurchRecords = () => {
         }
         
         const response = searchItemOnTable(searchItem, "Nome")
+
         if( !response.content ) {
             response.content = []
         }

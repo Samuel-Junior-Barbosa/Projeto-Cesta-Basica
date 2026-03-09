@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import './SwitchProfile.css';
 import userIcon from '../../assets/images/user_icon.svg';
-import { getCurrentUser } from '../hooks/Authenticator/auth';
+import getUserList from '../../Functions/Authentication/GetUserList';
 
 
 const SwitchProfile= () => {
-    const [profiles, setProfiles] = useState(['', 'Admin', 'Operador', 'Visitante']);
+    //const [profiles, setProfiles] = useState(['', 'Admin', 'Operador', 'Visitante']);
+    const [profiles, setProfiles] = useState(['NENHUM']);
     const [direction, setDirection] = useState('');
     const [animating, setAnimating] = useState(false);
     const [currentUserSelected, setCurrentUserSelected ] = useState('')
@@ -13,11 +14,14 @@ const SwitchProfile= () => {
     const handleClick = ( value ) => {
         let nameuser = String( value.target.value )
         setCurrentUserSelected( nameuser )
-        localStorage.setItem("userSelected", nameuser)
+        localStorage.setItem("user", nameuser)
     }
 
     const getLastUserSelected = () => {
-        let userSelected = localStorage.getItem("userSelected")
+        let userSelected = localStorage.getItem("user")
+        if( !userSelected ) {
+            userSelected = 'NENHUM'
+        }
         setCurrentUserSelected( userSelected )
         return userSelected
     }
@@ -25,6 +29,28 @@ const SwitchProfile= () => {
     useEffect(() => {
         getLastUserSelected()
     })
+
+    useEffect(() => {
+        
+        async function get_user_data() {
+            const response = await getUserList()
+            //console.log(" response user list: ", response)
+            if( response.status == 0 ) {
+                let tmp_profiles = [...profiles]
+                for( let i = 0; i < response.content.length; i ++ ) {
+                    tmp_profiles.push( response.content[i] )
+                }
+            
+                setProfiles(tmp_profiles)
+                
+            }
+        }
+
+        get_user_data()
+        
+        
+    }, [])
+
     return (
 
             <div className="SwitchProfileContainer">

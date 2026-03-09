@@ -53,16 +53,17 @@ import AlterBasketOrder from './pages/ManagementOfBaskets/AlterBasketOrder'
 // ------------------------------------------------------------------------------------------------------
 
 // ------------------------------------- Outros ---------------------------------------------------------
-import { AuthProvider,  } from './contexts/AuthenticateContext/AuthContext';
+import { AuthProvider  } from './contexts/AuthenticateContext/AuthContext';
 import RouteGuard from './contexts/GuardRoutes/RouteGuard';
-import {ProductsDB } from './contexts/ListOfProductsonStock';
 import { ThemeProvider } from './contexts/CurrentTheme';
 import ColorSelectorComp from './Components/ColorSelector';
+import { PERMISSIONS } from './Components/UserPermission';
 
 // ------------------------------------------------------------------------------------------------------
 
 
 const App = () => {
+  
   const storage = window.localStorage ?? {
     getItem: () => null,
     setItem: () => {},
@@ -76,57 +77,180 @@ const App = () => {
           <Router>
             <Routes>
 
-              {/* Paginas que só o ADMIN tem acesso */}
-              <Route element={<RouteGuard AllowedRoles={['admin']}/>}>
+              {/* ROTAS REFERENTE A FAMILIA */}
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_CREATE_FAMILY]} />}>
                 <Route element={<Layout />}>
-                  <Route path="/gerenciar-produtos" element={<GerenciarProdutos />} />
                   <Route path="/register-family" element={<RegistrarFamilia />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_MANAGE_FAMILY]} />}>
+                <Route element={<Layout />}>
                   <Route path="/cadastros-de-familias" element={<CadastroDeFamilias />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_MANAGE_FAMILY]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/cadastros-de-familias" element={<CadastroDeFamilias />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_ALTER_FAMILY]} />}>
+                <Route element={<Layout />}>
                   <Route path="/alterar-cadastro-familia" element={<AlterarCadastroDeFamilia />} />
-                  
-                  <Route path="/alterar-dados-produtos" element={<AlterarDadosProduto />} />
-                  <Route path="/register-church" element={<RegisterChurch />} />
-                  <Route path="/manage-churches" element={<ChurchRecords />} />
-                  <Route path="/gerar-relatorios" element={<GerarRelatorios />} />
-                  <Route path="/metas" element={<MetaPage />} />
-                  <Route path="/change-church-registration" element={ <ChangeChurchRegistration /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_MANAGE_PRIORITY]} />}>
+                <Route element={<Layout />}>
                   <Route path="/priority-registration" element={ <PriorityRegistration /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_CREATE_PRIORITY]} />}>
+                <Route element={<Layout />}>
                   <Route path="/adding-priority-register" element={ <AddingPriorityRegister /> } />
-                  <Route path="/alter-priority-register" element={ <AlterPrirotityRegister /> } />    
-                  <Route path="/editing-goal-page" element={ <EditingGoalPage /> } />    
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_ALTER_PRIORITY]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/alter-priority-register" element={ <AlterPrirotityRegister /> } />
+                </Route>
+              </Route>
+              {/* FIM ROTAS REFERENTE A FAMILIA */}
+              {/* ============================= */}
+              {/* ROTAS REFERENTE A CONGREGAÇÃO */}
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_MANAGE_CHURCH]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/manage-churches" element={<ChurchRecords />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_REGISTER_CHURCH]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/register-church" element={<RegisterChurch />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_ALTER_CHURCH]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/change-church-registration" element={ <ChangeChurchRegistration /> } />
+                </Route>
+              </Route>,
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_CREATE_CHURCH_GOAL]} />}>
+                <Route element={<Layout />}>
                   <Route path='/create-goal-for-church' element= { <CreateGoalForChurch /> } />
                 </Route>
               </Route>
-
-              {/* Paginas que somente o ADMIN e o OPERADOR tem acesso */}
-              <Route element={<RouteGuard AllowedRoles={['admin', 'operator']}/>}>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_ALTER_CHURCH_GOAL]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/editing-goal-page" element={ <EditingGoalPage /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_MANAGE_CHURCH_GOAL]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/metas" element={<MetaPage />} />
+                </Route>
+              </Route>
+              {/* FIM ROTAS REFERENTE A CONGREGAÇÃO */}
+              {/* ================================= */}
+              {/* ROTAS REFERENTE A PRODUTOS */}
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_MANAGE_PRODUCT]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/gerenciar-produtos" element={<GerenciarProdutos />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_EDIT_PRODUCT]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/alterar-dados-produtos" element={<AlterarDadosProduto />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_CREATE_PRODUCT]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/registrar-produtos" element={<RegistrarProdutos />} />
+                </Route>
+              </Route>
+              {/* FIM ROTAS REFERENTE A PRODUTOS */}
+              {/* ============================== */}
+              {/* ROTAS REFERENTE A RELATORIOS */}
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_REPORT_PAGE]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/gerar-relatorios" element={<GerarRelatorios />} />
+                </Route>
+              </Route>
+              {/* FIM ROTAS REFERENTE A RELATORIOS */}
+              {/* ================================ */}
+              {/* ROTAS REFERENTE A CESTAS */}
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_CREATE_BASIC_BASKET_FOOD]} />}>
                 <Route element={<Layout />}>
                   <Route path="/register-basic-food-basket" element={ <RegisterBasicFoodBasket /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_ALTER_BASIC_BASKET_FOOD]} />}>
+                <Route element={<Layout />}>
                   <Route path="/change-basic-basket" element={ <ChangeBasicBasket /> } />
-                  <Route path="/generate-basic-food-basket" element={ <GenerateBasicFoodBaskets /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_MANAGE_BASIC_BASKET_FOOD]} />}>
+                <Route element={<Layout />}>
                   <Route path="/cestas-basicas" element={ <BasicFoodBasket /> } />
-                  <Route path="/registrar-produtos" element={<RegistrarProdutos />} />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_GENERATE_BASIC_BASKET_FOOD]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/generate-basic-food-basket" element={ <GenerateBasicFoodBaskets /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_INPUT_BASIC_BASKET_FOOD, PERMISSIONS.VIEW_OUTPUT_BASIC_BASKET_FOOD]} />}>
+                <Route element={<Layout />}>
                   <Route path="/input-and-output-baskets" element={ <IOBaskets /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_HISTORY_BASIC_BASKET_FOOD]} />}>
+                <Route element={<Layout />}>
                   <Route path="/history-basic-food-basket" element={ <HistoryBasicFoodBasket /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_DELIVERY_BASIC_BASKET_FOOD]} />}>
+                <Route element={<Layout />}>
                   <Route path="/basket-delivery-order" element={ <BasketDeliveryOrder /> } />
+                </Route>
+              </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_ALTER_DELIVERY_BASIC_BASKET_FOOD]} />}>
+                <Route element={<Layout />}>
                   <Route path="/alter-basket-order" element={ <AlterBasketOrder /> } />
                 </Route>
               </Route>
-
-              {/* Paginas que TODOS tem acesso */}
-              <Route element={<RouteGuard AllowedRoles={['admin', 'operator', 'visit']}/>}>
+              
+              {/* FIM ROTAS REFERENTE A CESTAS */}
+              {/* ================================ */}
+              {/* ROTAS REFERENTE A CONFIGURAÇÕES */}
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_CONFIGURATION_PAGE]} />}>
                 <Route element={<Layout />}>
-                  <Route path="/documentacao" element={ <Documentacao /> } /> {/* Documentacao */}
                   <Route path="/options" element={ <Options /> } />
-                  <Route path="/suporte" element={<Suporte />} />
-                  <Route path="/logout" element={<Logout/>} />              
-                  <Route path="/" element={<Home />} />
+                </Route>
+              </Route>
+              {/* FIM ROTAS REFERENTE A CONFIGURAÇÕES */}
+              {/* ================================ */}
+              {/* OUTRAS ROTAS */}
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_HOME]} />}>
+                <Route element={<Layout />}>
                   <Route path="/home" element={<Home />} />
-
                 </Route>
               </Route>
 
-              {/* Paginas que não precissam de acesso */}
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_HOME]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Home />} />
+                </Route>
+              </Route>
+
+              
+              {/* FIM OUTRAS ROTAS */}
+              {/* ================================ */}
+              {/* Paginas que TODOS tem acesso */}
+              
+              <Route element={<Layout />}>
+                <Route path="/documentacao" element={ <Documentacao /> } /> {/* Documentacao */}
+                <Route path="/suporte" element={<Suporte />} />
+                <Route path="/logout" element={<Logout/>} />              
+              </Route>
+
+              {/* Paginas que não precissam de acesso e não seguem o Layout*/}
               <Route path="/login" element={<Login />} />
               <Route path="nao-autorizado" element={<NoAuthorized />} />
               <Route path="*" element={<NoPage />} />
