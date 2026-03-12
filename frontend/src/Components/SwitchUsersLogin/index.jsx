@@ -38,7 +38,7 @@ const SwitchProfile= () => {
             if( response.status == 0 ) {
                 let tmp_profiles = [...profiles]
                 for( let i = 0; i < response.content.length; i ++ ) {
-                    tmp_profiles.push( response.content[i] )
+                    tmp_profiles.push( response.content[i][1] )
                 }
             
                 setProfiles(tmp_profiles)

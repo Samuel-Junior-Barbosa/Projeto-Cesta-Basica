@@ -15,7 +15,9 @@ const Layout = () => {
 
     return (
         <div className={styles.MainScreen}>
-            <TopBarMenu />
+            <TopBarMenu
+                userData={ userData }
+            />
             <SideBarMenu
                 userData={ userData }
             />

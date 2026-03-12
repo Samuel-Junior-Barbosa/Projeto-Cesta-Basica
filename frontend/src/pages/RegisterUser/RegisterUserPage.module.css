@@ -1,0 +1,18 @@
+.inputData {
+    background-color: var(--bg-page3);
+    color: var(--bg-page1);
+}
+
+
+.dataEditable {
+    background-color: var(--color-font);
+    color: var(--color-font3)
+}
+
+.permissionList {
+    width: 50%;
+}
+
+.permissionChurchForm {
+    width: 100%;
+}

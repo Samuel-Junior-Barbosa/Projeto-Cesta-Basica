@@ -288,6 +288,7 @@ async def get_user_list():
 
     sql_query = f''' 
     SELECT
+        id_usuario,
         nome_do_usuario
     FROM {table_name}
     WHERE status_cadastro = 1;'''
@@ -304,6 +305,7 @@ async def get_user_list_api():
     response =  await get_user_list()
     #print(" GET USER LIST RESPONSE: ", response)
     return response
+
 
 
 #@app.post("/login")
@@ -448,7 +450,7 @@ def get_current_user(credentials=Depends(security)):
 
 def require_permission(permission_id: int):
     def checker(user=Depends(get_current_user)):
-        print(" checker user: ", user)
+        #print(" checker user: ", user)
         user_perms = set(user.get("permissions", []))
 
         if permission_id not in user_perms:
@@ -472,6 +474,54 @@ WHERE u.id_usuario = 1;
 
 
 
+
+async def get_permission_list( id_user = 0):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    if id_user > 0:
+        return  load_user_permissions( id_user )
+    
+
+    permisson_table_name = base_de_dados.permission_table_name
+
+    sql_query = f"""
+        SELECT 
+            id_permissao,
+            nome,
+            descricao
+        FROM {permisson_table_name};
+    """
+
+    response = await base_de_dados.query( sql_query )
+    return response
+
+
+class GetPermissionList(BaseModel):
+    idUser : int
+
+
+@app.post('/get-permission-list')
+async def get_permission_list_api( data : dict, user=Depends(require_permission(73)) ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+    print( " get_permission_list_api", data)
+    id_user = data['idUser']
+
+    response = await get_permission_list( id_user )
+
+    #permission_dict = {}
+    #for p in response['content']:
+    #    permission_dict[p[1]] = p[0]
+
+    #response['content'] = permission_dict
+
+
+    return response
 
 
 #==============================================

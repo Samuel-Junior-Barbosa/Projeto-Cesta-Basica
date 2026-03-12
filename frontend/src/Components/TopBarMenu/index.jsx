@@ -6,13 +6,14 @@ import styles from './TopBarMenu.module.css'
 import { Link } from 'react-router-dom';
 
 // Menu do topo da pagina
-const TopBarMenu = React.memo(() => {
-    const [ currentUser, setCurrentUser ] = useState();
+const TopBarMenu = React.memo(({userData}) => {
+    const [ currentUser, setCurrentUser ] = useState('');
 
     useEffect(() => {
-        const userLogged = localStorage.getItem('user');
+        const userLogged = userData.user;
         setCurrentUser(userLogged);
-    }, [])
+        console.log(" TOP BAR MENU: ", userLogged)
+    }, [userData])
 
 
     return (
@@ -20,7 +21,7 @@ const TopBarMenu = React.memo(() => {
             <div>
                 <Link to="/">
                     <UserIcon />
-                    <label> {currentUser && (currentUser.username)} </label>
+                    <label> {currentUser} </label>
                 </Link>
             </div>
             <div className={styles.HelpDiv}>

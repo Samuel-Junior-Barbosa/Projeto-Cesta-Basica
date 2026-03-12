@@ -9,6 +9,7 @@ import { FaUsers as FamilyRegistration } from "react-icons/fa";
 import { TbReportAnalytics as ReportIcon } from "react-icons/tb";
 import { IoMdBasket as BasketIcon } from "react-icons/io";
 import { FaUserPlus as AddFamily} from "react-icons/fa";
+import { FaUser as UserIcon} from "react-icons/fa";
 import { FaClipboardUser as FamilysCadastre } from "react-icons/fa6";
 //import { MdChurch as ChurchRegister } from "react-icons/md";
 import { FaChurch as ChurchsRegistered } from "react-icons/fa";
@@ -129,7 +130,16 @@ const SideBarMenu = React.memo(({userData}) => {
                         </Link>
                     </li>
                 )}
-                        
+                {( currentUserPermission.includes(PERMISSIONS.VIEW_MANAGE_USER_PAGE)) && (
+                    <li className={styles.SideBarMenuListItem}>
+                        <Link to="/manage-users">
+                            <abbr title="Gerenciar os cadastros de usuarios do sistema">
+                                <UserIcon />
+                                <label> Gerenciar Usuarios </label>
+                            </abbr>
+                        </Link>
+                    </li>
+                )}
                 { ( currentUserPermission.includes(PERMISSIONS.VIEW_REPORT_PAGE) ) && (
                     <li className={styles.SideBarMenuListItem}>
                         <Link to="/gerar-relatorios">
