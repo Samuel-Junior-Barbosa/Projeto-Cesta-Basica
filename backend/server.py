@@ -480,7 +480,7 @@ WHERE u.id_usuario = 1;
 
 
 @app.get("/get-all-stock-data")
-async def get_stock_data():
+async def get_stock_data(user=Depends(require_permission(10)) ):
     try:
         #get_lista_de_itens = listaDeItens.copy()
         get_lista_de_itens = await base_de_dados.getAllData("produto")
@@ -493,7 +493,7 @@ async def get_stock_data():
 
 
 @app.get("/get-stock")
-async def get_stock():
+async def get_stock(user=Depends(require_permission(10)) ):
     table_name = base_de_dados.product_table_name
 
     sql_query = f'''
@@ -630,7 +630,7 @@ async def register_product_on_stock(id_product = 0, product_name = '', march_nam
     
 
 @app.post("/register-product-on-stock")
-async def register_product_on_stock_api(data : dict):
+async def register_product_on_stock_api(data : dict, user=Depends(require_permission(7)) ):
     response = {
         "status" : 90,
         "content": "Error"
@@ -725,7 +725,7 @@ async def search_on_stock_preview( item_name ):
 
 
 @app.post("/search-stock")
-async def search_on_stock_api(data : dict):
+async def search_on_stock_api(data : dict, user=Depends(require_permission(10)) ):
     item_name = data['itemName']
 
     response = await search_on_stock_preview( item_name )
@@ -787,7 +787,7 @@ async def delete_product_from_stock( idProduct ):
 
 
 @app.post("/delete-product-from-stock")
-async def delete_product_from_stock_api(data : dict):
+async def delete_product_from_stock_api(data : dict, user=Depends(require_permission(9)) ):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -909,7 +909,7 @@ async def inventory_adjustment( id_product, type_of_adjustment, adjust_value, id
     
 
 @app.post("/inventoty-adjustment")
-async def inventory_adjustment_api( data : dict ):
+async def inventory_adjustment_api( data : dict, user=Depends(require_permission(8))  ):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -1011,7 +1011,7 @@ async def input_item_on_stock( id_basket, id_family, id_church, basket_quantity,
 
 
 @app.post('/input-item-on-stock')
-async def input_item_on_stock_api( data : dict ):
+async def input_item_on_stock_api( data : dict, user=Depends(require_permission(8))  ):
     response = {
         'status' : 90,
         'content' : []
@@ -1073,7 +1073,7 @@ async def record_inventory_adjustment_history( id_product, type_of_adjustment, o
     return response
 
 @app.post("/record_inventory_adjustment_history")
-async def record_inventory_adjustment_history_api( data : dict ):
+async def record_inventory_adjustment_history_api( data : dict, user=Depends(require_permission(51))  ):
 
     response = {
         "status" : 90,
@@ -1132,7 +1132,7 @@ async def record_withdraw_item( id_saida, id_product, quantity ):
 
 
 @app.post("/record-withdraw-item")
-async def record_withdraw_item_api( data : dict ):
+async def record_withdraw_item_api( data : dict, user=Depends(require_permission(52))  ):
     response = {
         'status' : 90,
         'content' : "Error"
@@ -1198,7 +1198,7 @@ async def record_outputs( id_basket, id_family, id_church, output_type, basket_q
     return response
 
 @app.post("/record-outputs")
-async def record_outputs_api( data : dict ):
+async def record_outputs_api( data : dict, user=Depends(require_permission(52))  ):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -1305,7 +1305,7 @@ WHERE ( exit.tipo_entrada = {INPUT_TYPE} )
 
 
 @app.post('/get-collection-report')
-async def get_collection_report_api( data : dict):
+async def get_collection_report_api( data : dict, user=Depends(require_permission(53)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -1480,7 +1480,7 @@ async def get_collection_report_for_circle_graph( initial_date='', end_date=''):
 
 
 @app.post('/get-collection-report-for-circle-graph-api')
-async def get_collection_report_for_circle_graph_api( data : dict ):
+async def get_collection_report_for_circle_graph_api( data : dict, user=Depends(require_permission(1))  ):
     response = {
         'status' : 90,
         'content' : None
@@ -1513,7 +1513,7 @@ async def get_priority_registration_data():
 
 
 @app.post("/alter-priority-data")
-async def alter_priority_registration_data(data : dict):
+async def alter_priority_registration_data(data : dict, user=Depends(require_permission(55)) ):
     response = {
         "status" : 90,
         "content" : None
@@ -1545,7 +1545,7 @@ async def alter_priority_registration_data(data : dict):
 
 
 @app.post("/delete-priority-registration")
-async def delete_priority_registration( data : DeletePriorityRegistration ):
+async def delete_priority_registration( data : DeletePriorityRegistration, user=Depends(require_permission(56))  ):
     response = {
         "status" : 90,
         "content" : None
@@ -1571,7 +1571,7 @@ async def delete_priority_registration( data : DeletePriorityRegistration ):
     
     
 @app.post("/registration-priority-data")
-async def registration_priority_data( data : RegistrationPriority ):
+async def registration_priority_data( data : RegistrationPriority, user=Depends(require_permission(54))  ):
     response = {
         "status" : 90,
         "content" : None
@@ -1598,6 +1598,7 @@ async def registration_priority_data( data : RegistrationPriority ):
     response = await base_de_dados.insert("prioridade", column_list, value_list)
 
     return response
+
 
 def get_priority_registration_value_by_id_func( id_value ):
     if type(id_value).__name__ != 'str':
@@ -1648,7 +1649,7 @@ def get_priority_registration_id_by_name_func( name_priority ):
 
 
 @app.get("/get-priority-registration-value-by-id")
-async def get_priority_registration_value_by_id( data : str = '' ):
+async def get_priority_registration_value_by_id( data : str = '', user=Depends(require_permission(57))  ):
     if not data:
         return {
             'status' : 90,
@@ -1666,7 +1667,7 @@ async def get_priority_registration_value_by_id( data : str = '' ):
 
 
 @app.get("/get-priority-registration-name-by-id")
-async def get_priority_registration_name_by_id( data : str = '' ):
+async def get_priority_registration_name_by_id( data : str = '', user=Depends(require_permission(57))  ):
     if not data:
         return {
             'status' : 90,
@@ -1683,7 +1684,7 @@ async def get_priority_registration_name_by_id( data : str = '' ):
     }
 
 @app.get("/get-priority-registration-id-by-name")
-async def get_priority_registration_id_by_name( namePriority ):
+async def get_priority_registration_id_by_name( namePriority, user=Depends(require_permission(57))  ):
     #print("DATA: ", namePriority)
     if not namePriority:
         return {
@@ -1702,11 +1703,11 @@ async def get_priority_registration_id_by_name( namePriority ):
 
 
 @app.get("/get-priority-registration-data")
-async def get_priority_family_list():
+async def get_priority_family_list(user=Depends(require_permission(57)) ):
     return await get_priority_registration_data()
 
 @app.get("/get-priority-registration-value")
-async def get_priority_family_information(data):
+async def get_priority_family_information(data, user=Depends(require_permission(57)) ):
     if not data:
         return {
             'status' : 90,
@@ -1759,7 +1760,7 @@ async def get_all_family_data(user=Depends(require_permission(6))):
 
 
 @app.get("/get-family-data")
-async def get_family_list(user=Depends(require_permission('VIEW_FAMILY_REGISTER')) ):
+async def get_family_list(user=Depends(require_permission(6)) ):
 
     response = {
         "status" : 90,
@@ -3018,7 +3019,7 @@ async def get_all_church_goal():
 
 
 @app.post('/get-all-church-goal')
-async def get_all_church_goal_api( ):
+async def get_all_church_goal_api(user=Depends(require_permission(15)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -3370,7 +3371,7 @@ async def update_church_goal():
 
 
 @app.post('/update-churches-goals')
-async def update_church_goal_api():
+async def update_church_goal_api(user=Depends(require_permission(15))):
     response = {
         'status' : 90,
         'content' : []
@@ -3658,7 +3659,7 @@ async def get_basic_basket_food_data():
 
 
 @app.get("/get-basket-list")
-async def get_bascket_list():
+async def get_bascket_list(user=Depends(require_permission(61))):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -3675,7 +3676,7 @@ async def get_bascket_list():
 
 
 @app.post("/register-basket-food-model")
-async def register_basket_food_model(data : dict):
+async def register_basket_food_model(data : dict, user=Depends(require_permission(58))):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -3713,7 +3714,7 @@ async def register_basket_food_model(data : dict):
 
 
 @app.post("/register-item-on-basket-model")
-async def register_item_on_basket_model( data : dict ):
+async def register_item_on_basket_model( data : dict, user=Depends(require_permission(58)) ):
     response = {
         "status" : 90,
         "content" : None
@@ -3753,7 +3754,7 @@ async def register_item_on_basket_model( data : dict ):
 
 
 @app.post("/remove-registration-basket-model")
-async def remove_registration_basket_model(data : dict):
+async def remove_registration_basket_model(data : dict, user=Depends(require_permission(60))):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -3793,7 +3794,7 @@ async def search_on_basket_register_by_name(basket_name):
 
 
 @app.post("/search-for-basket")
-async def search_on_basket_register_api(data: SearchRegisterBasketRequest):
+async def search_on_basket_register_api(data: SearchRegisterBasketRequest, user=Depends(require_permission(61))):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -3831,7 +3832,7 @@ async def search_on_basket_register_api(data: SearchRegisterBasketRequest):
 
 
 @app.post("/remove-item-from-basket-model")
-async def remove_item_from_basket_model_api( data : dict ):
+async def remove_item_from_basket_model_api( data : dict, user=Depends(require_permission(59))):
     response = {
         "status" : 90,
         "content" : None
@@ -3881,7 +3882,7 @@ def get_basic_basket_food_order_data():
 
 # PRECISA REFATORAR
 @app.get("/get-basket-order-list")
-async def get_backet_order_list():
+async def get_backet_order_list( user=Depends(require_permission(65)) ):
     response= get_basic_basket_food_order_data()
     #print("RETURN BASKETS DATA: ", response)
     return response
@@ -3924,7 +3925,7 @@ async def get_item_of_history_basket_model_order_func( idOrder ):
 
 # PRECISA REFATORAR
 @app.get("/get-item-of-history-basket-model-order")
-async def get_item_of_history_basket_model_order( idOrder ):
+async def get_item_of_history_basket_model_order( idOrder, user=Depends(require_permission(65)) ):
     response = {
         "status" : 90,
         "content" : None
@@ -3945,7 +3946,7 @@ async def get_item_of_history_basket_model_order( idOrder ):
 
 # PRECISA REFATORAR
 @app.post("/search-for-basket-order")
-async def search_on_basket_order_register(data: SearchRegisterBasketOrderRequest):
+async def search_on_basket_order_register(data: SearchRegisterBasketOrderRequest, user=Depends(require_permission(65))):
     print(f" ({data.basketModelName})({data.columnName}) search for basket...", flush=1)
     basket_register_data = get_basic_basket_food_order_data()
 
@@ -4024,14 +4025,14 @@ async def get_basket_model_items_data_func():
 
 
 @app.get("/get-basket-items-list-data")
-async def get_backet_items_list_data():
+async def get_backet_items_list_data( user=Depends(require_permission( 65 )) ):
     response= get_basket_model_items_data_func()
     #print("RETURN BASKETS DATA: ", response)
     return response
 
 
 @app.get("/get-basket-items-list")
-async def get_backet_items_list( data : GetBasketModelItemList = Depends() ):
+async def get_backet_items_list( data : GetBasketModelItemList = Depends(), user=Depends(require_permission( 65 )) ):
     #print("Data: ", data)
     response = {
         "status" : 90,
@@ -4070,13 +4071,13 @@ async def get_history_basket_model_item_data():
 
 # PRECISA REFATORAr
 @app.get("/get-all-history-basket-model-item-data")
-async def get_all_history_basket_model_item():
+async def get_all_history_basket_model_item( user=Depends(require_permission(65)) ):
     response = get_history_basket_model_item_data()
     return response
 
 # PRECISA REFATORAr
 @app.get("/get-history-basket-model-item-data")
-async def get_history_basket_model_item(data : GetHistoryBasketModelItem = Depends()):
+async def get_history_basket_model_item(data : GetHistoryBasketModelItem = Depends(), user=Depends(require_permission(65))):
     print("idBasket: ", data.idBasket, flush=1)
     idBasket = data.idBasket
     found_item_list = []
@@ -4098,7 +4099,7 @@ async def get_history_basket_model_item(data : GetHistoryBasketModelItem = Depen
 
 # PRECISA REFATORAr
 @app.post("/search-for-basket-item")
-async def search_on_basket_item_register(data: SearchBasketItemRequest):
+async def search_on_basket_item_register(data: SearchBasketItemRequest, user=Depends(require_permission(65))):
     print(f" ({data.searchValue})({data.columnName}) search for basket item...", flush=1)
     response = {
         "status" : 90,
@@ -4153,7 +4154,7 @@ async def get_history_basket_models_data():
 
 
 @app.get("/get-history-basket-models-data")
-async def get_history_basket_models():
+async def get_history_basket_models( user=Depends(require_permission(65)) ):
     response = {
         'status' : 90,
         'content' : []
@@ -4210,7 +4211,7 @@ async def get_history_basket_model_items_func( idBasket ):
 
 # PRECISA REFATORAR
 @app.get("/get-history-model")
-async def get_history_basket_model_items(data : SearchByHistoryBasketModel = Depends()):
+async def get_history_basket_model_items(data : SearchByHistoryBasketModel = Depends(), user=Depends(require_permission(65))):
     if not data:
         return {
             "status" : 90,
@@ -4252,7 +4253,7 @@ async def output_basket( id_basket, id_family, id_church, item_list, basket_quan
 
 
 @app.post("/output-basket")
-async def output_basket_api( data : dict):
+async def output_basket_api( data : dict, user=Depends(require_permission(66))):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -4286,7 +4287,7 @@ async def basket_delivery_report():
 
 
 @app.post("/basket-delivery-report")
-async def basket_delivery_report_api( data : dict ):
+async def basket_delivery_report_api( data : dict, user=Depends(require_permission(68)) ):
     response = {
         "status" : 90,
         "content" : "Error"
@@ -4383,7 +4384,7 @@ async def input_and_output_basket_data_graph():
 
 
 @app.post('/get-all-input-and-output-data-graph')
-async def input_and_output_basket_data_graph_api():
+async def input_and_output_basket_data_graph_api( user=Depends(require_permission(1)) ):
     response = {
         'status' : 90,
         'content' : []

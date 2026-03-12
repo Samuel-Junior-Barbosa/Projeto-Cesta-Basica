@@ -141,7 +141,7 @@ const SideBarMenu = React.memo(({userData}) => {
                     </li>
                 )}    
                 
-                { (currentUserPermission.includes(PERMISSIONS.VIEW_CONFIGURATION)) && (
+                { (currentUserPermission.includes(PERMISSIONS.VIEW_CONFIGURATION_PAGE)) && (
                     <li className={styles.SideBarMenuListItem}>
                         <Link to="/options">
                             <abbr title="Configuração e personalização">
