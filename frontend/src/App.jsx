@@ -52,13 +52,26 @@ import BasketDeliveryOrder from './pages/ManagementOfBaskets/BasketDeliveryOrder
 import AlterBasketOrder from './pages/ManagementOfBaskets/AlterBasketOrder'
 // ------------------------------------------------------------------------------------------------------
 
+// ------------------------------------- Usuarios -------------------------------------------------------
+import ManagementUserPage from './pages/ManagementOfUsers/ManagementUserPage';
+
+// ------------------------------------------------------------------------------------------------------
+
+
+// ------------------------------------- Funções --------------------------------------------------------
+
+import AlterFunctionPage from '/src/pages/ManagementOfFunctions/AlterFunction';
+
+
+// ------------------------------------------------------------------------------------------------------
+
 // ------------------------------------- Outros ---------------------------------------------------------
 import { AuthProvider  } from './contexts/AuthenticateContext/AuthContext';
 import RouteGuard from './contexts/GuardRoutes/RouteGuard';
 import { ThemeProvider } from './contexts/CurrentTheme';
 import ColorSelectorComp from './Components/ColorSelector';
 import { PERMISSIONS } from './Components/UserPermission';
-import RegisterUserPage from './pages/RegisterUser';
+
 
 // ------------------------------------------------------------------------------------------------------
 
@@ -219,11 +232,17 @@ const App = () => {
               {/* FIM ROTAS REFERENTE A CESTAS */}
               {/* ================================ */}
               {/* ROTAS REFERENTE A USUARIOS DO SISTEMA */}
-              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_CONFIGURATION_PAGE]} />}>
+              <Route element={<RouteGuard permission={[PERMISSIONS.VIEW_MANAGE_USER_PAGE]} />}>
                 <Route element={<Layout />}>
-                  <Route path="/manage-users" element={ <RegisterUserPage /> } />
+                  <Route path="/manage-users" element={ <ManagementUserPage /> } />
                 </Route>
               </Route>
+              <Route element={<RouteGuard permission={[PERMISSIONS.ALTER_USER_FUNCTION]} />}>
+                <Route element={<Layout />}>
+                  <Route path="/alter-user-function" element={ <AlterFunctionPage /> } />
+                </Route>
+              </Route>
+              
               {/* FIM ROTAS REFERENTE A USUARIOS DO SISTEMA */}
               {/* ================================ */}
               {/* ROTAS REFERENTE A CONFIGURAÇÕES */}

@@ -2,7 +2,7 @@ import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEf
 import PropTypes from 'prop-types';
 import styles from './TabelaListaDeProdutos.module.css'
 
-const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, contentColumnList, inputColumn, fontSize}) => {
+const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, contentColumnList, inputColumn, fontSize, disableCheckBox = false}) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -23,6 +23,8 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     const currentListLineChecked = useRef([])
     const [, forceUpdate] = useReducer(x => x + 1, 0);
 
+    
+
         // Função que adiciona o novo item à lista
     const adicionarItem = useCallback((novoItem) => {
         if (novoItem.trim()) { // Verifica se o campo não está vazio
@@ -32,17 +34,20 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
 
 
-    const desSelecionarTudo = useCallback(() => {
-        let copyChecekdList = [...listLinesChecked]
+    const desSelecionarTudo = () => {
+        //let copyCheckedList = [...listLinesChecked]
+        let copyCheckedList = getCheckedList()
         for(let I = 0; I < listLinesChecked.length; I ++ ) {
-            copyChecekdList[I].checked = false
+            copyCheckedList[I].checked = false
+
         }
-        //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
-        setCheckedList(copyChecekdList)
+        //console.log(' tabela selecionar: ', copyCheckedList, typeof(copyCheckedList))
+        setCheckedList(copyCheckedList)
         setCheckBoxAll(false)
+        forceUpdate()
 
 
-    }, [itens, tableClassRef, columnsTemplate, listLinesChecked]);
+    } //, [itens, tableClassRef, columnsTemplate, listLinesChecked]);
 
 
     const getLineIndexByIdProduct = (id) => {
@@ -345,12 +350,13 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
 
     const selecionarTudo = () => {
-        let copyChecekdList = [...listLinesChecked]
+        //let copyChecekdList = [...listLinesChecked]
+        let copyCheckedList = getCheckedList()
         for(let I = 0; I < listLinesChecked.length; I ++ ) {
-            copyChecekdList[I].checked = true
+            copyCheckedList[I].checked = true
         }
         //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
-        setCheckedList(copyChecekdList)
+        setCheckedList(copyCheckedList)
         setCheckBoxAll(true)
         forceUpdate()
 
@@ -372,7 +378,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
     }
 
-    const selectProductById = (id) => {
+    const selectProductById = (id, alternate = true) => {
         let copyIndexList = getCheckedList()
         if( !copyIndexList || !Array.isArray(copyIndexList) || copyIndexList.length < 1 ) {
             handleCreateCheckList()
@@ -389,21 +395,29 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         id = String(id)
         for( let i = 0; i < copyIndexList.length; i ++ ) {
             if( copyIndexList[i].id === id ) {
-                if( copyIndexList[i].checked === true) {
+                if( (copyIndexList[i].checked === true) && alternate === true) {
                     copyIndexList[i].checked = false
                 }
                 else {
                     copyIndexList[i].checked = true
-                    checkingCount += 1
                 }
             }
             tmpLinhaSelecionada = copyIndexList[i]
             //console.log("COPY: ", copyIndexList[i].id, copyIndexList[i].checked)
         }
 
+        
+        for( let i = 0; i < currentListLineChecked.current.length; i ++ ) {
+            if( currentListLineChecked.current[i].checked === true ) {
+                checkingCount += 1
+            }
+        }
+
         //console.log("RETURN ", copyIndexList)
-        if( checkingCount === copyIndexList.length ) {
+        //console.log(" checkincoung: ", currentListLineChecked.current.length, copyIndexList.length)
+        if( checkingCount === copyIndexList.length  && checkBoxAll === false) {
             setCheckBoxAll( true )
+            
         }
         else if( checkingCount <= copyIndexList.length && checkBoxAll === true ) {
             setCheckBoxAll( false )
@@ -635,6 +649,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                         type="checkbox"
                                         className={ styles.checkBoxItem + ' ' + ' checkBoxItemPrimary' }
                                         checked={ checkBoxAll }
+                                        disabled={ disableCheckBox }
                                     />
                                 </th>
                             )}
@@ -663,7 +678,11 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                     if( !tmp_id ) {
                                         tmp_id = itens[index][0]
                                     }
-                                    selectProductById(tmp_id)
+                                    if( !disableCheckBox ) {
+                                        return selectProductById(tmp_id)
+                                    }
+                                    return false
+                                    
                                 }}
                                 className={(styles.linhaTabela) + " "  + (linhaSelecionada === index ? (styles.selecionada) : '')}
                             >
@@ -671,6 +690,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
                                     <input
                                         type="checkbox"
                                         className={styles.checkBoxItem}
+                                        disabled={disableCheckBox}
                                         onChange={() => {
                                             let tmp_id = item.id
                                             if( !tmp_id ) {

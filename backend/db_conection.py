@@ -783,11 +783,13 @@ class GCBBase:
 
 
     async def delete(self, table, param):
-
+        print(" DELETE FUNCTION")
+        print(" PARAMS : TABLE= ", table, " PARAM: ", param)
         response = {
             "status" : 90,
             "content" : None
         }
+
 
         if not table:
             return response
@@ -803,12 +805,10 @@ class GCBBase:
         delete_query = f"DELETE FROM {table} {condition};"
 
         try:
-
+            print(" Delete query: ", delete_query, flush=1)
             conn = self.get_connection()
-            
             cursor = conn.cursor()
             cursor.execute( delete_query )
-
             conn.commit()
 
             cursor.close()
@@ -816,10 +816,15 @@ class GCBBase:
 
             response["status"] = 0
             response["content"] = True
-            #print(delete_query)
+            
 
             return response
-
+        
+        except sqlite3.Error as error:
+            response['status'] = 90
+            response["content"] = str(error)
+            return response
+        
         except Exception as error:
             response["status"] = 90,
             response['content'] = error

@@ -12,7 +12,7 @@ const TopBarMenu = React.memo(({userData}) => {
     useEffect(() => {
         const userLogged = userData.user;
         setCurrentUser(userLogged);
-        console.log(" TOP BAR MENU: ", userLogged)
+        //console.log(" TOP BAR MENU: ", userLogged)
     }, [userData])
 
 

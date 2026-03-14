@@ -107,17 +107,19 @@ const AddItemLookupList = ({
                 />
 
                 <div className={styles.AddingItemOnWindowForm}>
-                    <TabelaCadastroDeItens
-                        ref={ tabelaRef }
-                        listaDeCadastros={ dataList }
-                        editableCel={ editableColumn }
-                        columnList = { columnList }
-                        fontSize = { fontSize }
-                        inputColumn = { inputColumn }
-                        contentColumnList = { contentColumnList }
-                        
-                    />
-                    <SimpleButton 
+                    {( dataList) && 
+                        <TabelaCadastroDeItens
+                            ref={ tabelaRef }
+                            listaDeCadastros={ dataList }
+                            editableCel={ editableColumn }
+                            columnList = { columnList }
+                            fontSize = { fontSize }
+                            inputColumn = { inputColumn }
+                            contentColumnList = { contentColumnList }
+                            
+                        />
+                    }
+                        <SimpleButton 
                         textButton="Adicionar"
                         typeButton="submit"
                         onClickButton={handleSendButton}
