@@ -278,7 +278,7 @@ async def load_user_permissions(user_id: int):
 
 
 
-async def get_user_list():
+async def get_user_list( list_inative_users = 0):
     response = {
         'status' : 90,
         'content' : []
@@ -286,12 +286,22 @@ async def get_user_list():
 
     table_name = base_de_dados.user_table_name
 
-    sql_query = f''' 
-    SELECT
-        id_usuario,
-        nome_do_usuario
-    FROM {table_name}
-    WHERE status_cadastro = 1;'''
+    if list_inative_users:
+        sql_query = f''' 
+            SELECT
+                id_usuario,
+                nome_do_usuario
+            FROM {table_name}
+            WHERE status_cadastro = 0;
+        '''
+    else:
+        sql_query = f''' 
+            SELECT
+                id_usuario,
+                nome_do_usuario
+            FROM {table_name}
+            WHERE status_cadastro = 1;
+        '''
 
     response = await base_de_dados.query(sql_query)
     for i in range(0, len(response['content'])):
@@ -519,6 +529,48 @@ async def get_permission_list_api( data : dict, user=Depends(require_permission(
 # = Users
 #===============================================
 
+async def get_function_list( description = True):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    function_table_name = base_de_dados.role_table_name
+
+    if description:
+        sql_query = f'''
+            SELECT
+                id_funcao,
+                nome
+            FROM {function_table_name};'''
+
+
+    else:
+        sql_query = f'''
+            SELECT
+                id_funcao,
+                nome,
+                descricao
+            FROM {function_table_name};'''
+
+
+    response = await base_de_dados.query( sql_query )
+
+    for i in range( len( response['content']) ):
+        response['content'][i] = list( response['content'][i] )
+
+    return response
+
+
+@app.post('/get-function-list')
+async def get_function_list_api( data : dict ):
+    description = data['description']
+    
+    response = await get_function_list( description )
+    
+    print(" get_function_list_api ", response)
+    return response
+
 
 async def get_function_permission_list( id_function = 0 ):
     response = {
@@ -574,10 +626,48 @@ async def get_function_permission_list_api( data : dict, user=Depends(require_pe
     return response
 
 
+
+async def get_user_data_by_id( id_user ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    user_table_name = base_de_dados.user_table_name
+
+    sql_query = f'''
+    SELECT
+        id_usuario,
+        id_funcao,
+        nome_do_usuario,
+        email,
+        status_cadastro
+    FROM { user_table_name }
+    WHERE id_usuario = { id_user };
+    '''
+
+    response = await base_de_dados.query( sql_query )
+
+    return response
+
+@app.post('/get-user-data-by-id')
+async def get_user_data_by_id_api( data : dict ):
+    
+    id_user = data['idUser']
+    response = await get_user_data_by_id(id_user)
+    response['content'] = list( response['content'][0] )
+
+    print(" get_user_data_by_id_api: response: ", response)
+
+    return response 
+
 @app.post('/get-user-list')
-async def get_user_list_api( user=Depends(require_permission(72)) ):
-    response =  await get_user_list()
-    #print(" GET USER LIST RESPONSE: ", response)
+async def get_user_list_api( data : dict, user=Depends(require_permission(72)) ):
+
+    list_inative_users = data['listInativeUsers']
+
+    response =  await get_user_list( list_inative_users )
+    print(" GET USER LIST RESPONSE: ", response)
     return response
 
 
@@ -590,7 +680,79 @@ async def get_user_list_on_login_api():
 
 
 
-async def alter_user_register(id_user, user_name, password, id_function, status, remove_password, user=Depends(require_permission(73))):
+async def remove_user_password( id_user ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    user_table_name = base_de_dados.user_table_name
+
+    column_list = [
+        'senha'
+    ]
+
+    value_list = [
+        ''
+    ]
+
+    condition = f''' id_usuario = {id_user} '''
+
+    response = await base_de_dados.alter( user_table_name, column_list, value_list, conditions=condition )
+
+    return response
+
+
+@app.post('/remove-user-password')
+async def remove_user_password_api( data : dict ):
+
+    id_user = data['idUser']
+
+    response = await remove_user_password( id_user )
+    
+    return response
+
+
+
+async def alter_user_password( id_user, new_password):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    user_table_name = base_de_dados.user_table_name
+
+    password_hashed = hash_password( new_password )
+
+    column_list = [
+        'senha'
+    ]
+
+    value_list = [
+        password_hashed
+    ]
+
+    condition = f''' id_usuario = {id_user} '''
+
+    response = await base_de_dados.alter( user_table_name, column_list, value_list, conditions=condition )
+
+    return response
+
+
+@app.post('/alter-user-password')
+async def alter_user_password_api( data : dict ):
+
+    id_user = data['idUser']
+    new_password = data['newPassword']
+
+    response = await alter_user_password(id_user, new_password)
+
+    return response
+
+
+
+
+async def alter_user_register(id_user, user_name, id_function, user_status, user=Depends(require_permission(73))):
     response = {
         'status' : 90,
         'content' : []
@@ -599,42 +761,27 @@ async def alter_user_register(id_user, user_name, password, id_function, status,
 
     print(" ALTERANDO PERMISSÃO DE USUARIO: ")
 
+
+
     current_date = str(date.today())
     table_name = base_de_dados.user_table_name
     column_list = []
     value_list = []
 
-    if remove_password:
-        column_list = [
-            'funcao',
-            'nome_do_usuario',
-            'senha',
-            'status_cadastro',
-            'data_alteracao'
-        ]
+    column_list = [
+        'id_funcao',
+        'nome_do_usuario',
+        'status_cadastro',
+        'data_alteracao'
+    ]
 
-        value_list = [
-            id_function,
-            user_name,
-            '',
-            status,
-            current_date
-        ]
+    value_list = [
+        id_function,
+        user_name,
+        user_status,
+        current_date
+    ]
 
-    else:
-        column_list = [
-            'funcao',
-            'nome_do_usuario',
-            'status_cadastro',
-            'data_alteracao'
-        ]    
-
-        value_list = [
-            id_function,
-            user_name,
-            status,
-            current_date
-        ]
     conditions = f' id_usuario = {id_user}'
 
     response = await base_de_dados.alter(table_name, column_list, value_list, conditions=conditions)
@@ -644,12 +791,18 @@ async def alter_user_register(id_user, user_name, password, id_function, status,
 
 @app.post('/alter-user-register')
 async def alter_user_register_api( data : dict, user=Depends(require_permission(75)) ): 
-    print(" ALTER USER REGISTER DATA: ", data)
+    print(" ALTER USER REGISTER DATA: ", data, flush=1)
 
     id_user = data['idUser']
-    permissions = data['permissions']
+    username = data['userName']
+    id_function = data['idFunction']
+    user_status = data['userStatus']
 
-    response = await alter_user_register(id_user, permissions)
+
+    
+
+
+    response = await alter_user_register(id_user=id_user, user_name=username, id_function=id_function, user_status=user_status)
     return response
 
 
@@ -708,12 +861,34 @@ async def get_user_function_register( id_user = None ):
 
 @app.post('/get-user-function-register')
 async def get_user_function_register_api( data : dict, user=Depends(require_permission(77))):
-    print(" GET FUNCTION: ", data)
+    #print(" GET FUNCTION: ", data)
     id_user = data['idUser']
 
     response = await get_user_function_register(id_user)
     return response
 
+
+async def alter_function_name( id_function, new_function_name ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    function_table_name = base_de_dados.role_table_name
+
+    column_list = [
+        'nome'
+    ]
+
+    value_list = [
+        new_function_name
+    ]
+
+    condition = f''' id_funcao = {id_function} '''
+
+    response = await base_de_dados.alter(function_table_name, column_list, value_list, conditions=condition)
+
+    return response
 
 async def alter_function_permission(id_function, permissions = None, user=Depends(require_permission(73))):
     response = {
@@ -721,7 +896,7 @@ async def alter_function_permission(id_function, permissions = None, user=Depend
         'content' : []
     }
 
-    print(" (alter_function_permission) -- ALTERANDO PERMISSÃO DE FUNÇÃO: ")
+    #print(" (alter_function_permission) -- ALTERANDO PERMISSÃO DE FUNÇÃO: ")
 
     function_permission_table_name = base_de_dados.role_permission_table_name
 
@@ -748,8 +923,8 @@ async def alter_function_permission(id_function, permissions = None, user=Depend
     permission_for_delete =  current_function_permissions - permissions_compare
     permission_for_add = permissions_compare - current_function_permissions
 
-    print( ' (alter_function_permission) permi_delete: ', permission_for_delete)
-    print( ' (alter_function_permission) permi_add: ', permission_for_add)
+    #print( ' (alter_function_permission) permi_delete: ', permission_for_delete)
+    #print( ' (alter_function_permission) permi_add: ', permission_for_add)
 
 
 
@@ -757,8 +932,8 @@ async def alter_function_permission(id_function, permissions = None, user=Depend
     for permission in permission_for_delete:
         conditions = f''' id_funcao = {id_function} AND id_permissao = { permission } '''
         tmp_response = await base_de_dados.delete(function_permission_table_name, conditions)
-        print(" (alter_function_permission) conditions: ", conditions, flush=1)
-        print(" (alter_function_permission) tmpresponse: ", tmp_response, flush=1)
+        #print(" (alter_function_permission) conditions: ", conditions, flush=1)
+        #print(" (alter_function_permission) tmpresponse: ", tmp_response, flush=1)
 
     time.sleep(0.5)
     for permission in permission_for_add:
@@ -776,10 +951,27 @@ async def alter_function_permission(id_function, permissions = None, user=Depend
 
 @app.post('/alter-function-register')
 async def alter_function_permission_api( data : dict ): 
-    print(" ALTER USER REGISTER DATA: ", data)
+    print(" ALTER function REGISTER DATA: ", data)
 
     id_function = data['idFunction']
     permissions = data['permissions']
+    function_name = data['functionName']
+
+    function_table_name = base_de_dados.role_table_name
+
+    sql_query = f'''
+    SELECT
+        nome
+    FROM {function_table_name}
+    WHERE id_funcao = {id_function};
+    '''
+
+    old_function_name = await base_de_dados.query( sql_query )
+
+    old_function_name = old_function_name['content'][0][0]
+    print(" OLD NAME: ", old_function_name)
+    if old_function_name != function_name:
+        await alter_function_name( id_function, function_name)
 
     response = await alter_function_permission(id_function, permissions)
     print(' (alter_function_permission_api) response: ', response)

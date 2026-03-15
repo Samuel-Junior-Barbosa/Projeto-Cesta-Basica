@@ -2,7 +2,7 @@ import LabelTitles from "/src/Components/LabelTitles";
 import SimpleButton from "/src/Components/SimpleButton";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useTheme } from "/src/contexts/CurrentTheme";
 
@@ -10,10 +10,12 @@ import styles from './ManagementUserPage.module.css';
 import ColorSelectorComp from "/src/Components/ColorSelector";
 import getUserPermissionList from "/src/Functions/Authentication/GetPermissionList";
 import AddItemLookupList from "/src/Components/AddItemLookupList";
-import getUserList from "/src/Functions/Authentication/GetUserList";
+import GetUserList from "/src/Functions/Users/GetUserList";
 import TabelaListaDeProdutos from "/src/Components/TabelaListaDeProdutos";
-import alterUserRegisterApi from "/src/Functions/Users/AlteruserRegister";
+import alterUserRegisterApi from "/src/Functions/Users/AlterUserRegister";
 import getFunctionOfUserApi from "/src/Functions/Users/GetFunctionOfUser";
+import { BsFillQuestionOctagonFill } from "react-icons/bs";
+import GetUserDataById from "../../../Functions/Users/GetUserDataById";
 
 const ManagementUserPage = () => {
     const churchTableRef = useRef()
@@ -26,7 +28,20 @@ const ManagementUserPage = () => {
     const reportTableRef = useRef()
     const otherTableRef = useRef()
     const navigate = useNavigate()
+    const location = useLocation()
 
+    const { 
+        idFunctionRecived,
+        functionNameRecived,
+        idUserRecived,
+        userNameRecived
+    } = location.state || {
+        idUserRecived : 0,
+        userNameRecived : '',
+        idFunctionRecived : 0,
+        functionNameRecived : ''
+
+    }
 
     const [ username, setUsername ] = useState('')
     const [ userId, setUserId ] = useState(0)
@@ -35,6 +50,7 @@ const ManagementUserPage = () => {
     const [ userFunctionName, setUserFunctionName ] = useState('')
     const [ userStatus, setUserStatus ] = useState(0)
     const [ removePassword, setRemovePassword ] = useState(false)
+    const [ alterPassword, setAlterPassword ] = useState(false)
 
     const [ existingFunction, setExistingFunction ] = useState([])
 
@@ -73,7 +89,14 @@ const ManagementUserPage = () => {
     const [ userSelectedAltered, setUserSelectedAltered ] = useState( false )
     // =================================================================
     const [ alterUserRegister, setAlterUserRegister ] = useState( false )
+    const [ createUserRegister, setCreateUserRegister ]  = useState( false )
+    const [ disableButtons, setDisableButtons ] = useState( false )
+
     const [ readOnlyData, setReadOnlyData ] = useState( true )
+    const [ readOnlyPasswordInput, setReadOnlyPasswordInput ] = useState( true )
+
+    const [ alterUserPasswordController, setAlterUserPasswordController ] = useState( false )
+
 
     // ==================================================================
     
@@ -101,9 +124,80 @@ const ManagementUserPage = () => {
         if( !confirmDialog ) {
             return
         }
+        if( createUserRegister ) {
+            setCreateUserRegister( false )
+        }
 
-        //alterUserRegisterApi(userId, username, userIdFunction, userStatus, removePassword)
+        if( alterUserRegister ) {
+            setAlterUserRegister( false )
+        }
 
+        
+        await handleEnableButtons()
+        
+        await handleDisableInputData()
+        
+
+        await alterUserRegisterApi(userId, username, userIdFunction, userStatus)
+
+    }
+
+
+    const handleDisableButtons = async () => {
+        let disableButtonsList = window.document.querySelectorAll(`.${styles.ActionButtonClass}`)
+        //console.log(" disableButtonsList: ", disableButtonsList)
+        for( let i = 0; i < disableButtonsList.length; i ++ ) {
+            //console.log(" DISABLE CLASS: ", styles.buttonDisabled)
+            if( !disableButtonsList[i].classList.contains(styles.buttonDisabled) ) {
+                disableButtonsList[i].classList.add(styles.buttonDisabled)
+                disableButtonsList[i].disabled = true
+            }
+            //console.log(" disableButtonsList ", disableButtonsList[i].classList, !disableButtonsList[i].classList.contains(styles.buttonDisabled) )
+        }
+
+
+        setDisableButtons( true )
+
+    }
+
+    const handleEnableButtons = async () => {
+        let enableButtonsList = window.document.querySelectorAll(`.${styles.ActionButtonClass}`)
+        //console.log(" EnableButtonsList: ", enableButtonsList)
+        for( let i = 0; i < enableButtonsList.length; i ++ ) {
+            //console.log(" DISABLE CLASS: ", styles.buttonDisabled)
+            if( enableButtonsList[i].classList.contains(styles.buttonDisabled) ) {
+                enableButtonsList[i].classList.remove(styles.buttonDisabled)
+                enableButtonsList[i].disabled = false
+            }
+            //console.log( "enableButtonsList: ", enableButtonsList[i].classList, enableButtonsList[i].classList.contains(styles.buttonDisabled ) )
+        }
+        setDisableButtons( false )
+    }
+
+
+    const handleDisableInputData = async () => {
+        let inputiesData = window.document.querySelectorAll(`.${styles.inputData}`)
+        //console.log(" alter false INPUT DATA: ", inputiesData)
+        for( let i = 0; i < inputiesData.length; i ++ ) {
+            //console.log(` alter false inputiesData[${i}]: `)
+            if( inputiesData[i].classList.contains(styles.dataEditable) ) {
+                inputiesData[i].classList.remove(styles.dataEditable)
+            }
+
+            //console.log(` alter false inputiesData[${i}]: `, inputiesData[i].classList.contains(styles.dataEditable))
+        }
+    }
+
+    const handleEnableInputData = async () => {
+        let inputiesData = window.document.querySelectorAll(`.${styles.inputData}`)
+        //console.log(" alter true INPUT DATA: ", inputiesData)
+        for( let i = 0; i < inputiesData.length; i ++ ) {
+            //console.log(` alter true inputiesData[${i}]: `)
+            if( !inputiesData[i].classList.contains(styles.dataEditable) ) {
+                inputiesData[i].classList.add(styles.dataEditable)
+            }
+            //console.log(` alter true inputiesData[${i}]: `, !inputiesData[i].classList.contains(styles.dataEditable))
+        }
     }
 
     const handleAlterUserRegister = () => {
@@ -112,60 +206,57 @@ const ManagementUserPage = () => {
             alert("SELECIONE 1 USUARIO PARA ALTERAR")
             return
         }
-        if( !alterUserRegister ) {
-
-            setAlterUserRegister( true )
-            setReadOnlyData( false )
-
-            let alterButtonComponent = window.document.querySelector(`.${styles.alterButtonClass}`)
-            //console.log(" alterButtonComponent: ", alterButtonComponent)
-            if( !alterButtonComponent.classList.contains(styles.buttonDisabled) ) {
-                alterButtonComponent.classList.add(styles.buttonDisabled)
-                alterButtonComponent.disabled = true
-            }
-
-            let inputiesData = window.document.querySelectorAll(`.${styles.inputData}`)
-            //console.log(" alter true INPUT DATA: ", inputiesData)
-            for( let i = 0; i < inputiesData.length; i ++ ) {
-                //console.log(` alter true inputiesData[${i}]: `)
-                if( !inputiesData[i].classList.contains(styles.dataEditable) ) {
-                    inputiesData[i].classList.add(styles.dataEditable)
-                }
-                //console.log(` alter true inputiesData[${i}]: `, !inputiesData[i].classList.contains(styles.dataEditable))
-            }
-
-
-            
+        if( alterUserRegister ) {
+            return
         }
+
+        setAlterUserRegister( true )
+        setReadOnlyData( false )
+        handleDisableButtons()
+        handleEnableInputData()
+    }
+
+    const handleCreateUserRegister = () => {
+        //console.log("handleAlterUserRegister: ", alterUserRegister)
+
+        if( createUserRegister ) {
+            return
+        }
+
+        setCreateUserRegister( true )
+        setReadOnlyData( false )
+        handleDisableButtons()
+        handleEnableInputData()
+
+        
+        setUserId(0)
+        setUsername('')
+        setUserFunctionName('')
+        setUserIdFunction(0)
+
+
     }
 
     const handleCancelUserRegister = () => {
         //console.log("handleAlterUserRegister: ", alterUserRegister)
+        if( !disableButtons ) {
+            navigate('/home')
+            return
+        }
+
         if( alterUserRegister ) {
             setAlterUserRegister( false )
-            setReadOnlyData( true )
-            let alterButtonComponent = window.document.querySelector(`.${styles.alterButtonClass}`)
-            //onsole.log(" alterButtonComponent: ", alterButtonComponent)
-            if( alterButtonComponent.classList.contains(styles.buttonDisabled) ) {
-                alterButtonComponent.classList.remove(styles.buttonDisabled)
-                alterButtonComponent.disabled = false
-            }
-
-            let inputiesData = window.document.querySelectorAll(`.${styles.inputData}`)
-            //console.log(" alter false INPUT DATA: ", inputiesData)
-            for( let i = 0; i < inputiesData.length; i ++ ) {
-                //console.log(` alter false inputiesData[${i}]: `)
-                if( inputiesData[i].classList.contains(styles.dataEditable) ) {
-                    inputiesData[i].classList.remove(styles.dataEditable)
-                }
-
-                //console.log(` alter false inputiesData[${i}]: `, inputiesData[i].classList.contains(styles.dataEditable))
-            }
         }
 
-        else {
-            navigate(-1)
+        else if( createUserRegister ) {
+            setCreateUserRegister( false )
         }
+        
+        setReadOnlyData( true )
+        
+
+        handleDisableInputData()
+        handleEnableButtons()
     }
 
 
@@ -191,12 +282,45 @@ const ManagementUserPage = () => {
 
 
     const handleGoAlterFunctionPermissionPage = async (idFunction, functionName) => {
+        if( !idFunction || !functionName ) {
+            return
+        }
         const data = {
             idFunctionRecived : idFunction,
-            functionNameRecived : functionName
+            functionNameRecived : functionName,
+            idUserRecived : userId,
+            userNameRecived : username
         }
         navigate('/alter-user-function', {state : data})
     }
+
+
+    const handleAlterPassword = () => {
+
+    }
+
+    useEffect(() => {
+        //console.log(" MANAGEMENT USER PAGE LOCATION : ", location.state)
+        if( idUserRecived ) {
+            setUserId( idUserRecived )
+        }
+
+        if( userNameRecived ) {
+            setUsername( userNameRecived )
+        }
+        if( idUserRecived && userNameRecived ) {
+            setShowUserListWindow( false )
+        }
+
+        if( idFunctionRecived ) {
+            setUserIdFunction( idFunctionRecived )
+        }
+
+        if( functionNameRecived ) {
+            setUserFunctionName( functionNameRecived )
+        }
+
+    }, [idUserRecived, userNameRecived, location, ])
 
     // Obtem lista de funções existentes
     useEffect(() => {
@@ -232,7 +356,16 @@ const ManagementUserPage = () => {
             }
         }
 
-        getFuncApi()  
+        async function getUserDataApi() {
+            let tmpUserData = await GetUserDataById( userSelected[0])
+            if( tmpUserData.status === 0 ) {
+                setUserStatus( tmpUserData.content[4])
+            }
+        }
+
+        getUserDataApi()
+        getFuncApi()
+
         setUserSelected([])
 
     }, [userSelected])
@@ -248,12 +381,19 @@ const ManagementUserPage = () => {
             <div className={styles.buttonDiv}>
     
                 <SimpleButton
+                    nameClass={styles.ActionButtonClass}
+                    textButton={'CRIAR'}
+                    onClickButton={handleCreateUserRegister}
+                />
+
+                <SimpleButton
+                    nameClass={styles.ActionButtonClass}
                     textButton={'LISTAR USUARIOS'}
                     onClickButton={handleListUser}
                 />
     
                 <SimpleButton
-                    nameClass={styles.alterButtonClass}
+                    nameClass={styles.ActionButtonClass}
                     textButton={'ALTERAR'}
                     onClickButton={handleAlterUserRegister}
                 />
@@ -267,8 +407,14 @@ const ManagementUserPage = () => {
                     textButton={'CANCELAR'}
                     onClickButton={handleCancelUserRegister}
                 />
-    
+
             </div>
+            <label>
+                Listar usuarios inativos
+            </label>
+            <input
+                type={'checkbox'}
+            />
 
             
             <hr />
@@ -287,6 +433,37 @@ const ManagementUserPage = () => {
                         setUsername( e.target.value.toUpperCase() )
                     }}
                 />
+            </div>
+
+            <select
+                onChange={(e) => setUserStatus(e.target.value)}
+                value={userStatus}
+            >
+                <option value={1}> ATIVO </option>
+                <option value={0}> INATIVO </option>
+            </select>
+
+            <div>
+                <label>
+                    SENHA:
+                </label>
+                <input 
+                    className={styles.passwordInput}
+                    type={'text'}
+                    readOnly={readOnlyPasswordInput}
+                    onChange={(e) => {
+                        setPassword( e.target.value )
+                    }}
+                    
+
+                />
+                <SimpleButton
+                    textButton={'Alterar Senha'}
+                />
+                <SimpleButton
+                    textButton={'Remover Senha'}
+                />
+
             </div>
 
             <br />
@@ -322,10 +499,11 @@ const ManagementUserPage = () => {
             </div>
 
         <hr />
+        <hr />
         { ( showUserListWindow && userColumnList) && (
             <AddItemLookupList
                 titleName={"SELECIONE UM USUARIO PARA GERENCIAR"}
-                queryFunction={getUserList}
+                queryFunction={ GetUserList }
                 controlIframe={setShowUserListWindow}
                 dataContent={setUserSelected}
                 columnList={ userColumnList }

@@ -1,10 +1,11 @@
 import postFunction from "../../PostFunction";
 
-const AlterFunctionPermissionListById = async ( idFunction = null, permissions = [] ) => {
+const AlterFunctionPermissionListById = async ( idFunction = null, permissions = [], functionName = '' ) => {
     const url = "http://localhost:8080/alter-function-register"
     const params = {
         idFunction,
-        permissions
+        permissions,
+        functionName
     }
     const response = await postFunction(url, params)
     

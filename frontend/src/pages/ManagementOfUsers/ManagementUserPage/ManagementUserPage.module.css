@@ -1,6 +1,8 @@
 .registerUserDiv {
     background-color: var(--bg-page3);
     padding: 10px;
+
+    height: 100dvh;
 }
 
 .labelTitle {
@@ -48,8 +50,14 @@
     }
 }
 
-.alterButtonClass {
+.passwordInput {
+    background-color: var(--bg-page3);
+    color: var(--bg-page1);
     
+}
+
+.ActionButtonClass {
+    font-size: 1rem;
 }
 
 .permissionList {

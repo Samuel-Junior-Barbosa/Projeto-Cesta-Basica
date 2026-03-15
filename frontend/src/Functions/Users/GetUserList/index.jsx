@@ -1,9 +1,13 @@
 import getFunction from "../../GetFunction";
 import postFunction from "../../PostFunction";
 
-const getUserList = async () => {
-    const url = "http://localhost:8080/get-user-list-on-login"
-    const response =  await postFunction(url)
+const GetUserList = async ( listInativeUsers = 0) => {
+    const param = {
+        listInativeUsers
+    }
+
+    const url = "http://localhost:8080/get-user-list"
+    const response =  await postFunction(url, param)
     //console.log("RETURN OF GET BAsCKET DATA: ", response)
     return {
         "status" : response.status,
@@ -12,4 +16,4 @@ const getUserList = async () => {
 }
 
 
-export default getUserList;
+export default GetUserList;

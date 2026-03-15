@@ -2,7 +2,19 @@ import React, {useState, useEffect, useImperativeHandle, forwardRef, useLayoutEf
 import PropTypes from 'prop-types';
 import styles from './TabelaListaDeProdutos.module.css'
 
-const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, contentColumnList, inputColumn, fontSize, disableCheckBox = false}) => {
+const TabelaListaDeProdutos = ({
+        listaDeItens,
+        nameClass,
+        editableCel,
+        limitarMaxNumber,
+        lengthColumns,
+        ref,
+        columnList,
+        contentColumnList,
+        inputColumn,
+        fontSize,
+        disableCheckBox = false,
+    }) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -37,7 +49,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     const desSelecionarTudo = () => {
         //let copyCheckedList = [...listLinesChecked]
         let copyCheckedList = getCheckedList()
-        for(let I = 0; I < listLinesChecked.length; I ++ ) {
+        for(let I = 0; I < copyCheckedList.length; I ++ ) {
             copyCheckedList[I].checked = false
 
         }
@@ -352,7 +364,7 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
     const selecionarTudo = () => {
         //let copyChecekdList = [...listLinesChecked]
         let copyCheckedList = getCheckedList()
-        for(let I = 0; I < listLinesChecked.length; I ++ ) {
+        for(let I = 0; I < copyCheckedList.length; I ++ ) {
             copyCheckedList[I].checked = true
         }
         //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
@@ -364,10 +376,12 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
 
 
     const setCheckedList = (listLines) => {
-        currentListLineChecked.current = listLines
+        currentListLineChecked.current = [...listLines]
         setListLinesChecked(listLines)
-        //console.log("SETANDO LINHAS MARCADAS: ", listLines)
+        //console.log("SETANDO LINHAS MARCADAS: ", listLines, currentListLineChecked)
+
         forceUpdate()
+        updateTable()
     }
 
     const selecionarLinha = (index) => {
@@ -526,12 +540,9 @@ const TabelaListaDeProdutos = ({listaDeItens, nameClass, editableCel, limitarMax
         }, [listaDeItens, columnsTemplate, itens]) // columnsTemplate
 
     useEffect(() => {
-        
         if( !itens ) {
             return
         }
-        
-        
         if(itens.length === 0 ) {
             return
         }

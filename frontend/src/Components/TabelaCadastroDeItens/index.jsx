@@ -81,17 +81,18 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
     } //, [itens, tableClassRef, columnsTemplate, listLinesChecked, listaDeItens])
 
 
-    const desSelecionarTudo = useCallback(() => {
-        let copyChecekdList = [...listLinesChecked]
+    const desSelecionarTudo = () => {
+        //let copyCheckedList = [...listLinesChecked]
+        let copyCheckedList = getCheckedList()
         for(let I = 0; I < listLinesChecked.length; I ++ ) {
-            copyChecekdList[I]['checked'] = false
+            copyCheckedList[I]['checked'] = false
         }
-        //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
-        setCheckedList(copyChecekdList)
+        //console.log(' tabela selecionar: ', copyCheckedList, typeof(copyCheckedList))
+        setCheckedList(copyCheckedList)
         setCheckBoxAll(false)
 
 
-    }, [itens, tableClassRef, columnsTemplate, listLinesChecked]);
+    } //[itens, tableClassRef, columnsTemplate, listLinesChecked]);
 
 
     const selectProductById = (id) => {
@@ -559,19 +560,34 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
 
     useImperativeHandle(ref, () => {
         return {
-            getCurrentItens,
+            // A
             adicionarItem,
+            
+            // D
             desSelecionarTudo,
-            selecionarTudo,
+            
+
+            // G
+            getCurrentItens,
+            getTableHeader,
+            getTableBody,
+
+            // L
             listarElementosSelecionados,
             listarItensSelecionados,
-            retornarLinhasDaTabela,
-            getTableBody,
             LineBreakForLabel,
+
+            // R
+            retornarLinhasDaTabela,
             removerItensSelecionados,
+
+            // S
+            selecionarTudo,
+            
+            // U
             updateData,
             updateItens,
-            getTableHeader
+            
         };
     }, []);
 

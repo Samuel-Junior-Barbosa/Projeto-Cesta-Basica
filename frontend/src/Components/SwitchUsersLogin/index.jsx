@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import './SwitchProfile.css';
 import userIcon from '../../assets/images/user_icon.svg';
-import getUserList from '../../Functions/Authentication/GetUserList';
+import getUserListOnLogin from '../../Functions/Authentication/GetUserListOnLogin';
 
 
 const SwitchProfile= () => {
@@ -33,7 +33,7 @@ const SwitchProfile= () => {
     useEffect(() => {
         
         async function get_user_data() {
-            const response = await getUserList()
+            const response = await getUserListOnLogin()
             //console.log(" response user list: ", response)
             if( response.status == 0 ) {
                 let tmp_profiles = [...profiles]

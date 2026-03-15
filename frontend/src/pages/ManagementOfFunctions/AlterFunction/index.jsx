@@ -8,13 +8,14 @@ import { useTheme } from "/src/contexts/CurrentTheme";
 import ColorSelectorComp from "/src/Components/ColorSelector";
 import getUserPermissionList from "/src/Functions/Authentication/GetPermissionList";
 import AddItemLookupList from "/src/Components/AddItemLookupList";
-import getUserList from "/src/Functions/Authentication/GetUserList";
+import getUserList from "/src/Functions/Users/GetUserList";
 import TabelaListaDeProdutos from "/src/Components/TabelaListaDeProdutos";
 
 import styles from './AlterFunction.module.css'
 import getFunction from "../../../Functions/GetFunction";
 import GetFunctionPermissionListById from "../../../Functions/UserFunctions/GetFunctionPermissionListById";
 import AlterFunctionPermissionListById from "../../../Functions/UserFunctions/AlterFunctionPermission";
+import GetFunctionList from "../../../Functions/UserFunctions/GetFunctionList";
 
 
 const AlterFunctionPage = () => {
@@ -29,12 +30,10 @@ const AlterFunctionPage = () => {
     const otherTableRef = useRef()
     const navigate = useNavigate()
 
-    const location = useLocation()
-
-    const { idFunctionRecived, functionNameRecived } = location.state || { idFunctionRecived : 0, functionNameRecived : '' }
+    let location = useLocation()
 
     
-    const [ functionName, setFunctioName ] = useState('')
+    const [ functionName, setFunctionName ] = useState('')
     const [ functionId, setFunctionId ] = useState(0)
     
     
@@ -77,6 +76,18 @@ const AlterFunctionPage = () => {
 
     // ==================================================================
 
+    let {
+        idFunctionRecived,
+        functionNameRecived,
+        idUserRecived,
+        userNameRecived
+    } = location.state || {
+        idFunctionRecived : 0,
+        functionNameRecived : functionName,
+        idUserRecived : 0,
+        userNameRecived : ''
+    }
+
 
     const FunctionColumnList = [
         "ID",
@@ -96,6 +107,7 @@ const AlterFunctionPage = () => {
 
 
     }
+
 
     const handleSaveUserRegister = async () => {
         const confirmDialog = confirm('DESEJA SALVAR AS ALTERAÇÕES NO CADASTRO DESSA FUNÇÃO?')
@@ -143,11 +155,29 @@ const AlterFunctionPage = () => {
         tmpPermissonList = [...tmpPermissonList, ...tmpReport]
         tmpPermissonList = [...tmpPermissonList, ...tmpOther]
         tmpPermissonList = [...tmpPermissonList, ...tmpUser]
-        tmpPermissonList = tmpPermissonList.map(( item ) => item[0])
+        tmpPermissonList = tmpPermissonList.map(( item ) => Number(item[0]) )
+        handleCancelFunctionPermissionRegister()
+        
+        functionNameRecived = functionName
+        location.state.functionNameRecived = functionName
+        
 
-        console.log(" tmp Permission: ", tmpPermissonList)
+        //console.log(" tmp Permission: ", tmpPermissonList, location.state)
+        
 
-        AlterFunctionPermissionListById( functionId, tmpPermissonList)
+
+        const alterResponse = await AlterFunctionPermissionListById( functionId, tmpPermissonList, functionName)
+        if( alterResponse.status === 0 ) {
+            localStorage.setItem('userPermission', JSON.stringify(tmpPermissonList))
+        }
+        navigate(location.pathname, {
+            state : location.state
+        })
+
+
+
+
+        
 
     }
 
@@ -206,7 +236,13 @@ const AlterFunctionPage = () => {
         }
 
         else {
-            navigate(-1)
+            const data = {
+                idUserRecived : idUserRecived,
+                userNameRecived : userNameRecived,
+                idFunctionRecived : idFunctionRecived,
+                functionNameRecived : functionNameRecived
+            }
+            navigate('/manage-users', { state : data })
         }
     }
 
@@ -227,13 +263,13 @@ const AlterFunctionPage = () => {
 
         else if( key == 'Backspace' ) {
             if( functionName ) {
-                setFunctioName('')
+                setFunctionName('')
             }
         }
     }
 
 
-    const handleUnSelectAll = () => {
+    const handleUnSelectAll = async () => { 
         churchTableRef.current.desSelecionarTudo()
         familyTableRef.current.desSelecionarTudo()
         productTableRef.current.desSelecionarTudo()
@@ -243,7 +279,10 @@ const AlterFunctionPage = () => {
         configTableRef.current.desSelecionarTudo()
         userTableRef.current.desSelecionarTudo()
         otherTableRef.current.desSelecionarTudo()
+
+        //console.log(" UNSELECT ALL")
     }
+
 
     useEffect(() => {
         async function getPermissionList() {
@@ -361,56 +400,60 @@ const AlterFunctionPage = () => {
 
         setTimeout(() => {
             getList()
-        }, 1)
+        }, 50)
         
 
     }, [functionPermissionsList])
 
 
-    useEffect(() => {
+    useLayoutEffect(() => {
 
 
         async function getDataRecived() {
-            console.log(" location: ", location.state)
-            if( idFunctionRecived && functionPermissionRecived) {
-                setFunctionSelected([idFunctionRecived, functionNameRecived])
+            //console.log(" location: ", location.state, functionName)
+            if( idFunctionRecived && functionNameRecived) {
+                if( functionName ) {
+                    setFunctionSelected([idFunctionRecived, functionName])
+                }
+                else {
+                    setFunctionSelected([idFunctionRecived, functionNameRecived])
+                }
+                
             }    
         }
 
         setTimeout(() => {
             getDataRecived()
-        }, 10)
+        }, 60)
         
 
-    }, [])
+    }, [idFunctionRecived, functionNameRecived])
 
     useEffect(() => {
-
         if( !functionSelected || functionSelected.length == 0 ) {
             return
         }
 
 
-        console.log(" FUNCTION SELECTED: ", functionSelected)
+        
+        //console.log(" FUNCTION SELECTED: ", functionSelected)
         setFunctionId( functionSelected[0] )
-        setFunctioName( functionSelected[1] )
+        setFunctionName( functionSelected[1] )
+        
         
         async function getCurrentFunctionPermissionList(functionIdValue) {
             const response = await GetFunctionPermissionListById(functionIdValue)
-            console.log(" (GetFunctionPermissionListById) Function PERMISSION: ", response)
+            //console.log(" (GetFunctionPermissionListById) Function PERMISSION: ", response)
             if( response.status === 0 ) {
                 setFunctionPermissionRecived( response.content )
             }
         }
 
         setTimeout(() => {
-            getCurrentFunctionPermissionList( functionSelected[0] )
-        }, 30)
-        
+            getCurrentFunctionPermissionList( functionSelected[0] ) 
+        }, 80)
 
-        
         setFunctionSelected([])
-
     }, [functionSelected])
 
 
@@ -419,7 +462,7 @@ const AlterFunctionPage = () => {
 
 
         //console.log(" CURRENT FUNCTION PERMISSION LIST: ", functionPermissionRecived)
-
+        
         //console.log(" CHECKED PERMISSION: ", checkedPermission)
         async function checkPermission() {
             let checkedPermission = functionPermissionsList.map((index) => 0)
@@ -463,10 +506,12 @@ const AlterFunctionPage = () => {
 
         }
         
-        handleUnSelectAll()
+        
         setTimeout(() => {
+            handleUnSelectAll()
             checkPermission()
         }, 100)
+        
 
     }, [functionPermissionRecived])
 
@@ -507,19 +552,26 @@ const AlterFunctionPage = () => {
                 readOnly={readOnlyData}
                 disabled={readOnlyData}
                 required={true}
-                value={functionName}
+                defaultValue={functionName}
                 onChange={(e) => {
-                    setFunctioName( e.target.value.toUpperCase() )
+                    setFunctionName( e.target.value.toUpperCase() )
+                    
                 }}
 
-                onKeyDown={(e) => handleKeyPressedFunctionName( e.code )}
+               
             />
 
             <hr />
 
-            <label className={styles.labelTop}>
-                PERMISSÕES: 
-            </label>
+            <div className={styles.permissionLabelDiv}>
+                <label className={styles.labelTop} >
+                    PERMISSÕES:
+                    
+                </label>
+                <SimpleButton
+                    textButton={'SELECIONAR TUDO'}
+                />
+            </div>            
             <ul className={styles.permissionList}>
                 <li>
                     <label className={styles.labelTop}>USUARIO:</label>
@@ -528,6 +580,8 @@ const AlterFunctionPage = () => {
                         nameClass={styles.permissionUserForm}
                         listaDeItens={ userPermission }
                         columnList={permissionColumnList}
+                        disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                         
                     />  
                 </li>
@@ -539,6 +593,7 @@ const AlterFunctionPage = () => {
                         listaDeItens={ churchPermissions }
                         columnList={permissionColumnList}
                         disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                     />  
                 </li>
                 <li>
@@ -549,6 +604,7 @@ const AlterFunctionPage = () => {
                         listaDeItens={ familyPermissions }
                         columnList={permissionColumnList}
                         disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                     />  
                 </li>
                 <li>
@@ -559,6 +615,7 @@ const AlterFunctionPage = () => {
                         listaDeItens={ productPermission }
                         columnList={permissionColumnList}
                         disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                     />  
                 </li>
                 <li>
@@ -569,6 +626,7 @@ const AlterFunctionPage = () => {
                         listaDeItens={ basketPermission }
                         columnList={permissionColumnList}
                         disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                     />  
                 </li>
                 <li>
@@ -579,6 +637,7 @@ const AlterFunctionPage = () => {
                         listaDeItens={ reportPermission }
                         columnList={permissionColumnList}
                         disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                     />  
                 </li>
                 <li>
@@ -589,6 +648,7 @@ const AlterFunctionPage = () => {
                         listaDeItens={ priorityPermission }
                         columnList={permissionColumnList}
                         disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                     />  
                 </li>
                 <li>
@@ -599,6 +659,7 @@ const AlterFunctionPage = () => {
                         listaDeItens={ configPermission }
                         columnList={permissionColumnList}
                         disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                     />  
                 </li>
                 <li>
@@ -609,6 +670,7 @@ const AlterFunctionPage = () => {
                         listaDeItens={ otherPermission }
                         columnList={permissionColumnList}
                         disableCheckBox={ readOnlyData }
+                        disabled={readOnlyData}
                     />  
                 </li>
             </ul>
@@ -616,7 +678,7 @@ const AlterFunctionPage = () => {
         { showFunctionListWindow && (
             <AddItemLookupList
                 titleName={"SELECIONE UM USUARIO PARA GERENCIAR"}
-                queryFunction={getUserList}
+                queryFunction={() => GetFunctionList(true)}
                 controlIframe={setShowFunctionListWindow}
                 dataContent={setFunctionSelected}
                 columnList={ FunctionColumnList }

@@ -6,32 +6,39 @@ import styles from './TopBarMenu.module.css'
 import { Link } from 'react-router-dom';
 
 // Menu do topo da pagina
-const TopBarMenu = React.memo(({userData}) => {
+const TopBarMenu = ({}) => {
     const [ currentUser, setCurrentUser ] = useState('');
 
+    const handleRefresh = () => {
+        setTimeout(() => {
+            navigate(0)
+        }, 1)
+    }
+
     useEffect(() => {
-        const userLogged = userData.user;
+        //const userLogged = userData.user;
+        const userLogged = localStorage.getItem('user')
         setCurrentUser(userLogged);
         //console.log(" TOP BAR MENU: ", userLogged)
-    }, [userData])
+    }, [])
 
 
     return (
         <div className={styles.TopBarMenu}>
             <div>
-                <Link to="/">
+                <Link to="/" onClick={handleRefresh}>
                     <UserIcon />
                     <label> {currentUser} </label>
                 </Link>
             </div>
             <div className={styles.HelpDiv}>
-                <Link to="/suporte">
+                <Link to="/suporte" onClick={handleRefresh}>
                     <HelpIcon />
                     <label> Ajuda </label>
                 </Link>
             </div>
         </div>
     );
-});
+};
 
 export default TopBarMenu;
