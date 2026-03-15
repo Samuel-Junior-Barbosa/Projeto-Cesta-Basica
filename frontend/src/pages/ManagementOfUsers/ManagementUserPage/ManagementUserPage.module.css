@@ -21,10 +21,14 @@
     padding-bottom: 1%;
 }
 
+.passwordInput {
+    background-color: var(--bg-page3);
+    color: var(--bg-page1);
+}
 
 .dataEditable {
-    background-color: var(--color-font);
-    color: var(--color-font3)
+    background-color: var(--color-font) !important;
+    color: var(--color-font3) !important;
 }
 
 .buttonDisabled {
@@ -50,11 +54,6 @@
     }
 }
 
-.passwordInput {
-    background-color: var(--bg-page3);
-    color: var(--bg-page1);
-    
-}
 
 .ActionButtonClass {
     font-size: 1rem;

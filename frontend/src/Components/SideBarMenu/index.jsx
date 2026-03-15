@@ -20,6 +20,9 @@ import { FaGear as GearIcon} from "react-icons/fa6";
 import styles from './SideMenuBar.module.css';
 import { useAuth } from '../../contexts/AuthenticateContext/AuthContext';
 import { PERMISSIONS } from '../UserPermission';
+import GetAuthenticatedUserName from '../../Functions/Authentication/GetAuthenticatedUserName';
+import GetAuthenticatedUserFunction from '../../Functions/Authentication/GetAuthenticatedUserFunction';
+import GetAuthenticatedUserPermission from '../../Functions/Authentication/GetAuthenticatedUserPermission';
 
 
 
@@ -58,14 +61,18 @@ const SideBarMenu = ({userData}) => {
         //console.log(" USER DATA: ", userData)
 
         //const userActuality = userData.user;
-        const userActuality = localStorage.getItem('user');
+        //const userActuality = localStorage.getItem('user');
+        const userActuality = GetAuthenticatedUserName()
         setCurrentUser(userActuality);
 
         //const userRole = userData.role
-        const userRole = localStorage.getItem('role')
+        //const userRole = localStorage.getItem('role')
+        const userRole = GetAuthenticatedUserFunction()
         setCurrentRole(userRole)
+        
         //let userPerm = userData.userPermission
-        let userPerm = localStorage.getItem('userPermission')
+        //let userPerm = localStorage.getItem('userPermission')
+        let userPerm = GetAuthenticatedUserPermission()
         if( userPerm.includes('[') || userPerm.includes(']')  ) {
             userPerm = JSON.parse( userPerm )
         }

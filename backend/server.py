@@ -278,14 +278,14 @@ async def load_user_permissions(user_id: int):
 
 
 
-async def get_user_list( list_inative_users = 0):
+async def get_user_list( list_inative_users = False):
     response = {
         'status' : 90,
         'content' : []
     }
 
     table_name = base_de_dados.user_table_name
-
+    print(" LSIT USERS: ", list_inative_users)
     if list_inative_users:
         sql_query = f''' 
             SELECT
@@ -353,7 +353,11 @@ async def login( data: dict):
     if not user:
         raise HTTPException(401, "Usuário ou senha inválidos")
 
-    if not verify_password(password, user[2]):
+
+    if not password and len(user[2]) == 0:
+        pass
+
+    elif not verify_password(password, user[2]):
         raise HTTPException(401, "Usuário ou senha inválidos")
 
     permissions = await load_user_permissions(user[0])
@@ -428,7 +432,7 @@ def decode_token(token: str):
 # usuário logado
 # =========================
 
-def get_current_user(credentials=Depends(security)):
+async def get_current_user(credentials=Depends(security)):
     response = {
         'status' : 90,
         'content' : []
@@ -440,6 +444,13 @@ def get_current_user(credentials=Depends(security)):
         "username": payload["username"],
         "permissions": payload["permissions"]
     }
+    user_id_function = await get_user_function_register( response['id'])
+    user_permissions = await get_function_permission_list( user_id_function['content'][0][0] )
+    
+    response['permissions'] = [ id_function[0] for id_function in user_permissions['content']]
+
+    #print(" get_current_user user_id_function: ", user_id_function, flush=1)
+    #print(" get_current_user user_permissions: ", user_permissions, flush=1)
 
     if not payload:
         raise HTTPException(status_code=401, detail="Token inválido")
@@ -451,7 +462,7 @@ def get_current_user(credentials=Depends(security)):
 # =========================
 
 def require_permission(permission_id: int):
-    def checker(user=Depends(get_current_user)):
+    def checker(user=Depends( get_current_user)):
         #print(" checker user: ", user)
         user_perms = set(user.get("permissions", []))
 
@@ -563,7 +574,7 @@ async def get_function_list( description = True):
 
 
 @app.post('/get-function-list')
-async def get_function_list_api( data : dict ):
+async def get_function_list_api( data : dict, user=Depends(require_permission(78)) ):
     description = data['description']
     
     response = await get_function_list( description )
@@ -651,7 +662,7 @@ async def get_user_data_by_id( id_user ):
     return response
 
 @app.post('/get-user-data-by-id')
-async def get_user_data_by_id_api( data : dict ):
+async def get_user_data_by_id_api( data : dict, user=Depends(require_permission(72)) ):
     
     id_user = data['idUser']
     response = await get_user_data_by_id(id_user)
@@ -667,7 +678,7 @@ async def get_user_list_api( data : dict, user=Depends(require_permission(72)) )
     list_inative_users = data['listInativeUsers']
 
     response =  await get_user_list( list_inative_users )
-    print(" GET USER LIST RESPONSE: ", response)
+    #print(" GET USER LIST RESPONSE: ", response)
     return response
 
 
@@ -704,7 +715,7 @@ async def remove_user_password( id_user ):
 
 
 @app.post('/remove-user-password')
-async def remove_user_password_api( data : dict ):
+async def remove_user_password_api( data : dict, user=Depends(require_permission(75)) ):
 
     id_user = data['idUser']
 
@@ -724,6 +735,8 @@ async def alter_user_password( id_user, new_password):
 
     password_hashed = hash_password( new_password )
 
+    print( " (alter_user_password) password hashed ", password_hashed)
+
     column_list = [
         'senha'
     ]
@@ -740,7 +753,7 @@ async def alter_user_password( id_user, new_password):
 
 
 @app.post('/alter-user-password')
-async def alter_user_password_api( data : dict ):
+async def alter_user_password_api( data : dict, user=Depends(require_permission(75)) ):
 
     id_user = data['idUser']
     new_password = data['newPassword']
@@ -760,7 +773,6 @@ async def alter_user_register(id_user, user_name, id_function, user_status, user
 
 
     print(" ALTERANDO PERMISSÃO DE USUARIO: ")
-
 
 
     current_date = str(date.today())
@@ -798,14 +810,65 @@ async def alter_user_register_api( data : dict, user=Depends(require_permission(
     id_function = data['idFunction']
     user_status = data['userStatus']
 
-
-    
-
-
     response = await alter_user_register(id_user=id_user, user_name=username, id_function=id_function, user_status=user_status)
     return response
 
 
+async def create_user_register( user_name, id_function, user_status ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+
+    print(" CRIANDO PERMISSÃO DE USUARIO: ")
+
+    user_table_name = base_de_dados.user_table_name
+
+    current_user_id_sequence = await base_de_dados.getSequence(user_table_name)
+    print(" CURRENT ID SEQUENCE: ", current_user_id_sequence)
+    if current_user_id_sequence['status'] == 0:
+        current_user_id_sequence = current_user_id_sequence['content']
+
+    id_user = current_user_id_sequence+1
+
+    current_date = str(date.today())
+    table_name = base_de_dados.user_table_name
+    column_list = []
+    value_list = []
+
+    column_list = [
+        'id_usuario',
+        'id_funcao',
+        'nome_do_usuario',
+        'status_cadastro',
+        'data_alteracao'
+    ]
+
+    value_list = [
+        id_user,
+        id_function,
+        user_name,
+        user_status,
+        current_date
+    ]
+
+
+    response = await base_de_dados.insert(table_name, column_list, value_list )
+
+    return response
+
+
+@app.post('/create-user-register')
+async def create_user_register_api( data : dict, user=Depends(require_permission(75)) ): 
+    print(" CREATE USER REGISTER DATA: ", data, flush=1)
+
+    username = data['userName']
+    id_function = data['idFunction']
+    user_status = data['userStatus']
+
+    response = await create_user_register(user_name=username, id_function=id_function, user_status=user_status)
+    return response
 
 
 async def get_user_function_register( id_user = None ):
@@ -950,7 +1013,7 @@ async def alter_function_permission(id_function, permissions = None, user=Depend
 
 
 @app.post('/alter-function-register')
-async def alter_function_permission_api( data : dict ): 
+async def alter_function_permission_api( data : dict, user=Depends(require_permission(75)) ): 
     print(" ALTER function REGISTER DATA: ", data)
 
     id_function = data['idFunction']

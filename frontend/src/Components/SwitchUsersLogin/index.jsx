@@ -2,6 +2,8 @@ import React, { useEffect, useLayoutEffect, useState } from 'react';
 import './SwitchProfile.css';
 import userIcon from '../../assets/images/user_icon.svg';
 import getUserListOnLogin from '../../Functions/Authentication/GetUserListOnLogin';
+import GetAuthenticatedUserName from '../../Functions/Authentication/GetAuthenticatedUserName';
+import SetAuthenticatedUserName from '../../Functions/Authentication/SetAuthenticatedUserName';
 
 
 const SwitchProfile= () => {
@@ -14,11 +16,16 @@ const SwitchProfile= () => {
     const handleClick = ( value ) => {
         let nameuser = String( value.target.value )
         setCurrentUserSelected( nameuser )
-        localStorage.setItem("user", nameuser)
+        //localStorage.setItem("user", nameuser)
+        SetAuthenticatedUserName( nameuser )
     }
 
     const getLastUserSelected = () => {
-        let userSelected = localStorage.getItem("user")
+        //let userSelected = localStorage.getItem("user")
+        let userSelected = GetAuthenticatedUserName()
+
+        //console.log(" USER SELECTED: ", userSelected)
+
         if( !userSelected ) {
             userSelected = 'NENHUM'
         }

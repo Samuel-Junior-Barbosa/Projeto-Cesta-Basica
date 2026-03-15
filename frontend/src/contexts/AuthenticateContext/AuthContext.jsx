@@ -1,6 +1,25 @@
 import React, { createContext, useState, useContext } from "react";
 import { useEffect } from "react";
 
+
+// REMOVE
+import RemoveAuthenticatedUserToken from "../../Functions/Authentication/RemoveAuthenticatedUserToken";
+import RemoveAuthenticatedUserName from "../../Functions/Authentication/RemoveAuthenticatedUserName";
+import RemoveAuthenticatedUserFunction from "../../Functions/Authentication/RemoveAuthenticatedUserFunction";
+import RemoveAuthenticateduserPermission from "../../Functions/Authentication/RemoveAuthenticatedUserPermission";
+
+// SET
+import SetAuthenticatedUserToken from "../../Functions/Authentication/SetAuthenticatedUserToken";
+import SetAuthenticatedUserName from "../../Functions/Authentication/SetAuthenticatedUserName";
+import SetAuthenticatedUserFunction from "../../Functions/Authentication/SetAuthenticatedUserFunction";
+import SetAuthenticatedUserPermission from "../../Functions/Authentication/SetAuthenticatedUserPermission";
+
+// GET
+import GetAuthenticatedUserName from "../../Functions/Authentication/GetAuthenticatedUserName";
+import GetAuthenticatedUserPermission from "../../Functions/Authentication/GetAuthenticatedUserPermission";
+import GetAuthenticatedUserToken from "../../Functions/Authentication/GetAuthenticatedUserToken";
+import GetAuthenticatedUserFunction from "../../Functions/Authentication/GetAuthenticatedUserFunction";
+
 // Cria o contexto
 const AuthContext = createContext();
 
@@ -13,7 +32,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
 
   const [token, setToken] = useState(() => {
-    let tokenValue = localStorage.getItem("token")
+    //let tokenValue = localStorage.getItem("token")
+    let tokenValue = GetAuthenticatedUserToken()
 
     if( !tokenValue || tokenValue == 'undefined') {
       return JSON.parse('null')
@@ -28,7 +48,8 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [userRole, setUserRole ] = useState(() => {
-    let roleValue = localStorage.getItem("role")
+    //let roleValue = localStorage.getItem("role")
+    let roleValue = GetAuthenticatedUserFunction()
     if( !roleValue || roleValue == 'undefined'  ) {
       return JSON.parse('null')
     }
@@ -44,7 +65,9 @@ export const AuthProvider = ({ children }) => {
   
 
   const [userPermission, setUserPermission ] = useState(() => {
-    let permissionList = localStorage.getItem("userPermission")
+    //let permissionList = localStorage.getItem("userPermission")
+    let permissionList = GetAuthenticatedUserPermission()
+    //console.log(" USER PERMISSION LIS1: ", permissionList)
     if( !permissionList || permissionList == 'undefined'  ) {
       return JSON.parse('null')
     }
@@ -53,6 +76,7 @@ export const AuthProvider = ({ children }) => {
     else if( typeof(permissionList) == 'string' ) {
       if( permissionList.includes('[') || permissionList.includes(']')) {
         permissionList = JSON.parse( permissionList )
+        //console.log(" USER PERMISSION LIST2: ", permissionList)
         return permissionList
       }
 
@@ -72,7 +96,8 @@ export const AuthProvider = ({ children }) => {
   
 
   const [user, setUser] = useState(() => {
-    let userValue = localStorage.getItem("user") 
+    //let userValue = localStorage.getItem("user")
+    let userValue = GetAuthenticatedUserName()
     if( !userValue || userValue == 'undefined'  ) {
       return JSON.parse('null')
     }
@@ -103,11 +128,16 @@ export const AuthProvider = ({ children }) => {
       //console.log(" TYPE OF PERMISSION LIST: ", typeof(permissionFromApi))
       permissionFromApi = JSON.stringify( permissionFromApi )
     }
-
+    /*
     localStorage.setItem("token", tokenFromApi);
     localStorage.setItem("user", userFromApi);
     localStorage.setItem("role", roleFromApi);
     localStorage.setItem("userPermission", permissionFromApi);
+    */
+    SetAuthenticatedUserToken( tokenFromApi )
+    SetAuthenticatedUserName( userFromApi )
+    SetAuthenticatedUserFunction( roleFromApi )
+    SetAuthenticatedUserPermission( permissionFromApi )
 
     setToken(tokenFromApi);
     setUser(userFromApi);
@@ -123,11 +153,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setUserRole(null)
     setUserPermission(null)
-
+    /*
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("role");
     localStorage.removeItem("userPermission");
+    */
+    RemoveAuthenticatedUserToken()
+    RemoveAuthenticatedUserName()
+    RemoveAuthenticatedUserFunction()
+    RemoveAuthenticateduserPermission()
+
   };
 
   

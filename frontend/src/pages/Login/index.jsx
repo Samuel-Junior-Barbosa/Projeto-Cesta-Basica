@@ -9,6 +9,9 @@ import { useAuth } from "../../contexts/AuthenticateContext/AuthContext"
 import { useAuthenticator } from "../../Components/hooks/Authenticator/useAuthenticator"
 
 import MessageAlert from '/src/Components/MessageAlert'
+import GetAuthenticatedUserFunction from '../../Functions/Authentication/GetAuthenticatedUserFunction';
+import GetAuthenticatedUserName from '../../Functions/Authentication/GetAuthenticatedUserName';
+import RemoveAuthenticatedUserName from '../../Functions/Authentication/RemoveAuthenticatedUserName';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -37,8 +40,8 @@ const Login = () => {
 
         //console.log("RETURN ORIGIN: ", returnOfLogin)
     
-        const user_role = localStorage.getItem('role')
-        //console.log('localStore', localStorage)
+        const user_role = GetAuthenticatedUserFunction()
+        //console.log('GetAuthenticatedUserFunction ', GetAuthenticatedUserFunction())
         
         if( user_role == 'ADMIN') {
             navigate('/home');
@@ -61,14 +64,16 @@ const Login = () => {
 
     const getUserName = () => {
         //let userName = window.document.querySelector(`select.selectCurrentUser`).value;
-        let userName = localStorage.getItem("user")
+        //let userName = localStorage.getItem("user")
+        let userName = GetAuthenticatedUserName()
         userName = String(userName);
         setCurrentUsername(userName);
         return userName;
     }
     
     const clearUsername = () => {
-        localStorage.setItem("user", "")
+        //localStorage.setItem("user", "")
+        RemoveAuthenticatedUserName()
         setCurrentUsername("")
         
     }

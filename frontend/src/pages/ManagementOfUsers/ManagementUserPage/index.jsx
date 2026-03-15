@@ -16,6 +16,9 @@ import alterUserRegisterApi from "/src/Functions/Users/AlterUserRegister";
 import getFunctionOfUserApi from "/src/Functions/Users/GetFunctionOfUser";
 import { BsFillQuestionOctagonFill } from "react-icons/bs";
 import GetUserDataById from "../../../Functions/Users/GetUserDataById";
+import alterUserpasswordApi from "../../../Functions/Users/AlterUserPassword";
+import removeUserRegisterApi from "../../../Functions/Users/RemoveuserPassword";
+import CreateUserRegisterApi from "../../../Functions/Users/CreateUserRegister";
 
 const ManagementUserPage = () => {
     const churchTableRef = useRef()
@@ -78,7 +81,7 @@ const ManagementUserPage = () => {
     const [ indexReportPermission, setIndexReportPermission ] = useState([0,0])
     const [ indexOtherPermission, setIndexOtherPermission ] = useState([0,0])
 
-
+    const [ listInativedUsers, setListInativedUsers ] = useState( false )
     const [ listPermissionOrdened, setListPermissionOrdened ] = useState([])
 
     const [ userSelected, setUserSelected ] = useState([])
@@ -126,19 +129,37 @@ const ManagementUserPage = () => {
         }
         if( createUserRegister ) {
             setCreateUserRegister( false )
+            const userCreated = await CreateUserRegisterApi( username, userIdFunction, userStatus )
+            alert(" AGORA DEFINA A SENHA DO USUARIO")
+            console.log(" USER CREATED: ", userCreated)
+
+            await handleDisableButtons()
+            await handleDisableInputData()
+            setAlterUserPasswordController(true)
+            await handleEnableInputPasswordData()
+            return
+
         }
 
         if( alterUserRegister ) {
             setAlterUserRegister( false )
+            await alterUserRegisterApi(userId, username, userIdFunction, userStatus)
+        }
+
+        if( alterUserPasswordController ) {
+            setAlterUserPasswordController( false )
+            await alterUserpasswordApi(userId, password)
         }
 
         
-        await handleEnableButtons()
+
         
+        await handleEnableButtons()
         await handleDisableInputData()
+        await handleDisableInputPasswordData()
         
 
-        await alterUserRegisterApi(userId, username, userIdFunction, userStatus)
+        
 
     }
 
@@ -186,6 +207,7 @@ const ManagementUserPage = () => {
 
             //console.log(` alter false inputiesData[${i}]: `, inputiesData[i].classList.contains(styles.dataEditable))
         }
+        setReadOnlyData( true )
     }
 
     const handleEnableInputData = async () => {
@@ -198,6 +220,8 @@ const ManagementUserPage = () => {
             }
             //console.log(` alter true inputiesData[${i}]: `, !inputiesData[i].classList.contains(styles.dataEditable))
         }
+
+        setReadOnlyData( false )
     }
 
     const handleAlterUserRegister = () => {
@@ -211,7 +235,6 @@ const ManagementUserPage = () => {
         }
 
         setAlterUserRegister( true )
-        setReadOnlyData( false )
         handleDisableButtons()
         handleEnableInputData()
     }
@@ -224,7 +247,6 @@ const ManagementUserPage = () => {
         }
 
         setCreateUserRegister( true )
-        setReadOnlyData( false )
         handleDisableButtons()
         handleEnableInputData()
 
@@ -251,12 +273,18 @@ const ManagementUserPage = () => {
         else if( createUserRegister ) {
             setCreateUserRegister( false )
         }
+
+        else if( alterUserPasswordController ) {
+            setAlterUserPasswordController( false )
+
+        }
         
-        setReadOnlyData( true )
+        
         
 
         handleDisableInputData()
         handleEnableButtons()
+        handleDisableInputPasswordData()
     }
 
 
@@ -295,8 +323,66 @@ const ManagementUserPage = () => {
     }
 
 
-    const handleAlterPassword = () => {
+    const handleDisableInputPasswordData = async () => {
+        let inputiesData = window.document.querySelectorAll(`.${styles.passwordInput}`)
+        //console.log(" alter false INPUT DATA: ", inputiesData)
+        for( let i = 0; i < inputiesData.length; i ++ ) {
+            //console.log(` alter false inputiesData[${i}]: `)
+            if( inputiesData[i].classList.contains(styles.dataEditable) ) {
+                inputiesData[i].classList.remove(styles.dataEditable)
+            }
 
+            //console.log(` alter false inputiesData[${i}]: `, inputiesData[i].classList.contains(styles.dataEditable))
+        }
+        setPassword( '' )
+        setReadOnlyPasswordInput( true )
+    }
+
+    const handleEnableInputPasswordData = async () => {
+        let inputiesData = window.document.querySelectorAll(`.${styles.passwordInput}`)
+        //console.log(" alter true INPUT DATA: ", inputiesData)
+        for( let i = 0; i < inputiesData.length; i ++ ) {
+            //console.log(` alter true inputiesData[${i}]: `, inputiesData[i])
+            if( !inputiesData[i].classList.contains(styles.dataEditable) ) {
+                inputiesData[i].classList.add(styles.dataEditable)
+            }
+            //console.log(` alter true inputiesData[${i}]: `, inputiesData[i], !inputiesData[i].classList.contains(styles.dataEditable))
+        }
+        setReadOnlyPasswordInput( false )
+    }
+
+
+    const handleAlterPassword = async () => {
+
+        //console.log(" HANDLE ALTER PASSWORD: ")
+        if( alterUserPasswordController ) {
+            return
+        }
+
+        setAlterUserPasswordController( true )
+        //console.log(" ENABLE ALTER PASSWORD: ")
+
+        handleDisableInputPasswordData()
+
+        await handleDisableButtons()
+        await handleDisableInputData()
+        await handleEnableInputPasswordData()
+
+
+        
+
+    }
+
+    const handleRemoveUserPassword = async () => {
+
+        const confirmDialog = confirm( "DESERA REALMENTE REMOVER A SENHA DESSE USUARIO? ")
+        if( !confirmDialog ) {
+            return
+        }
+
+
+
+        removeUserRegisterApi( userId )
     }
 
     useEffect(() => {
@@ -414,6 +500,10 @@ const ManagementUserPage = () => {
             </label>
             <input
                 type={'checkbox'}
+                value={listInativedUsers}
+                onChange={ (e) => {
+                    setListInativedUsers( e.target.checked )
+                }}
             />
 
             
@@ -449,8 +539,9 @@ const ManagementUserPage = () => {
                 </label>
                 <input 
                     className={styles.passwordInput}
-                    type={'text'}
+                    type={'password'}
                     readOnly={readOnlyPasswordInput}
+                    value={password}
                     onChange={(e) => {
                         setPassword( e.target.value )
                     }}
@@ -458,10 +549,14 @@ const ManagementUserPage = () => {
 
                 />
                 <SimpleButton
+                    nameClass={styles.ActionButtonClass}
                     textButton={'Alterar Senha'}
+                    onClickButton={ handleAlterPassword }
                 />
                 <SimpleButton
+                    nameClass={styles.ActionButtonClass}
                     textButton={'Remover Senha'}
+                    onClickButton={ handleRemoveUserPassword }
                 />
 
             </div>
@@ -503,7 +598,7 @@ const ManagementUserPage = () => {
         { ( showUserListWindow && userColumnList) && (
             <AddItemLookupList
                 titleName={"SELECIONE UM USUARIO PARA GERENCIAR"}
-                queryFunction={ GetUserList }
+                queryFunction={ () => GetUserList( listInativedUsers) }
                 controlIframe={setShowUserListWindow}
                 dataContent={setUserSelected}
                 columnList={ userColumnList }

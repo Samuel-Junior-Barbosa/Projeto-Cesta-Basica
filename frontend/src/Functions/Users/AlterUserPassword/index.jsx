@@ -1,10 +1,10 @@
 import postFunction from "/src/Functions/PostFunction";
 
-const alterUserpasswordApi = async (idUser, password) => {
-    const url = "http://localhost:8080/alter-user-register"
+const alterUserpasswordApi = async (idUser, newPassword) => {
+    const url = "http://localhost:8080/alter-user-password"
     const params = {
         idUser,
-        password,
+        newPassword,
     }
     const response = await postFunction(url, params)
     console.log("RETURN (alterUserRegisterApi) ", response)

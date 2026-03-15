@@ -1,9 +1,8 @@
 import postFunction from "/src/Functions/PostFunction";
 
-const alterUserRegisterApi = async (idUser, userName, idFunction, userStatus) => {
-    const url = "http://localhost:8080/alter-user-register"
+const CreateUserRegisterApi = async (userName, idFunction, userStatus ) => {
+    const url = "http://localhost:8080/create-user-register"
     const params = {
-        idUser,
         userName,
         idFunction,
         userStatus,
@@ -16,4 +15,4 @@ const alterUserRegisterApi = async (idUser, userName, idFunction, userStatus) =>
     }
 }
 
-export default alterUserRegisterApi;
+export default CreateUserRegisterApi;

@@ -16,6 +16,7 @@ import getFunction from "../../../Functions/GetFunction";
 import GetFunctionPermissionListById from "../../../Functions/UserFunctions/GetFunctionPermissionListById";
 import AlterFunctionPermissionListById from "../../../Functions/UserFunctions/AlterFunctionPermission";
 import GetFunctionList from "../../../Functions/UserFunctions/GetFunctionList";
+import SetAuthenticatedUserPermission from "../../../Functions/Authentication/SetAuthenticatedUserPermission";
 
 
 const AlterFunctionPage = () => {
@@ -168,7 +169,7 @@ const AlterFunctionPage = () => {
 
         const alterResponse = await AlterFunctionPermissionListById( functionId, tmpPermissonList, functionName)
         if( alterResponse.status === 0 ) {
-            localStorage.setItem('userPermission', JSON.stringify(tmpPermissonList))
+            SetAuthenticatedUserPermission(JSON.stringify(tmpPermissonList))
         }
         navigate(location.pathname, {
             state : location.state
@@ -516,7 +517,7 @@ const AlterFunctionPage = () => {
     }, [functionPermissionRecived])
 
     return (
-        <div>
+        <div className={styles.AlterFunctionMainDiv}>
 
             <SimpleButton 
                 textButton={'LISTAR FUNÇÕES'}
@@ -564,7 +565,7 @@ const AlterFunctionPage = () => {
             <hr />
 
             <div className={styles.permissionLabelDiv}>
-                <label className={styles.labelTop} >
+                <label className={styles.labelTopPermission} >
                     PERMISSÕES:
                     
                 </label>

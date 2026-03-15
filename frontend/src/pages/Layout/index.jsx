@@ -4,6 +4,9 @@ import TopBarMenu from '../../Components/TopBarMenu';
 
 import styles from './Layout.module.css';
 import { useEffect, useState } from "react";
+import GetAuthenticatedUserName from "../../Functions/Authentication/GetAuthenticatedUserName";
+import GetAuthenticatedUserFunction from "../../Functions/Authentication/GetAuthenticatedUserFunction";
+import GetAuthenticatedUserPermission from "../../Functions/Authentication/GetAuthenticatedUserPermission";
 
 const Layout = () => {
     const location = useLocation()
@@ -24,14 +27,14 @@ const Layout = () => {
         })
         */
 
-        userData['user'] = localStorage.getItem('user')
-        userData['role'] = localStorage.getItem('role')
-        userData['userPermission'] = localStorage.getItem('userPermission')
+        userData['user'] = GetAuthenticatedUserName()
+        userData['role'] = GetAuthenticatedUserFunction()
+        userData['userPermission'] = GetAuthenticatedUserPermission()
         
 
         //console.log( " USERDATA: ", userData)
 
-    }, [localStorage, location])
+    }, [location, ])
 
     return (
         <div className={styles.MainScreen}>

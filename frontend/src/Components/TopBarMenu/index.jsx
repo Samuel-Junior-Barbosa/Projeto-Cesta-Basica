@@ -4,6 +4,7 @@ import { IoMdHelpCircleOutline as HelpIcon } from "react-icons/io";
 import styles from './TopBarMenu.module.css'
 
 import { Link } from 'react-router-dom';
+import GetAuthenticatedUserName from '../../Functions/Authentication/GetAuthenticatedUserName';
 
 // Menu do topo da pagina
 const TopBarMenu = ({}) => {
@@ -17,7 +18,9 @@ const TopBarMenu = ({}) => {
 
     useEffect(() => {
         //const userLogged = userData.user;
-        const userLogged = localStorage.getItem('user')
+        //const userLogged = localStorage.getItem('user')
+        const userLogged = GetAuthenticatedUserName()
+
         setCurrentUser(userLogged);
         //console.log(" TOP BAR MENU: ", userLogged)
     }, [])
