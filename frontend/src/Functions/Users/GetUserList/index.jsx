@@ -1,7 +1,7 @@
 import getFunction from "../../GetFunction";
 import postFunction from "../../PostFunction";
 
-const GetUserList = async ( listInativeUsers = 0) => {
+const GetUserList = async ( listInativeUsers = false) => {
     const param = {
         listInativeUsers
     }

@@ -420,12 +420,7 @@ const TabelaListaDeProdutos = ({
             //console.log("COPY: ", copyIndexList[i].id, copyIndexList[i].checked)
         }
 
-        
-        for( let i = 0; i < currentListLineChecked.current.length; i ++ ) {
-            if( currentListLineChecked.current[i].checked === true ) {
-                checkingCount += 1
-            }
-        }
+
 
         //console.log("RETURN ", copyIndexList)
         //console.log(" checkincoung: ", currentListLineChecked.current.length, copyIndexList.length)
@@ -651,8 +646,6 @@ const TabelaListaDeProdutos = ({
                 <table className={`${styles.ListaDeProdutosCadastrados} ${nameClass}`}  style={{ fontSize: fontSize  }} >
                     <thead>
                         <tr className={styles.linhaTabela} >
-
-
                             { ( Array.isArray(columnList) && columnList.length > 0 ) && (
                                 <th className={styles.LabelListProdutos}>
                                     <input

@@ -19,10 +19,28 @@ const AddItemLookupList = ({
                             inputColumn=[],
                             contentColumnList={},
                             fontSize='1.5rem',
+                            EnableCloseWindowWithESC=true,
                             }) => {
+                                
     const tabelaRef = useRef()
     const [ dataList, setDataList ] = useState([])
+    const [ windowOpened, setWindowOpened ] = useState( true )
+    
 
+    const handleCloseListUserWindow = ( key ) => {
+        key = key.code
+        if( key === 'Escape' ) {
+            //console.log( " controlIframe: ")
+            if( windowOpened ) {
+                
+                controlIframe( false )
+                setWindowOpened( false )
+                //console.log(" CLOSE ")
+                
+            }
+        }
+        //console.log(" WINDOW OPENED: ", windowOpened)
+    }
 
     const handleSendButton = (e) => {
         //e.preventDefault();
@@ -34,10 +52,14 @@ const AddItemLookupList = ({
         let tmpSelected = []
 
         let selectedRegistration = tabelaRef.current.listarItensSelecionados()
+        //console.log(" (selectedRegistration) selectedRegistration: ", selectedRegistration)
         for( let i = 0; i < dataList.length; i ++ ) {
 
             for( let ii = 0; ii < selectedRegistration.length; ii ++ ) {
-                if( Object.values(selectedRegistration[ii][0]) == dataList[i][0]) {
+                //console.log(" (selectedRegistration) selectedRegistration1: ", selectedRegistration[ii])
+                //console.log(" (dataList1) dataList1: ", dataList[i][0])
+                //console.log(" (selectedRegistration) selectedRegistration2: ", Object.values(selectedRegistration[ii])[0], Object.values(selectedRegistration[ii]) == dataList[i][0])
+                if( Object.values(selectedRegistration[ii])[0] == dataList[i][0]   ) {
                     //console.log(" DATALIST: ", dataList[i])
                     tmpSelected.push(dataList[i])
                 }
@@ -64,17 +86,16 @@ const AddItemLookupList = ({
         }
         */
 
-        //console.log(" SELECIONANDO ITEM: ", tmpSelected)
+        //console.log(" SELECIONANDO ITEM: ", tmpSelected[0])
         dataContent(tmpSelected[0])
         
         controlIframe(false);
-
+        setWindowOpened( false )
 
     }
 
     const handleCancelAddingItem = () => {
         controlIframe(false);
-        
     }
 
 
@@ -98,6 +119,22 @@ const AddItemLookupList = ({
         //console.log(" list: columnList", columnList)
     }, [columnList])
 
+
+    // EventLister para fechar a tela de listagem de usuarios
+    useEffect(() => {
+        if( !EnableCloseWindowWithESC || !windowOpened) {
+            return            
+        }
+        window.addEventListener('keyup', handleCloseListUserWindow)
+        //console.log(" CRIANDO EVENT LISTERNER")
+        
+        return () => {
+            window.removeEventListener('keyup', handleCloseListUserWindow)
+            //console.log(" REMOVENDO EVENT LISTERNER")
+        }
+
+    }, [])
+
     return (
         <>
             <div className={styles.AddingItemOnWindowDiv}>
@@ -116,6 +153,7 @@ const AddItemLookupList = ({
                             fontSize = { fontSize }
                             inputColumn = { inputColumn }
                             contentColumnList = { contentColumnList }
+                            quantityItemSelection = { quantityItemSelection }
                             
                         />
                     }

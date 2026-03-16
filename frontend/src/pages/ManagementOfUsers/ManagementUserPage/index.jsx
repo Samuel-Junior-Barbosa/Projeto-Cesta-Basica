@@ -1,24 +1,34 @@
+// FUNCTIONS
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useTheme } from "/src/contexts/CurrentTheme";
+import styles from './ManagementUserPage.module.css';
+import ColorSelectorComp from "/src/Components/ColorSelector";
+
+// COMPONENT
+import AddItemLookupList from "/src/Components/AddItemLookupList";
+import TabelaListaDeProdutos from "/src/Components/TabelaListaDeProdutos";
+import { BsFillQuestionOctagonFill } from "react-icons/bs";
 import LabelTitles from "/src/Components/LabelTitles";
 import SimpleButton from "/src/Components/SimpleButton";
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 
-import { useTheme } from "/src/contexts/CurrentTheme";
-
-import styles from './ManagementUserPage.module.css';
-import ColorSelectorComp from "/src/Components/ColorSelector";
-import getUserPermissionList from "/src/Functions/Authentication/GetPermissionList";
-import AddItemLookupList from "/src/Components/AddItemLookupList";
-import GetUserList from "/src/Functions/Users/GetUserList";
-import TabelaListaDeProdutos from "/src/Components/TabelaListaDeProdutos";
-import alterUserRegisterApi from "/src/Functions/Users/AlterUserRegister";
-import getFunctionOfUserApi from "/src/Functions/Users/GetFunctionOfUser";
-import { BsFillQuestionOctagonFill } from "react-icons/bs";
-import GetUserDataById from "../../../Functions/Users/GetUserDataById";
-import alterUserpasswordApi from "../../../Functions/Users/AlterUserPassword";
-import removeUserRegisterApi from "../../../Functions/Users/RemoveuserPassword";
+// CREATE
 import CreateUserRegisterApi from "../../../Functions/Users/CreateUserRegister";
+
+// ALTER
+import alterUserRegisterApi from "/src/Functions/Users/AlterUserRegister";
+import alterUserpasswordApi from "../../../Functions/Users/AlterUserPassword";
+
+// GET
+import GetUserDataById from "../../../Functions/Users/GetUserDataById";
+import getFunctionOfUserApi from "/src/Functions/Users/GetFunctionOfUser";
+import getUserPermissionList from "/src/Functions/Authentication/GetPermissionList";
+import GetUserList from "/src/Functions/Users/GetUserList";
+
+// Remove
+import removeUserRegisterApi from "../../../Functions/Users/RemoveUserRegister";
+import removeUserPasswordApi from '../../../Functions/Users/RemoveUserPassword';
 
 const ManagementUserPage = () => {
     const churchTableRef = useRef()
@@ -117,9 +127,10 @@ const ManagementUserPage = () => {
         if( !showUserListWindow ) {
             setShowUserListWindow( true )
         }
-
-
     }
+
+
+
 
     const handleSaveUserRegister = async () => {
         const confirmDialog = confirm('DESEJA SALVAR AS ALTERAÇÕES NO CADASTRO DESSE USUARIO?')
@@ -130,8 +141,14 @@ const ManagementUserPage = () => {
         if( createUserRegister ) {
             setCreateUserRegister( false )
             const userCreated = await CreateUserRegisterApi( username, userIdFunction, userStatus )
+            if( userCreated.status !== 0 ) {
+                return
+            }
             alert(" AGORA DEFINA A SENHA DO USUARIO")
-            console.log(" USER CREATED: ", userCreated)
+            
+            //console.log(" USER CREATED: ", userCreated)
+
+            setUserId( userCreated.content[0] )
 
             await handleDisableButtons()
             await handleDisableInputData()
@@ -147,6 +164,7 @@ const ManagementUserPage = () => {
         }
 
         if( alterUserPasswordController ) {
+            //console.log(" USER PASSWORD ALTERED: ", userId, password)
             setAlterUserPasswordController( false )
             await alterUserpasswordApi(userId, password)
         }
@@ -163,6 +181,13 @@ const ManagementUserPage = () => {
 
     }
 
+    const handleCleanInputs = () => {
+        setUserId(0)
+        setUsername('')
+        setUserIdFunction(0)
+        setUserFunctionName('')
+
+    }
 
     const handleDisableButtons = async () => {
         let disableButtonsList = window.document.querySelectorAll(`.${styles.ActionButtonClass}`)
@@ -382,8 +407,21 @@ const ManagementUserPage = () => {
 
 
 
-        removeUserRegisterApi( userId )
-    }
+        await removeUserPasswordApi( userId )
+
+    };
+
+    const handleDeleteUserRegister = async () => {
+        const confirmDialog = confirm( "DESEJA REALMENTE REMOVER ESSE USUARIO?")
+        if( !confirmDialog ) {
+            return
+        }
+
+        await removeUserRegisterApi( userId )
+        handleCleanInputs()
+
+
+    };
 
     useEffect(() => {
         //console.log(" MANAGEMENT USER PAGE LOCATION : ", location.state)
@@ -417,7 +455,6 @@ const ManagementUserPage = () => {
                 setExistingFunction( response.content )
             }
             //console.log(" GET FUNC: ", response)
-            
         }
 
         getFunctionList()
@@ -425,6 +462,7 @@ const ManagementUserPage = () => {
     }, [])
 
     useEffect(() => {
+        //console.log(" USER SELECTED: ", userSelected)
         if( !userSelected || userSelected.length === 0 ) {
             return
         }
@@ -434,11 +472,18 @@ const ManagementUserPage = () => {
         
         async function getFuncApi() {
             let tmpGetFunction = await getFunctionOfUserApi( userSelected[0] )
-            //console.log( "tmpGET FUNCTION1: ", tmpGetFunction.content[0][0], tmpGetFunction.content[0][1])
+            //console.log( "TMP GET FUNCTION: ", tmpGetFunction, userSelected)
+            if( !tmpGetFunction.content.length ) {
+                setUserIdFunction(0)
+                setUserFunctionName('')
+                return
+            }
+            tmpGetFunction.content = tmpGetFunction.content[0]
+            //console.log( "tmpGET FUNCTION1: ", tmpGetFunction.content, tmpGetFunction.content[1])
             if( tmpGetFunction.status === 0 ) {
-                setUserIdFunction( tmpGetFunction.content[0][0] )
-                setUserFunctionName( tmpGetFunction.content[0][1] )
-                //console.log( "tmpGET FUNCTION2: ", tmpGetFunction.content[0][0], tmpGetFunction.content[0][1])
+                setUserIdFunction( tmpGetFunction.content[0] )
+                setUserFunctionName( tmpGetFunction.content[1] )
+                //console.log( "tmpGET FUNCTION2: ", tmpGetFunction.content[0], tmpGetFunction.content[1])
             }
         }
 
@@ -455,6 +500,7 @@ const ManagementUserPage = () => {
         setUserSelected([])
 
     }, [userSelected])
+
 
 
 
@@ -492,6 +538,10 @@ const ManagementUserPage = () => {
                 <SimpleButton
                     textButton={'CANCELAR'}
                     onClickButton={handleCancelUserRegister}
+                />
+                <SimpleButton
+                    textButton={'APAGAR'}
+                    onClickButton={handleDeleteUserRegister}
                 />
 
             </div>
@@ -598,10 +648,11 @@ const ManagementUserPage = () => {
         { ( showUserListWindow && userColumnList) && (
             <AddItemLookupList
                 titleName={"SELECIONE UM USUARIO PARA GERENCIAR"}
-                queryFunction={ () => GetUserList( listInativedUsers) }
-                controlIframe={setShowUserListWindow}
-                dataContent={setUserSelected}
+                queryFunction={ () => ( GetUserList( listInativedUsers) )}
+                controlIframe={ setShowUserListWindow }
+                dataContent={ setUserSelected }
                 columnList={ userColumnList }
+                quantityItemSelection = { 1 }
 
             />
         )}

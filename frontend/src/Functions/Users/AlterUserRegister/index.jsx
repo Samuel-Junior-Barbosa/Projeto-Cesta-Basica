@@ -9,7 +9,7 @@ const alterUserRegisterApi = async (idUser, userName, idFunction, userStatus) =>
         userStatus,
     }
     const response = await postFunction(url, params)
-    console.log("RETURN (alterUserRegisterApi) ", response)
+    //console.log("RETURN (alterUserRegisterApi) ", response)
     return {
         "status" : response.status,
         "content" : response.content

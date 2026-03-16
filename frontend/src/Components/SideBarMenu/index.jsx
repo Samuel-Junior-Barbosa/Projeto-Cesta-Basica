@@ -53,7 +53,7 @@ const SideBarMenu = ({userData}) => {
     const handleRefresh = () => {
         setTimeout(() => {
             navigate(0)
-        }, 1)
+        }, 0.1)
     }
 
     useEffect(() => {

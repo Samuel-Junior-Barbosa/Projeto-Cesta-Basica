@@ -21,7 +21,9 @@ const RouteGuard = ({AllowedRoles, permission = []}) => {
     if( typeof(userPermission) === 'string') {
       userPerm = JSON.parse(userPermission) || [];
     }
-     
+    if( !userPermission ) {
+      return <Navigate to="/nao-autorizado" />;
+    }
     //console.log(" USER PERM: ", userPerm)
     const hasPermission = permission.every( p => userPerm.includes(p) )
 

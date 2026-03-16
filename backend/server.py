@@ -66,7 +66,8 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    #allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -285,8 +286,9 @@ async def get_user_list( list_inative_users = False):
     }
 
     table_name = base_de_dados.user_table_name
+    sql_query = ''
     print(" LSIT USERS: ", list_inative_users)
-    if list_inative_users:
+    if list_inative_users == True:
         sql_query = f''' 
             SELECT
                 id_usuario,
@@ -674,11 +676,14 @@ async def get_user_data_by_id_api( data : dict, user=Depends(require_permission(
 
 @app.post('/get-user-list')
 async def get_user_list_api( data : dict, user=Depends(require_permission(72)) ):
-
+    response = {
+        'status' : 90,
+        'content' : []
+    }
     list_inative_users = data['listInativeUsers']
 
     response =  await get_user_list( list_inative_users )
-    #print(" GET USER LIST RESPONSE: ", response)
+    print(" GET USER LIST RESPONSE: ", response)
     return response
 
 
@@ -855,6 +860,8 @@ async def create_user_register( user_name, id_function, user_status ):
 
 
     response = await base_de_dados.insert(table_name, column_list, value_list )
+    if response['status'] == 0:
+        response['content'] = [id_user]
 
     return response
 
@@ -1039,6 +1046,39 @@ async def alter_function_permission_api( data : dict, user=Depends(require_permi
     response = await alter_function_permission(id_function, permissions)
     print(' (alter_function_permission_api) response: ', response)
     return response
+
+
+
+
+
+
+async def remove_user_register( id_user ):
+    response = {
+        'status' : 90,
+        'content' : []
+    }
+
+    user_table_name = base_de_dados.user_table_name
+
+
+    condition = f''' id_usuario = {id_user} '''
+
+    response = await base_de_dados.delete( user_table_name, condition )
+
+    return response
+
+
+@app.post("/remove-user-register")
+async def remove_user_register_api( data : dict, user=Depends(require_permission(71)) ):
+
+    id_user = data['idUser']
+
+    response = await remove_user_register( id_user )
+    
+    return response
+
+
+
 
 
 #==============================================

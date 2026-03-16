@@ -10,9 +10,8 @@ const Logout = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             logout();
-
             navigate('/login');
-        }, 1600);
+        }, 500);
 
         return () => clearTimeout(timer);
     })

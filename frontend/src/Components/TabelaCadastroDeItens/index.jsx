@@ -3,7 +3,19 @@ import PropTypes from 'prop-types';
 import styles from './TabelaCadastroDeItens.module.css'
 
 
-const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limitarMaxNumber, lengthColumns, ref, columnList, contentColumnList, inputColumn, fontSize}) => {
+const TabelaCadastroDeItens = ({
+        listaDeCadastros,
+        nameClass,
+        editableCel,
+        limitarMaxNumber,
+        quantityItemSelection=-1,
+        lengthColumns,
+        ref,
+        columnList,
+        contentColumnList,
+        inputColumn,
+        fontSize
+    }) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
     const [editableLabel, setEditableLabel] = useState(null);
@@ -21,6 +33,8 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
     const currentListLineChecked = useRef([])
     const [ listLinesChecked, setListLinesChecked ] = useState([])
     const [, forceUpdate] = useReducer(x => x + 1, 0);
+
+    const [ checkingCount, setCheckingCount ] = useState(0)
 
 
 
@@ -49,6 +63,20 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
         //console.log("SETANDO LINHAS MARCADAS: ", listLines)
         forceUpdate()
     }
+
+    const desSelecionarTudo = () => {
+        //let copyCheckedList = [...listLinesChecked]
+        let copyCheckedList = getCheckedList()
+        for(let I = 0; I < listLinesChecked.length; I ++ ) {
+            copyCheckedList[I]['checked'] = false
+        }
+        //console.log(' tabela selecionar: ', copyCheckedList, typeof(copyCheckedList))
+        setCheckedList(copyCheckedList)
+        setCheckBoxAll(false)
+
+
+    } //[itens, tableClassRef, columnsTemplate, listLinesChecked]);
+
 
         // Função que adiciona o novo item à lista
     const adicionarItem = useCallback((novoItem) => {
@@ -80,25 +108,22 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
 
     } //, [itens, tableClassRef, columnsTemplate, listLinesChecked, listaDeItens])
 
+    const handleSumCheckCount = ( value = 1) => {
+        setCheckingCount(  checkingCount + value )
+    }
 
-    const desSelecionarTudo = () => {
-        //let copyCheckedList = [...listLinesChecked]
-        let copyCheckedList = getCheckedList()
-        for(let I = 0; I < listLinesChecked.length; I ++ ) {
-            copyCheckedList[I]['checked'] = false
-        }
-        //console.log(' tabela selecionar: ', copyCheckedList, typeof(copyCheckedList))
-        setCheckedList(copyCheckedList)
-        setCheckBoxAll(false)
+    const handleSubCheckCount = ( value = 1) => {
+        setCheckingCount( checkingCount - value )
+    }
 
-
-    } //[itens, tableClassRef, columnsTemplate, listLinesChecked]);
-
+    const handleAlterCheckCount = ( value ) => {
+        setCheckingCount( value )
+    }
 
     const selectProductById = (id) => {
         let copyIndexList = getCheckedList()
         let tmpLinhaSelecionada = []
-        let checkingCount = 0
+        let tmpCheckingCount = 0
         
         id = String(id)
         //console.log("SELECIONANDO: ", id)
@@ -108,19 +133,39 @@ const TabelaCadastroDeItens = ({listaDeCadastros, nameClass, editableCel, limita
                     copyIndexList[i].checked = false
                 }
                 else {
-                    copyIndexList[i].checked = true
-                    checkingCount += 1
+                    //console.log(" quantityItemSelection1: ", quantityItemSelection, checkingCount, quantityItemSelection >= checkingCount)
+                    if( quantityItemSelection > -1 ) {
+                        //console.log(" quantityItemSelection2: ", quantityItemSelection <= checkingCount)
+                        
+                        if( quantityItemSelection <= checkingCount ) {
+                            desSelecionarTudo()
+                            handleSubCheckCount()
+                        }
+                        copyIndexList[i].checked = true
+                        handleSumCheckCount()
+                    }
+                    else {
+                        copyIndexList[i].checked = true
+                        handleSumCheckCount()
+                    }
                 }
             }
             tmpLinhaSelecionada = copyIndexList[i]
             //console.log("COPY: ", copyIndexList[i].id, copyIndexList[i].checked)
         }
 
+                
+        for( let i = 0; i < currentListLineChecked.current.length; i ++ ) {
+            if( currentListLineChecked.current[i].checked === true ) {
+                tmpCheckingCount += 1
+            }
+        }
+
         //console.log("RETURN ", copyIndexList)
-        if( checkingCount === copyIndexList.length ) {
+        if( tmpCheckingCount === copyIndexList.length ) {
             setCheckBoxAll( true )
         }
-        else if( checkingCount <= copyIndexList.length && checkBoxAll === true ) {
+        else if( tmpCheckingCount <= copyIndexList.length && checkBoxAll === true ) {
             setCheckBoxAll( false )
         }
         setCheckedList(copyIndexList)
