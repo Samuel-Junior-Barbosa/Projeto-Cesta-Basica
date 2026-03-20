@@ -1,6 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SketchPicker } from 'react-color';
+import { useSearchParams } from 'react-router-dom';
 
+
+
+const ColorSelectorComp = ({ currentThemeData }) => {
+
+    const [ color1, setColor1 ] = useState('')
+    const [ color2, setColor2 ] = useState('')
+    const [ color3, setColor3 ] = useState('')
+    const [ color4, setColor4 ] = useState('')
+    const [ color5, setColor5 ] = useState('')
+
+    return (
+        <div>
+
+            <SketchPicker
+                width={200}
+                height={20}
+                color={color1}
+                onChange={(e) => {
+                    
+                    setColor1(e.hex)
+                }}
+            />
+        </div>
+    )
+}
+
+
+
+/*
 class ColorSelectorComp extends React.Component {
     constructor(props) {
         super(props);
@@ -34,6 +64,6 @@ class ColorSelectorComp extends React.Component {
         );
     }
 }
-
+*/
 
 export default ColorSelectorComp;

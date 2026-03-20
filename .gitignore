@@ -18,3 +18,4 @@ frontend/dist
 *.so
 /backend/dist/*
 /backend/build/*
+*.old

@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useTheme } from "/src/contexts/CurrentTheme";
-import ColorSelectorComp from "/src/Components/ColorSelector";
 import getUserPermissionList from "/src/Functions/Authentication/GetPermissionList";
 import AddItemLookupList from "/src/Components/AddItemLookupList";
 import getUserList from "/src/Functions/Users/GetUserList";
@@ -17,6 +16,7 @@ import GetFunctionPermissionListById from "../../../Functions/UserFunctions/GetF
 import AlterFunctionPermissionListById from "../../../Functions/UserFunctions/AlterFunctionPermission";
 import GetFunctionList from "../../../Functions/UserFunctions/GetFunctionList";
 import SetAuthenticatedUserPermission from "../../../Functions/Authentication/SetAuthenticatedUserPermission";
+import { useAuth } from "../../../contexts/AuthenticateContext/AuthContext";
 
 
 const AlterFunctionPage = () => {
@@ -66,7 +66,7 @@ const AlterFunctionPage = () => {
     const [ listPermissionOrdened, setListPermissionOrdened ] = useState([])
 
     const [ functionSelected, setFunctionSelected ] = useState([])
-
+    const { updatePermissions } = useAuth()
 
 
     // ==================================================================
@@ -102,21 +102,17 @@ const AlterFunctionPage = () => {
 
 
     const handleListFunction = () => {
+        console.log( !showFunctionListWindow, !readOnlyData)
         if( !showFunctionListWindow && !readOnlyData ) {
             setShowFunctionListWindow( true )
+            return true
         }
 
+        return false
 
     }
 
-
-    const handleSaveUserRegister = async () => {
-        const confirmDialog = confirm('DESEJA SALVAR AS ALTERAÇÕES NO CADASTRO DESSA FUNÇÃO?')
-
-        if( !confirmDialog ) {
-            return
-        }
-
+    const handleGetIdPermissionSelected = async () => {
         let tmpPermissonList = []
         
         let tmpChurch = await churchTableRef.current.listarItensSelecionados()
@@ -157,28 +153,38 @@ const AlterFunctionPage = () => {
         tmpPermissonList = [...tmpPermissonList, ...tmpOther]
         tmpPermissonList = [...tmpPermissonList, ...tmpUser]
         tmpPermissonList = tmpPermissonList.map(( item ) => Number(item[0]) )
+
+        return tmpPermissonList
+    }
+
+
+    const handleSaveUserRegister = async () => {
+        const confirmDialog = confirm('DESEJA SALVAR AS ALTERAÇÕES NO CADASTRO DESSA FUNÇÃO?')
+
+        if( !confirmDialog ) {
+            return
+        }
+        
         handleCancelFunctionPermissionRegister()
+
+        let tmpPermissonList = await handleGetIdPermissionSelected()
         
         functionNameRecived = functionName
         location.state.functionNameRecived = functionName
         
-
         //console.log(" tmp Permission: ", tmpPermissonList, location.state)
         
-
-
         const alterResponse = await AlterFunctionPermissionListById( functionId, tmpPermissonList, functionName)
+        //updatePermissions( tmpPermissonList )
         if( alterResponse.status === 0 ) {
-            SetAuthenticatedUserPermission(JSON.stringify(tmpPermissonList))
+            updatePermissions( tmpPermissonList)
+        }
+        else if( alterResponse === 401 ) {
+            alert(" SEM PERMISSÃO PARA EXECUTAR ESSA AÇÃO")
         }
         navigate(location.pathname, {
             state : location.state
         })
-
-
-
-
-        
 
     }
 
@@ -270,6 +276,46 @@ const AlterFunctionPage = () => {
     }
 
 
+    const handleSelectAllPermissions = () => {
+        let tmpAllSelected = []
+
+
+        tmpAllSelected.push( churchTableRef.current.getSelectAllBoxStatus() )
+        tmpAllSelected.push( familyTableRef.current.getSelectAllBoxStatus() )
+        tmpAllSelected.push( productTableRef.current.getSelectAllBoxStatus() )
+        tmpAllSelected.push( basketTableRef.current.getSelectAllBoxStatus() )
+        tmpAllSelected.push( priorityTableRef.current.getSelectAllBoxStatus() )
+        tmpAllSelected.push( reportTableRef.current.getSelectAllBoxStatus() )
+        tmpAllSelected.push( configTableRef.current.getSelectAllBoxStatus() )
+        tmpAllSelected.push( userTableRef.current.getSelectAllBoxStatus() )
+        tmpAllSelected.push( otherTableRef.current.getSelectAllBoxStatus() )
+        
+        //console.log( 'handleSelectAllPermissions: ', tmpAllSelected, tmpAllSelected.includes(false))
+        
+        if( tmpAllSelected.includes(false) ) {
+            //console.log("  SELECT ALL")
+            handleSelectAll()
+        }
+
+        else {
+            //console.log(" UNSELECT ALL")
+            handleUnSelectAll()
+        }
+    }
+
+    const handleSelectAll = async () => { 
+        churchTableRef.current.selecionarTudo()
+        familyTableRef.current.selecionarTudo()
+        productTableRef.current.selecionarTudo()
+        basketTableRef.current.selecionarTudo()
+        priorityTableRef.current.selecionarTudo()
+        reportTableRef.current.selecionarTudo()
+        configTableRef.current.selecionarTudo()
+        userTableRef.current.selecionarTudo()
+        otherTableRef.current.selecionarTudo()
+
+        //console.log(" UNSELECT ALL")
+    }
     const handleUnSelectAll = async () => { 
         churchTableRef.current.desSelecionarTudo()
         familyTableRef.current.desSelecionarTudo()
@@ -285,6 +331,23 @@ const AlterFunctionPage = () => {
     }
 
 
+    const handleLinkForFunction = (key) => {
+        key = key.code
+        let linkFunction = {
+            'KeyL' : handleListFunction,
+            'Key' : undefined,
+        }
+
+        let response;
+        
+        //response = linkFunction[ key ]()
+        response = handleListFunction()
+        //console.log(" KEY LINK: ", key, linkFunction[ key ], response)
+        console.log(" KEY LINK: ", key, handleListFunction, response)
+        
+        
+    }
+    // Obtem os dados de permissões no sistema, para criar as tabelas para selecionar
     useEffect(() => {
         async function getPermissionList() {
             const response = await GetFunctionPermissionListById()
@@ -307,6 +370,7 @@ const AlterFunctionPage = () => {
         getCurrentuserPermissionList()
     }, [])
 
+    // Atualiza os estados para gerar as tabelas
     useEffect(() => {
         async function getList() {
             let tmpChurch = []
@@ -406,7 +470,7 @@ const AlterFunctionPage = () => {
 
     }, [functionPermissionsList])
 
-
+    // Atualiza os estados com base na função recebida entre as mudanças de telas
     useLayoutEffect(() => {
 
 
@@ -430,6 +494,7 @@ const AlterFunctionPage = () => {
 
     }, [idFunctionRecived, functionNameRecived])
 
+    // Atualiza os estados, com base na função selecionada da consulta
     useEffect(() => {
         if( !functionSelected || functionSelected.length == 0 ) {
             return
@@ -458,12 +523,9 @@ const AlterFunctionPage = () => {
     }, [functionSelected])
 
 
-
+    // Seleciona as permissões da função escolhida
     useEffect(() => {
-
-
         //console.log(" CURRENT FUNCTION PERMISSION LIST: ", functionPermissionRecived)
-        
         //console.log(" CHECKED PERMISSION: ", checkedPermission)
         async function checkPermission() {
             let checkedPermission = functionPermissionsList.map((index) => 0)
@@ -516,6 +578,23 @@ const AlterFunctionPage = () => {
 
     }, [functionPermissionRecived])
 
+
+    // Cria eventListener para atalhos
+    useEffect(() => {
+
+
+        //onsole.log(" CRIANDO O EVENT LISTNER")
+        window.addEventListener('keypress', handleLinkForFunction)
+
+
+        return () => {
+            //console.log(" REMOVENDO O EVENT LISTNER")
+            window.removeEventListener('keypress', handleLinkForFunction)
+        }
+
+    }, [ showFunctionListWindow, readOnlyData ])
+
+
     return (
         <div className={styles.AlterFunctionMainDiv}>
 
@@ -558,8 +637,6 @@ const AlterFunctionPage = () => {
                     setFunctionName( e.target.value.toUpperCase() )
                     
                 }}
-
-               
             />
 
             <hr />
@@ -571,6 +648,7 @@ const AlterFunctionPage = () => {
                 </label>
                 <SimpleButton
                     textButton={'SELECIONAR TUDO'}
+                    onClickButton={handleSelectAllPermissions}
                 />
             </div>            
             <ul className={styles.permissionList}>

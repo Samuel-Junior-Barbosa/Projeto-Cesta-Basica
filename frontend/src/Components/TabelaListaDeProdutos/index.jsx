@@ -14,6 +14,7 @@ const TabelaListaDeProdutos = ({
         inputColumn,
         fontSize,
         disableCheckBox = false,
+        quantityItemSelection = -1,
     }) => {
     const [itens, setItens] = useState([]);
     const [editableColumnIndex, setEditableColumnIndex] = useState([]);
@@ -25,6 +26,7 @@ const TabelaListaDeProdutos = ({
     const [ linhaSelecionada, setLinhaSelecionada ] = useState(-1);
     const [ inputQuantityValue, setInputQuantityValue ] = useState(0);
     const [ checkBoxAll, setCheckBoxAll ] = useState(false)
+    const  currentStatusCheckBoxAll = useRef(false)
     const [ headerNames, setHeaderNames ] = useState([])
     const [ tableLines, setTableLines ] = useState([])
     const [ listLinesChecked, setListLinesChecked ] = useState([])
@@ -35,7 +37,7 @@ const TabelaListaDeProdutos = ({
     const currentListLineChecked = useRef([])
     const [, forceUpdate] = useReducer(x => x + 1, 0);
 
-    
+    const [ checkingCount, setCheckingCount ] = useState(0);
 
         // Função que adiciona o novo item à lista
     const adicionarItem = useCallback((novoItem) => {
@@ -56,6 +58,7 @@ const TabelaListaDeProdutos = ({
         //console.log(' tabela selecionar: ', copyCheckedList, typeof(copyCheckedList))
         setCheckedList(copyCheckedList)
         setCheckBoxAll(false)
+        currentStatusCheckBoxAll.current = false
         forceUpdate()
 
 
@@ -119,6 +122,10 @@ const TabelaListaDeProdutos = ({
         return elementsSelected;
     }
 
+
+    const getSelectAllBoxStatus = () => {
+        return currentStatusCheckBoxAll.current
+    }
 
     const handleCreateCheckList = () => {
         //console.log("{COMPONENT} LISTA DE ITENS: ", listaDeItens)
@@ -370,6 +377,7 @@ const TabelaListaDeProdutos = ({
         //console.log(' tabela selecionar: ', copyChecekdList, typeof(copyChecekdList))
         setCheckedList(copyCheckedList)
         setCheckBoxAll(true)
+        currentStatusCheckBoxAll.current = true
         forceUpdate()
 
     } //, [itens, tableClassRef, columnsTemplate, listLinesChecked, listaDeItens])
@@ -392,6 +400,19 @@ const TabelaListaDeProdutos = ({
 
     }
 
+
+    const handleSumCheckCount = ( value = 1) => {
+        setCheckingCount(  checkingCount + value )
+    }
+
+    const handleSubCheckCount = ( value = 1) => {
+        setCheckingCount( checkingCount - value )
+    }
+
+    const handleAlterCheckCount = ( value ) => {
+        setCheckingCount( value )
+    }
+
     const selectProductById = (id, alternate = true) => {
         let copyIndexList = getCheckedList()
         if( !copyIndexList || !Array.isArray(copyIndexList) || copyIndexList.length < 1 ) {
@@ -401,7 +422,7 @@ const TabelaListaDeProdutos = ({
 
 
         let tmpLinhaSelecionada = []
-        let checkingCount = 0
+        let tmpCheckingCount = 0
         //console.log("ITENS: ", listaDeItens)
         //console.log("SELECIONANDO: ", id)
         //console.log("copyIndexList: ", copyIndexList)
@@ -413,23 +434,43 @@ const TabelaListaDeProdutos = ({
                     copyIndexList[i].checked = false
                 }
                 else {
-                    copyIndexList[i].checked = true
+                    //console.log(" quantityItemSelection1: ", quantityItemSelection, checkingCount, quantityItemSelection >= checkingCount)
+                    if( quantityItemSelection > -1 ) {
+                        //console.log(" quantityItemSelection2: ", quantityItemSelection <= checkingCount)
+                        
+                        if( quantityItemSelection <= checkingCount ) {
+                            desSelecionarTudo()
+                            handleSubCheckCount()
+                        }
+                        copyIndexList[i].checked = true
+                        handleSumCheckCount()
+                    }
+                    else {
+                        copyIndexList[i].checked = true
+                        handleSumCheckCount()
+                    }
                 }
             }
             tmpLinhaSelecionada = copyIndexList[i]
             //console.log("COPY: ", copyIndexList[i].id, copyIndexList[i].checked)
         }
 
+        for( let i = 0; i < currentListLineChecked.current.length; i ++ ) {
+            if( currentListLineChecked.current[i].checked === true ) {
+                tmpCheckingCount += 1
+            }
+        }
 
-
-        //console.log("RETURN ", copyIndexList)
+        //console.log("RETURN ", tmpCheckingCount, copyIndexList)
         //console.log(" checkincoung: ", currentListLineChecked.current.length, copyIndexList.length)
-        if( checkingCount === copyIndexList.length  && checkBoxAll === false) {
+        if( tmpCheckingCount === copyIndexList.length  && checkBoxAll === false) {
             setCheckBoxAll( true )
+            currentStatusCheckBoxAll.current = true
             
         }
-        else if( checkingCount <= copyIndexList.length && checkBoxAll === true ) {
+        else if( tmpCheckingCount <= copyIndexList.length && checkBoxAll === true ) {
             setCheckBoxAll( false )
+            currentStatusCheckBoxAll.current = false
         }
         setCheckedList(copyIndexList)
         forceUpdate()
@@ -610,7 +651,8 @@ const TabelaListaDeProdutos = ({
             getTableBody,
             getTableHeader,
             getLineIndexByIdProduct,
-
+            getSelectAllBoxStatus,
+            
             // H
             handleContentChange,
             handleChangeCheckInputLine,

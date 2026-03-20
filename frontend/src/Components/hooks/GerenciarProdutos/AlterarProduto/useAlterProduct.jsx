@@ -13,7 +13,7 @@ export function useAlterProduct() {
 
         try {
             const response = await AlterProductOnStock(idProduct, nameProduct, marcaProduct, quantProducts, registerStatus);
-            if (response === true) {
+            if (response.status === 0) {
                 setMessage('Alterado com sucesso')
                 const timer = setTimeout(() => {
                     setMessage('')

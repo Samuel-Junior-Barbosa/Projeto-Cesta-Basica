@@ -4,16 +4,18 @@ import SimpleButton from "../../Components/SimpleButton";
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useTheme } from "../../contexts/CurrentTheme";
+import { useTheme } from "/src/contexts/CurrentTheme";
 
 import styles from './Options.module.css';
-import ColorSelectorComp from "../../Components/ColorSelector";
+import ColorSelectorComp from "/src/Components/ColorSelectorComp";
 
 const Options = () => {
     const navigate = useNavigate();
     const { currentTheme, setCurrentTheme } = useTheme(null);
     const { currentThemeData, setCurrentThemeData } = useTheme(null);
+    const { saveCurrentTheme } = useTheme(null)
     const [ themes, setThemes] = useState({})
+
 
     const goToPage = useCallback((url) => {
         if (url) {
@@ -29,12 +31,20 @@ const Options = () => {
         e.preventDefault();
         // Implementar uma logica de salvar configurações da interface
         console.log(`"Configurações salvas"`)
+
+        setCurrentTheme( themes )
+        saveCurrentTheme()
+
+
     }, [])
     
     
     
     const handleChangeTheme = (theme) => {
-        console.log('theme: ', theme, themes[theme], ' cor: ', themes[theme].color1)
+        if( !theme ) {
+            return 
+        }
+        console.log('theme: ', theme, themes[theme], ' cor: ', themes[theme])
         setCurrentTheme(theme)
         setCurrentThemeData(themes[theme])
         const bodyPage = document.documentElement
@@ -49,6 +59,8 @@ const Options = () => {
     }
 
     useEffect(() => {
+
+        //console.log(" OPTIONS: ", currentThemeData)
         if( currentThemeData ) {
             setThemes({
                 'dark' : {
@@ -66,19 +78,34 @@ const Options = () => {
                     color4: '#6BAB90',
                     color5: '#A6FFA1',
                     colorFont: '#FFE2D1',
-                },
+                }, /*
+                
                 'personalizado' : {
+                    
                     color1 : currentThemeData.color1,
                     color2 : currentThemeData.color2,
                     color3 : currentThemeData.color3,
                     color4 : currentThemeData.color4,
                     color5 : currentThemeData.color5,
-                }    
+                    
+                    
+                    color1: '#ff5454',
+                    color2: '#830707',
+                    color3: '#aa0000',
+                    color4: '#6BAB90',
+                    color5: '#A6FFA1',
+                    
+                    colorFont : '#ffffff'
+                } */
+                
             })
         }
         setCurrentThemeData(themes[currentTheme])
+        //console.log(" HANDLE THEME: ", themes[currentTheme])
 
     }, [currentThemeData])
+
+
 
     return (
         <div className={styles.divMainForm}>
@@ -103,9 +130,10 @@ const Options = () => {
                     </select>
 
                     {currentTheme === 'personalizado' && (
-                        <>
-                            <ColorSelectorComp />
-                        </>
+                        <ColorSelectorComp
+                            currentThemeData = { themes[currentTheme] }
+                            onChange = { setCurrentThemeData}
+                        />
                     )}
                     
 

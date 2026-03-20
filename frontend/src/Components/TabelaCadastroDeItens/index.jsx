@@ -161,7 +161,7 @@ const TabelaCadastroDeItens = ({
             }
         }
 
-        //console.log("RETURN ", copyIndexList)
+        //console.log("RETURN ", tmpCheckingCount, copyIndexList)
         if( tmpCheckingCount === copyIndexList.length ) {
             setCheckBoxAll( true )
         }

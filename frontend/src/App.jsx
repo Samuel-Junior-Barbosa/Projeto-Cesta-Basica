@@ -69,7 +69,6 @@ import AlterFunctionPage from '/src/pages/ManagementOfFunctions/AlterFunction';
 import { AuthProvider  } from './contexts/AuthenticateContext/AuthContext';
 import RouteGuard from './contexts/GuardRoutes/RouteGuard';
 import { ThemeProvider } from './contexts/CurrentTheme';
-import ColorSelectorComp from './Components/ColorSelector';
 import { PERMISSIONS } from './Components/UserPermission';
 
 

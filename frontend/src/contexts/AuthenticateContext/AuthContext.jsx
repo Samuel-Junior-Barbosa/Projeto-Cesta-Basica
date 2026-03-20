@@ -166,9 +166,23 @@ export const AuthProvider = ({ children }) => {
 
   };
 
+
+  const updatePermissions = ( newPermissions ) => {
+    if( typeof( newPermissions) != 'string' ) {
+      //if( newPermissions.includes('[') || newPermissions.includes(']')  ) {
+          //newPermissions = JSON.parse( newPermissions )
+      //}
+      newPermissions = JSON.stringify( newPermissions )
+    }
+
+    
+    setUserPermission( newPermissions )
+    SetAuthenticatedUserPermission( newPermissions )
+
+  }
   
   return (
-    <AuthContext.Provider value={{ token, user, userRole, userPermission, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ token, user, userRole, userPermission, isAuthenticated, login, logout, updatePermissions }}>
       {children}
     </AuthContext.Provider>
   );

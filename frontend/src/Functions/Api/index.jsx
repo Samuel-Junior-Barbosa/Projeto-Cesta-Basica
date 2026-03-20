@@ -32,7 +32,10 @@ api.interceptors.response.use(
       RemoveAuthenticatedUserToken()
       RemoveAuthenticatedUserName()
 
-      window.location.href = "/login";
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000)
+      
     }
 
     return Promise.reject(error);

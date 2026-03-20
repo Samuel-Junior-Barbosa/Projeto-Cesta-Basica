@@ -21,17 +21,21 @@ const Login = () => {
     const [userLogged, setUserLogged] = useState(false);
     const { login } = useAuth()
 
+    const [ messageOfLogin, setMessageOfLogin ] = useState('')
 
-    const onSubmit = async (e) => {
+
+    const handleSubmit = async (e) => {
         e.preventDefault()
+        
         // Implementar uma logica de login
         let use = getUserName();
         let pass = currentePassword;
-
+        
         // Hook que "valida" o login do usuario
         //let returnOfLogin = handleLogin(use, pass);
         
         let returnOfLogin = await handleLogin(use, pass)
+        
         //console.log(" RETURN LOGIN : ", returnOfLogin)
         if( returnOfLogin.status != 0) {
             return
@@ -77,10 +81,14 @@ const Login = () => {
         setCurrentUsername("")
         
     }
+
+    useEffect(() => {
+        setMessageOfLogin( useAutenticatorMessage )
+    }, [useAutenticatorMessage ])
     
     return (
         <>
-            <form onSubmit={onSubmit}>
+            <form onSubmit={handleSubmit} method={'POST'}>
                 <div className={styles.SwitchProfilesDiv}>
                     <SwitchProfiles />
                 </div>
@@ -88,7 +96,9 @@ const Login = () => {
                 <input
                     type="password"
                     className={`${styles.inputPassword}`}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    onChange={
+                        (e) => setCurrentPassword(e.target.value)
+                    }
                 />
                 <SimpleButton
                     

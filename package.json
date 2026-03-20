@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "dev": "wails dev",
-    "build": "wails build",
+    "dev": "npm dev",
+    "build": "npm build",
     "start": "vite"
   },
   "dependencies": {

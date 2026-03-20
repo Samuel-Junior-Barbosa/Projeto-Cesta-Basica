@@ -1,4 +1,4 @@
-import api from "../../../Functions/Api";
+
 import postFunction from "../../../Functions/PostFunction";
 
 
@@ -9,12 +9,16 @@ export default async function authenticator(username, password) {
     'content' : []
   }
 
+  if( !password ) {
+    password = ""
+  } 
+
   const params = {
     username,
     password
   }
-
- let responseApi = await postFunction('http://localhost:8080/authentication', params)
+  
+  let responseApi = await postFunction('http://localhost:8080/authentication', params)
   response.status = responseApi.status
   response.content = responseApi.content
 

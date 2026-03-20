@@ -26,7 +26,7 @@ import GetAuthenticatedUserPermission from '../../Functions/Authentication/GetAu
 
 
 
-const SideBarMenu = ({userData}) => {
+const SideBarMenu = () => {
     // classe do menu retraido
     const HiddenSideMenu = styles.HiddenSideMenu
     // classe do menu expandido
@@ -50,11 +50,6 @@ const SideBarMenu = ({userData}) => {
         setClasseAtiva(HiddenSideMenu)
     }, []);
 
-    const handleRefresh = () => {
-        setTimeout(() => {
-            navigate(0)
-        }, 0.1)
-    }
 
     useEffect(() => {
 
@@ -73,14 +68,29 @@ const SideBarMenu = ({userData}) => {
         //let userPerm = userData.userPermission
         //let userPerm = localStorage.getItem('userPermission')
         let userPerm = GetAuthenticatedUserPermission()
-        if( userPerm.includes('[') || userPerm.includes(']')  ) {
-            userPerm = JSON.parse( userPerm )
+        if( typeof( userPerm ) == 'string') {
+            if( userPerm.includes('[') || userPerm.includes(']')  ) {
+                userPerm = JSON.parse( userPerm )
+            }
         }
+        
         
         setCurrentUserPermission( userPerm ) 
 
         //console.log(" USER ROLE: ", userData, userPerm)
-    }, [location, localStorage, ])
+    }, [location, sessionStorage, ])
+
+    useEffect(() => {
+        const atualizar = () => {
+            setCurrentUserPermission(JSON.parse(sessionStorage.getItem("userPermission")));
+        };
+
+        window.addEventListener("permissionsChanged", atualizar);
+
+        return () => {
+            window.removeEventListener("permissionsChanged", atualizar);
+        };
+    }, []);
 
     return (
         <div className={styles.NavBarSideMenu}>
@@ -92,7 +102,7 @@ const SideBarMenu = ({userData}) => {
                  
                 { (currentUserPermission.includes(PERMISSIONS.VIEW_HOME)) && (
                     <li className={styles.SideBarMenuListItem}>
-                        <Link to="/home" exact="true" onClick={ handleRefresh }>
+                        <Link to="/home" exact="true" >
                         <abbr title="Pagina principal">
                             <HomeIcon />
                             <label> Home </label>
@@ -102,7 +112,7 @@ const SideBarMenu = ({userData}) => {
                 )}
                 {(currentUserPermission.includes(PERMISSIONS.VIEW_INPUT_BASIC_BASKET_FOOD)) && (
                         <li className={styles.SideBarMenuListItem}>
-                            <Link to="/input-and-output-baskets"  onClick={handleRefresh} >
+                            <Link to="/input-and-output-baskets"  >
                                 <abbr title="Registrar saida de cestas">
                                     <BasketIcon />
                                     <label> Ent/Sai Cestas Basicas </label>
@@ -123,7 +133,7 @@ const SideBarMenu = ({userData}) => {
 
                 { ( currentUserPermission.includes(PERMISSIONS.VIEW_MANAGE_PRODUCT) ) && (
                         <li className={styles.SideBarMenuListItem}>
-                            <Link to="/gerenciar-produtos"  onClick={handleRefresh} >
+                            <Link to="/gerenciar-produtos"  >
                                 <abbr title="Gerenciar o estoque dos produtos">
                                     <ManageInventoryIcon />
                                     <label> Gerenciar Produtos </label>
@@ -133,7 +143,7 @@ const SideBarMenu = ({userData}) => {
                 )}
                 { (currentUserPermission.includes(PERMISSIONS.VIEW_MANAGE_FAMILY) ) && (
                     <li className={styles.SideBarMenuListItem}>
-                        <Link to="/cadastros-de-familias" onClick={handleRefresh} >
+                        <Link to="/cadastros-de-familias" >
                             <abbr title="Gerenciar os cadastros das familias registradas">
                                 <FamilysCadastre />
                                 <label> Gerenciar Familias </label>
@@ -143,7 +153,7 @@ const SideBarMenu = ({userData}) => {
                 )}
                 { ( currentUserPermission.includes(PERMISSIONS.VIEW_MANAGE_CHURCH)) && (
                     <li className={styles.SideBarMenuListItem}>
-                        <Link to="/manage-churches" onClick={handleRefresh} >
+                        <Link to="/manage-churches" >
                             <abbr title="Gerenciar os cadastros das Igrejas">
                                 <ChurchsRegistered />
                                 <label> Gerenciar Igrejas </label>
@@ -153,7 +163,7 @@ const SideBarMenu = ({userData}) => {
                 )}
                 {( currentUserPermission.includes(PERMISSIONS.VIEW_MANAGE_USER_PAGE)) && (
                     <li className={styles.SideBarMenuListItem}>
-                        <Link to="/manage-users" onClick={handleRefresh} >
+                        <Link to="/manage-users" >
                             <abbr title="Gerenciar os cadastros de usuarios do sistema">
                                 <UserIcon />
                                 <label> Gerenciar Usuarios </label>
@@ -163,7 +173,7 @@ const SideBarMenu = ({userData}) => {
                 )}
                 { ( currentUserPermission.includes(PERMISSIONS.VIEW_REPORT_PAGE) ) && (
                     <li className={styles.SideBarMenuListItem}>
-                        <Link to="/gerar-relatorios" onClick={handleRefresh} >
+                        <Link to="/gerar-relatorios" >
                             <abbr title="Gerar relatorio de informações do sistema">
                                 <ReportIcon />
                                 <label> Gerar Relatorio </label>
@@ -174,7 +184,7 @@ const SideBarMenu = ({userData}) => {
                 
                 { (currentUserPermission.includes(PERMISSIONS.VIEW_CONFIGURATION_PAGE)) && (
                     <li className={styles.SideBarMenuListItem}>
-                        <Link to="/options" onClick={handleRefresh} >
+                        <Link to="/options" >
                             <abbr title="Configuração e personalização">
                                 <GearIcon />
                                 <label> Configurações </label>
@@ -184,7 +194,7 @@ const SideBarMenu = ({userData}) => {
                 )}
                 { ( currentUser ) && (
                     <li className={styles.SideBarMenuListItem}>
-                        <Link to="/logout" onClick={handleRefresh} >
+                        <Link to="/logout" >
                             <abbr title="Sair do programa">
                                 <UserExitIcon />
                                 <label> Sair </label>

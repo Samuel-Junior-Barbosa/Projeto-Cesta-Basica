@@ -20,6 +20,7 @@ module.exports = defineConfig({
     
 
   ],
+  /*
   resolve: {
     alias: {
       '#minpath': path.resolve(__dirname, 'node_modules/vfile/lib/minpath.js'),
@@ -27,6 +28,7 @@ module.exports = defineConfig({
       '#minurl': path.resolve(__dirname, 'src/utils/minurl.mock.js'), // Resolve o #minurl corretamente
     },
   },
+  */
   /*
   optimizeDeps: {
     include: ['#minurl', 'vfile'],

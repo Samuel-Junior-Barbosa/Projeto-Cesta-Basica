@@ -328,7 +328,7 @@ class GCBBase:
 
 
         if not self.exist_table( self.permission_table_name ):
-            cursor_do_banco.execute(f'''
+            self.banco_de_dados.execute(f'''
                                     CREATE TABLE { self.permission_table_name } (
                                         id_permissao INTEGER PRIMARY KEY AUTOINCREMENT,
                                         nome TEXT,
@@ -336,6 +336,101 @@ class GCBBase:
                                         UNIQUE( id_permissao )
                                     );
                                     ''')
+            self.banco_de_dados.commit()
+
+            tmp_permission_list = [
+                [1,'DASHBOARD_VIEW','VISUALIZAR DASHBOARDS'],
+                [2,'REPORT_VIEW','VISUALIZAR RELATORIOS'],
+                [3,'CREATE_FAMILY','PERMITIR CRIAR CADASTRO DE FAMILIA'],
+                [4,'ALTER_FAMILY','PERMITIR ALTERAR CADASTRO DE FAMILIA'],
+                [5,'DELETE_FAMILY','PERMITIR DELETAR CADASTRO DE FAMILIA'],
+                [6,'VIEW_FAMILY_REGISTER','PERMITIR VISUALIZAR CADASTROS DE FAMILIA'],
+                [7,'CREATE_PRODUCT','PERMITIR CRIAR PRODUTOS'],
+                [8,'ALTER_PRODUCT','PERMITIR ALTERAR PRODUTOS'],
+                [9,'DELETE_PRODUCT','PERMITIR DELETAR PRODUTOS'],
+                [10,'VIEW_PRODUCT_REGISTER','PERMITIR VISUALIZAR LISTA DE PRODUTOS'],
+                [11,'CREATE_CHURCH','PERMITIR CRIAR CADASTRO DE CONGREGAÇÃO'],
+                [12,'ALTER_CHURCH','PERMITIR ALTERAR CADASTRO DE CONGREGAÇÃO'],
+                [13,'DELETE_CHURCH','PERMITIR DELETAR CADASTROD DE CONGREGAÇÃO'],
+                [14,'VIEW_CHURCH_REGISTER','PERMITIR VISUALIZAR CADASTRO DE CONGREGAÇÕES'],
+                [15,'VIEW_CHURCH_GOAL_REGISTER','PERMITIR VISUALIZAR CADASTRO DE METAS'],
+                [16,'ALTER_CHURCH_GOAL_REGISTER','PERMITIR ALTERAR METAS'],
+                [17,'DELETE_CHURCH_GOAL_REGISTER','PERMITIR DELETAR METAS'],
+                [18,'CREATE_CHURCH_GOAL_REGISTER','PERMITIR CRIAR METAS'],
+                [19,'VIEW_CHURCH_GOAL_RECORD','PERMITIR GERAR RELATORIOS DE METAS POR CONGREGAÇÃO'],
+                [20,'VIEW_CHURCH_RECORD','PERMITIR GERAR RELATORIO DE CONGREGAÇÃO'],
+                [21,'VIEW_HOME_PAGE','PERMITIR ACESSAR A PAGINA PRINCIPAL'],
+                [22,'VIEW_DELETE_USER_PAGE','PERMITIR ACESSAR A PAGINA DE REMOVER USUARIO'],
+                [23,'VIEW_GENERATE_REPORT_PAGE','PERMITIR VISUALIZAR A PAGINA DE RELATORIOS'],
+                [24,'VIEW_MANAGE_CHURCH_PAGE','PERMITIR VISUALIZAR PAGINA DE GERENCIAR CONGREGAÇÃO'],
+                [25,'VIEW_MANAGE_PRODUCT_PAGE','PERMITIR VISUALIZAR PAGINA DE GERENCIAR PRODUTOS'],
+                [26,'VIEW_MANAGE_FAMILY_PAGE','PERMITIR VISUALIZAR PAGINA DE GERENCIARDE FAMILIA'],
+                [27,'VIEW_REGISTER_FAMILY_PAGE','PERMITIR VISUALIZAR PAGINA DE CADASTRO DE FAMILIA'],
+                [28,'VIEW_ALTER_PRODUCT_PAGE','PERMITIR VISUALIZAR PAGINA DE ALTERAR PRODUTO'],
+                [29,'VIEW_ALTER_FAMILY_PAGE','PERMITIR VISUALIZAR PAGINA DE ALTERAR FAMILIA'],
+                [30,'VIEW_ALTER_CHURCH_PAGE','PERMITIR VISUALIZAR PAGINA DE ALTERAR CONGREGAÇÃO'],
+                [31,'VIEW_REGISTER_CHURCH_PAGE','PERMITIR VISUALIZAR PAGINA DE CADASTRO DE CONGREGAÇÃO'],
+                [32,'VIEW_ALTER_CHURCH_GOAL_PAGE','PERMITIR VISUALIZAR PAGINA DE ALTERAR METAS'],
+                [33,'VIEW_MANAGE_CHURCH_GOAL_PAGE','PERMITIR VISUALIZAR PAGINA DE GESTÃO DE METAS'],
+                [34,'VIEW_MANAGE_PRIORITY_PAGE','PERMITIR VISUALIZAR GERENCIAR PRIORIDADE'],
+                [35,'VIEW_CREATE_PRIORITY_PAGE','PERMITIR VISUALIZAR PAGINA DE CRIAÇÃO DE PRIORIDADE'],
+                [36,'VIEW_ALTER_PRIORITY_PAGE','PERMITIR VISUALIZAR ALTERAR PRIORIDADE'],
+                [37,'VIEW_MANAGE_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA GERENCIAR CESTA BASICA'],
+                [38,'VIEW_CREATE_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE CADASTRO DE CESTA BASICA'],
+                [39,'VIEW_ALTER_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE ALTERAÇÃO DE CESTA BASICA'],
+                [40,'VIEW_DELETE_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE REMOÇÃO DE CESTA BASICA'],
+                [41,'VIEW_CREATE_PRODUCT_PAGE','PERMITIR VISUALIZAR PAGINA DE CRIAÇÃO DE PRODUTO'],
+                [42,'VIEW_GENERATE_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA PARA GERAR CESTA BASICA'],
+                [43,'VIEW_INPUT_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE ENTRADA DE CESTA E PRODUTOS'],
+                [44,'VIEW_OUTPUT_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE SAIDA DE CESTA E PRODUTOS'],
+                [45,'VIEW_DELIVERY_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE ORDENS DE ENTREGA'],
+                [46,'VIEW_ALTER_DELIVERY_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE ALTERAÇÃO DE ORDENS DE ENTREGA'],
+                [47,'VIEW_CREATE_DELIVERY_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE CRIAÇÃO DE ORDENS DE ENTREGA'],
+                [48,'VIEW_DELETE_DELIVERY_BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE REMOÇÃO DE ORDENS DE ENTREGA'],
+                [49,'VIEW_HISTORY__BASIC_BASKET_FOOD_PAGE','PERMITIR VISUALIZAR PAGINA DE HISTORICO DE CESTAS BASICAS'],
+                [50,'VIEW_CONFIGURATION_PAGE','PERMITIR VISUALIZAR PAGINA DE CONFIGURAÇÃO'],
+                [51,'VIEW_INVENTORY_REPORT','PERMITIR VISUALIZAR RELATORIO DE INVENTARIO'],
+                [52,'VIEW_WITHDRAW_REPORT','PERMITIR VISUALIZAR RELATORIO DE SAIDAS DE ITENS'],
+                [53,'VIEW_COLLECTION_REPORT','PERMITIR VISUALIZAR RELATORIO DE ARRECADAÇÃO'],
+                [54,'CREATE_PRIORITY','PERMITIR CADASTRO PRIORIDADE'],
+                [55,'ALTER_PRIORITY','PERMITIR ALTERAR PRIORIDADE'],
+                [56,'DELETE_PRIORITY','PERMITIR REMOVER PRIORIDADE'],
+                [57,'VIEW_PRIORITY_REGISTER','PERMITIR VISUALIZAR REGISTROS DE PRIORIDADES'],
+                [58,'CREATE_BASIC_BASKET_FOOD','PERMITIR CADASTRO DE CESTA BASICA'],
+                [59,'ALTER_BASIC_BASKET_FOOD','PERMITIR ALTERAR CESTA BASICA'],
+                [60,'DELETE_BASIC_BASKET_FOOD','PERMITIR REMOVER CESTA BASICA'],
+                [61,'VIEW_BASIC_BASKET_FOOD_REGISTER','PERMITIR VISUALIZAR REGISTRO DE CESTA BASICA'],
+                [62,'CREATE_BASKET_ORDER','PERMITIR CRIAR ORDEM DE ENTREGA'],
+                [63,'ALTER_BASKET_ORDER','PERMITIR ALTERAR ORDEM DE ENTREGA'],
+                [64,'DELETE_BASKET_ORDER','PERMITIR REMOVER ORDEM DE ENTREGA'],
+                [65,'VIEW_BASKET_ORDER_REGISTER','PERMITIR VISUALIZAR REGISTRO DE ORDEM DE ENTREGA'],
+                [66,'OUTPUT_BASKET','PERMITIR FAZER SAIDA DE PRODUTOS'],
+                [67,'INPUT_BASKET','PERMITIR FAZER ENTRADA DE PRODUTOS'],
+                [68,'BASKET_DELIVERY_REPORT','PERMITIR VISUALIZAR RELATORIO DE ENTREGAS'],
+                [69,'CREATE_USER','PERMITIR CADASTRAR USUARIO'],
+                [70,'ALTER_USER','PERMITIR ALTERAR USUARIO'],
+                [71,'REMOVE_USER','PERMITIR REMOVER USUARIO'],
+                [72,'VIEW_USER_LIST','PERMITIR VISUALIZAR LISTA DE USUARIOS CADASTRADOS'],
+                [73,'VIEW_MANAGE_USER_PAGE','PERMITIR VISUALIZAR PAGINA DE GESTÃO DE USUARIOS'],
+                [74,'CREATE_USER_FUNCTION','PERMITIR CRIAR FUNÇÕES DE USUARIOS'],
+                [75,'ALTER_USER_FUNCTION','PERMITIR ALTERAR FUNÇÕES'],
+                [76,'DELETE_USER_FUNCTION','PERMITIR DELETAR FUNÇÕES'],
+                [77,'VIEW_USER_FUNCTION','PERMITIR VISUALIZAR FUNÇÕES CRIADAS'],
+                [78,'FUNCTION_PERMISSION_LIST','PERMITIR VISUALIZAR FUNÇÕES CRIADAS'],
+            ]
+
+            tmp_sql_query = f''' INSERT INTO {self.permission_table_name} (id_permissao, nome, descricao) VALUES (?, ?, ?);'''
+
+            for p in tmp_permission_list:
+                value_list = [
+                    p[0],
+                    p[1],
+                    p[2]
+                ]
+
+                self.banco_de_dados.execute( tmp_sql_query, value_list)
+                self.banco_de_dados.commit()
+
 
         if not self.exist_table( self.role_table_name ):
             cursor_do_banco.execute(f'''
@@ -346,6 +441,12 @@ class GCBBase:
                                     );
                                     ''')
             
+            self.banco_de_dados.commit()
+            tmp_sql_query = f''' INSERT INTO {self.role_table_name} (id_funcao, nome, descricao) VALUES (?, ?, ?)'''
+            self.banco_de_dados.execute(tmp_sql_query, [1, 'ADMIN', 'ADMINISTRADOR DO SISTEMA'])
+            self.banco_de_dados.execute(tmp_sql_query, [2, 'OPERADOR', 'OPERADOR DO ESTOQUE'])
+            self.banco_de_dados.execute(tmp_sql_query, [3, 'VISITANTE', 'USUARIO DE TESTE'])
+
             self.banco_de_dados.commit()
             
 
@@ -359,6 +460,27 @@ class GCBBase:
                                     ) """)
             
             self.banco_de_dados.commit()
+
+            column_list = [
+                'id_funcao',
+                'id_permissao'
+            ]
+            tmp_sql_query = f'INSERT INTO {self.role_permission_table_name} (id_funcao, id_permissao) VALUES (?, ?)'
+            for i in range(1, 79 ):
+                value_list = [
+                    1,
+                    i
+                ]
+                #self.banco_de_dados.insert( self.role_permission_table_name, column_list, value_list )
+                self.banco_de_dados.execute(tmp_sql_query, value_list)
+                self.banco_de_dados.commit()
+
+            self.banco_de_dados.execute(tmp_sql_query, [2, 21])
+            self.banco_de_dados.execute(tmp_sql_query, [2, 37])
+            self.banco_de_dados.execute(tmp_sql_query, [2, 43])
+            self.banco_de_dados.execute(tmp_sql_query, [2, 44])
+            self.banco_de_dados.commit()
+
 
         # ========================================================
         if not self.exist_table( self.user_table_name ):
@@ -386,6 +508,7 @@ class GCBBase:
                                     id_usuario,
                                     id_funcao,
                                     nome_do_usuario,
+                                    senha,
                                     email,
                                     status_cadastro,
                                     data_criacao,
@@ -396,6 +519,7 @@ class GCBBase:
                                     1,
                                     1,
                                     'ADMIN',
+                                    '$argon2id$v=19$m=65536,t=3,p=4$PEeIUeodo/T+f+/9H+N8rw$Ylumk9mv+96kxC2UQN3VlEGseQrKJTbyjpWgpZ3bTIU',
                                     '',
                                     true,
                                     '2026-01-01',
@@ -412,6 +536,7 @@ class GCBBase:
                                     id_usuario,
                                     id_funcao,
                                     nome_do_usuario,
+                                    senha,
                                     email,
                                     status_cadastro,
                                     data_criacao,
@@ -422,6 +547,7 @@ class GCBBase:
                                     2,
                                     2,
                                     'OPERADOR',
+                                    '$argon2id$v=19$m=65536,t=3,p=4$Xqt1rhViTOmd0/r/35vTeg$ngx65Sh1GyEPBMBZkud1NbMnged3Q1vGXhXDQLK9GRg',
                                     '',
                                     true,
                                     '2026-01-01',
@@ -434,6 +560,7 @@ class GCBBase:
             self.banco_de_dados.execute(tmp_sql_query)
             self.banco_de_dados.commit()
 
+   
 
 
         # ========================================================

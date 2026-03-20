@@ -28,18 +28,28 @@ export function useAuthenticator() {
                 login(response.content.access_token, response.content.user.username , response.content.user.role, userPerm)
                 setContent(true)
                 setMessage('Logado com sucesso');
-                setLoading(false);
-                return response
+                
+            }
+
+            else if( response.status === 401 ) {
+                setMessage(' ACESSO NÃO AUTORIZADO, VERIFIQUE AS INFORMAÇÕES INSERIDAS')
+                setContent( false )
+
             }
             else {
                 setContent(false)
                 setMessage(`${response.message}`)
-                setLoading(false);
             }
+            const timer = setTimeout(() => {
+                setMessage('')
+            }, 2000);
+
+            //return () => clearTimeout(timer);
+            
             
             
         } catch (err) {
-            console.log(" ERROR AUTH: ", err)
+            //console.log(" ERROR AUTH: ", err)
             setContent(false)
             setMessage(`${err.message}`)
             setLoading(false);

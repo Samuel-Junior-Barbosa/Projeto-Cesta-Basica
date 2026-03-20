@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from "/src/contexts/CurrentTheme";
 import styles from './ManagementUserPage.module.css';
-import ColorSelectorComp from "/src/Components/ColorSelector";
 
 // COMPONENT
 import AddItemLookupList from "/src/Components/AddItemLookupList";

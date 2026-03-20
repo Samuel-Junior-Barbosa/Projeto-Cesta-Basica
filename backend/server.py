@@ -17,6 +17,7 @@ import threading
 
 import db_conection
 import webview
+import webbrowser
 
 load_dotenv()
 
@@ -24,6 +25,9 @@ load_dotenv()
 
 from jose import jwt, JWTError
 from passlib.context import CryptContext
+
+
+
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
@@ -51,6 +55,11 @@ base_de_dados = db_conection.GCBBase( data_base_address )
 
 app = FastAPI()
 
+app.mount(
+    "/assets",
+    StaticFiles(directory=os.path.join(static_path, "assets")),
+    name="assets"
+)
 
 
 origins = [
@@ -66,8 +75,8 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    #allow_origins=["*"],
-    allow_origins=origins,
+    allow_origins=["*"],
+    #allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -324,6 +333,8 @@ async def login( data: dict):
 
     username = data['username']
     password = data['password']
+    if not password or password == None:
+        password = ''
 
     user_table_name = base_de_dados.user_table_name
     role_table_name = base_de_dados.role_table_name
@@ -355,9 +366,24 @@ async def login( data: dict):
     if not user:
         raise HTTPException(401, "Usuário ou senha inválidos")
 
+    
+    #print(f" USER PASSWORD: ({user[2]})", flush=1)
+    #print(f" PASSWORD INSERT: ({password})", type(password))
+    if not user[2]:
+        if not user[2] and not password:
+            pass
 
-    if not password and len(user[2]) == 0:
-        pass
+        elif not password and len(user[2]) == 0:
+            pass
+
+        elif not user[2] and password:
+            raise HTTPException(401, "Usuário ou senha inválidos")
+        
+        else:
+            if not verify_password(password, user[2]):
+                raise HTTPException(401, "Usuário ou senha inválidos")            
+
+
 
     elif not verify_password(password, user[2]):
         raise HTTPException(401, "Usuário ou senha inválidos")
@@ -525,6 +551,10 @@ async def get_permission_list_api( data : dict, user=Depends(require_permission(
     }
     print( " get_permission_list_api", data)
     id_user = data['idUser']
+
+    if id_user == await get_current_user()['id']:
+        print(" VOCÊ NÃO PODE REMOVER SEU PROPRIO CADASTRO")
+        return response
 
     response = await get_permission_list( id_user )
 
@@ -1079,6 +1109,14 @@ async def remove_user_register_api( data : dict, user=Depends(require_permission
 
 
 
+
+async def get_user_theme():
+    pass
+
+
+async def get_user_theme_api( data : dict ):
+    response = await get_user_theme()
+    return response
 
 
 #==============================================
@@ -5014,13 +5052,11 @@ async def input_and_output_basket_data_graph_api( user=Depends(require_permissio
 
 
 
-app.mount(
-    "/assets",
-    StaticFiles(directory=os.path.join(static_path, "assets")),
-    name="assets"
-)
 
 
+
+
+    
 @app.get("/")
 async def root():
     return FileResponse(os.path.join(static_path, "index.html"))
@@ -5038,27 +5074,29 @@ async def serve_spa(full_path: str):
     return FileResponse(os.path.join(static_path, "index.html"))
 
 def start_server():
-    #uvicorn.run(app, host="127.0.0.1", port=8080)
-    uvicorn.run('server:app', host="127.0.0.1", port=8080, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8080)
+    #uvicorn.run('server:app', host="127.0.0.1", port=8080, reload=True)
 
 if __name__ == "__main__":
 
-    start_server()    
+    #start_server()    
 
-    '''
+    
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
 
 
     time.sleep(1.5)
 
+    
 
     webview.create_window(
         "Meu Sistema",
         "http://127.0.0.1:8080"
         
     )
-    webview.start(private_mode=False)
-    '''
+    webview.start()
+    
+    
     print("Aplicação encerrada")
 
