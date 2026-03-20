@@ -1,0 +1,41 @@
+.SuporteDiv {
+    display: block;
+    
+    background-color: var(--bg-page2);
+    width: 76vw;
+    
+    padding: 20px;
+    padding-top: 30px;
+
+    margin-right: 20px;
+}
+
+.tituloPaginaAtual {
+    width: 100%;
+}
+
+.iconesRedesSociais {
+    display: flex;
+    position: relative;
+    margin: auto;
+    width: 40%;
+    
+    justify-content: space-around;
+    & > a > svg {
+        width: 50px;
+        height: 50px;
+
+        padding: 5px;
+
+        color: white;
+        border-radius: 20px;
+        background-color: var(--bg-page4);
+
+        
+    }
+}
+
+.message {
+    width: 100%;
+    height: 200px;
+}

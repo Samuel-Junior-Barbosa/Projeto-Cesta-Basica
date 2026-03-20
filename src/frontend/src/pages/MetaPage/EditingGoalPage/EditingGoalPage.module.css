@@ -1,0 +1,25 @@
+.EditingPageDiv {
+    background-color: var(--bg-page2);
+    display: flex;
+    flex-direction: column;
+    width: 76vw;
+    height: 100%;
+    padding: 30px 20px 0px 20px;
+    margin: 0px auto;
+    margin-right: 20px;
+    overflow-y: scroll;
+}
+
+.titleOfCurrentPage {
+    width: 100%;
+}
+
+
+.ParamsDiv {
+    width: 100%;
+    border-radius: 20px;
+    background-color: var(--bg-page3);
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}

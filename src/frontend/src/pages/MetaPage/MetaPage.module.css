@@ -1,0 +1,99 @@
+.MetasDiv {
+    background-color: var(--bg-page2);
+    display: flex;
+    flex-direction: column;
+    width: 76vw;
+    height: 100%;
+    padding: 30px 20px 0px 20px;
+    margin: 0px auto;
+    margin-right: 20px;
+    overflow-y: scroll;
+}
+
+.tituloPaginaAtual {
+    width: 100%;
+}
+
+
+.topNavBarMetas {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 6fr;
+    grid-auto-rows: minmax(0px, 100%);
+    width: 100%;
+    padding: 5px 50px;
+    gap: 20px 15px;
+}
+
+.topNavBarMetas > button:nth-child(1) {
+    grid-row-start: 1;
+    grid-row-end: 2;
+    grid-column-start: 1;
+    grid-column-end: 2;
+}
+
+.topNavBarMetas > button:nth-child(2) {
+    grid-row-start: 1;
+    grid-row-end: 2;
+    grid-column-start: 2;
+    grid-column-end: 3;
+}
+
+.topNavBarMetas > button:nth-child(3) {
+    grid-row-start: 1;
+    grid-row-end: 2;
+    grid-column-start: 3;
+    grid-column-end: 4;
+}
+
+
+.topNavBarMetas > button:nth-child(4) {
+    grid-row-start: 1;
+    grid-row-end: 2;
+    grid-column-start: 4;
+    grid-column-end: 5;
+}
+
+
+.topNavBarMetas > input:nth-child(5) {
+    grid-row-start: 1;
+    grid-row-end: 2;
+    grid-column-start: 5;
+    grid-column-end: 6;
+}
+
+
+
+
+
+.topNavBarMetas, .MetasDiv > h1 {
+    margin: 10px auto;
+}
+
+.inputValue {
+    border-radius: 20px;
+    border: 0px solid transparent;
+    box-shadow: 3px 4px 5px rgba(0, 0, 0, 0.523);
+    padding: 10px;
+    margin: 10px;
+}
+
+
+.TituloTabelaDeProdutos {
+    color: var(--color-font)
+}
+
+.TopNavBarButton {
+    width: 100%;
+    padding: 0px;
+}
+
+
+.tabelaListaDeMetas {
+    margin: auto;
+    box-shadow: 3px 4px 6px rgba(0, 0, 0, 0.487);
+    & > thead, & > tbody {
+        display: block;
+        margin: auto;
+    }
+
+}

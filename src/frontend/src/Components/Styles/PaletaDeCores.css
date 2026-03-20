@@ -1,0 +1,29 @@
+:root {
+    --bg-page1: #232323;
+    --bg-page2: #454545;
+    --bg-page3: #686868;
+    --bg-page4: #0496FF;
+    --bg-page5: #87BCDE;
+    --color-font: #ffffff;
+    --color-button: var(--bg-page4);
+    --color-button-hover: var(--bg-page5);
+    
+    --color-font2: #B1A9DC;
+    --color-font3: #232323;
+
+    --color-button-font: var(--color-font);
+    --color-font-hover: #9465E8;
+    --color-font-visited: #9465E8;
+    --bg-dashboard: var(--bg-page2);
+    --bg-button-comp: var(--bg-page4);
+    --bg-button-comp-hover: var(--bg-page5);
+    --icon-svg-color: var(--color-font);
+    --color-label-titles: var(--bg-page4);
+    /*
+    --bg-page1: rgb(0, 0, 65);
+    --bg-page2: blue;
+    --bg-page3: rgb(108, 108, 255);
+    --bg-page4: rgb(143, 0, 0);
+    --bg-page5: rgb(150, 161, 25);
+    */
+}

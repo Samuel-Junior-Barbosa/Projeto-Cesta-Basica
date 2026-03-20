@@ -1,0 +1,44 @@
+.basicFoodBasketRegistrationDiv {
+    display: flex;
+    flex-direction: column;
+    width: 78dvw;
+    height: 100%;
+    background-color: var(--bg-page2);
+    padding: 30px 20px 0px 20px;
+    margin: 0px auto;
+    margin-right: 20px;
+}
+
+.currentPageTitleDiv {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.divTabelaMeta {
+    width: 100%;
+    margin: auto;
+}
+
+.tabelaCestas {
+    width: 100%;
+    margin: auto;
+    box-shadow: 3px 4px 6px rgba(0, 0, 0, 0.487);
+}
+
+.TopNavBarButton {
+
+}
+
+.inputValue {
+    border-radius: 20px;
+    border: 0px solid transparent;
+    box-shadow: 3px 4px 5px rgba(0, 0, 0, 0.523);
+    padding: 10px;
+    margin: 10px;
+    outline: 0;
+    &::selection {
+        outline: 0;
+        border: 0;
+        background-color: var(--bg-page5);
+    }
+}

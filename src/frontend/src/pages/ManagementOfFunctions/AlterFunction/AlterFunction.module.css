@@ -1,0 +1,158 @@
+.AlterFunctionMainDiv {
+    background-color: var(--bg-page3);
+    padding: 10px;
+}
+
+.labelTitle {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.inputData {
+    background-color: var(--bg-page3);
+    color: var(--bg-page1);
+}
+
+.buttonDiv {
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+
+.dataEditable {
+    background-color: var(--color-font);
+    color: var(--color-font3)
+}
+
+.buttonDisabled {
+    background-color: var(--color-font2 );
+    color: var(--color-font3)
+}
+
+.userNameDiv {
+    background-color: var(--bg-page2);
+    padding: 1%;
+
+    border-radius: 20px;
+}
+
+.functionDiv {
+    background-color: var(--bg-page2);
+    padding: 1%;
+
+    border-radius: 20px;
+
+    & > select {
+        width: 10%;
+    }
+}
+
+.alterButtonClass {
+    font-size: 1rem;
+}
+
+.permissionList {
+    width: 100%;
+    list-style: none;
+    background-color: var(--bg-page2);
+
+    border-radius: 20px;
+    padding: 5%;
+    gap: 10px;
+    & > li {
+        display: block;
+        position: relative;
+        overflow: auto;
+        border-radius: 20px;
+        
+        width: 100%;
+        height: 40dvh;
+
+        margin-top: 10px;
+        margin-bottom: 10px;
+        
+    }
+}
+
+
+.labelTop, .permissionLabelDiv, .labelTopPermission {
+
+    background-color: var(--bg-page2);
+    
+    height: 2rem;
+
+    display: block;
+    position: sticky;
+    top: 0;
+
+
+}
+
+
+.labelTopPermission {
+    display: block;
+    position: relative;
+    width: max-content;
+    height: max-content;
+    margin: 0px;
+    padding: 0px;
+
+    margin-top: auto;
+    margin-bottom: auto;
+
+
+}
+.permissionLabelDiv {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    justify-items: center;
+    border-radius: 20px;
+    gap: 5%;
+    width: 100%;
+    height: 2%;
+
+}
+
+.permissionUserForm {
+    width: 100%;
+}
+
+.permissionChurchForm {
+    width: 100%;
+}
+
+
+.permissionFamilyForm{
+    width: 100%;
+}
+
+
+.permissionProductForm {
+    width: 100%;
+}
+
+
+.permissionBasketForm {
+    width: 100%;
+}
+
+.permissionReportForm {
+    width: 100%;
+}
+
+.permissionPriorityForm {
+    width: 100%;
+}
+
+
+.permissionConfigForm {
+    width: 100%;
+}
+
+.permissionOtherConfigForm {
+    width: 100%;
+}
+
+

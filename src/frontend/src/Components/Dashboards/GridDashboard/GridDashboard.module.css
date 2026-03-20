@@ -1,0 +1,161 @@
+.GridDashboard {
+    display: grid;
+    position: relative;
+    width: 100%;
+    height: 50dvh;
+    max-height: 100dvh;
+    
+    /* grid-template-columns: repeat(4, 1fr); */
+    grid-template-rows: minmax(max-content, 100%);
+    
+    gap: 10px 25px;
+    margin-top: 10px;
+    margin-right: 20px;
+    
+}
+
+.GridDashboard > div {
+    width: 100%;
+}
+
+
+#DB1 {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    grid-row-start: 1;
+    grid-row-end: 2;
+
+}
+
+#DB2{
+    grid-column-start: 3;
+    grid-column-end: 5;
+    grid-row-start: 1;
+    grid-row-end: 2;
+}
+
+
+
+
+#DB3 {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+#DB4 {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+#DB5 {
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+#DB6 {
+    grid-column-start: 4;
+    grid-column-end: 5;
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+
+#DB7 {
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    border-radius: 20px;
+    background-color: var(--bg-page2);
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 3;
+    grid-row-end: 5;
+}
+
+
+div#DB8 {
+    display: block;
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 3;
+    grid-row-end: 4;
+
+    display: flex;
+    flex-direction: column;
+    padding: 0px;
+    
+    
+
+    width: 100%;
+    height: 140px;
+    border-radius: 20px 20px 0px 0px;
+    background-color: var(--bg-page2);
+    
+}
+
+div#DB9 {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 4;
+    grid-row-end: 5;
+
+    background-color: var(--bg-page2);
+
+    border-radius: 0px 0px 20px 20px;
+
+    width: 100%;
+    height: 100%;
+
+    margin: auto;
+}
+
+
+
+div#DB10 {
+    grid-column-start: 3;
+    grid-column-end: 5;
+    grid-row-start: 3;
+    grid-row-end: 5;
+
+    color: var(--color-font);
+    background-color: var(--bg-page2);
+
+    width: 100%;
+    height: 100%;
+
+    padding: 10px;
+    margin: 0px auto;
+
+    border-radius: 20px;
+}
+
+
+@media screen and (max-width: 950px) {
+
+    .GridDashboard {
+        width: 80dvw;
+        margin-right: 20px;
+        gap: 5px 4px;
+    }
+
+
+    #DB8 {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    #DB9 {
+        width: 100% !important;
+    }
+
+    #DB10 {
+        width: 100% !important;
+    }
+    
+}

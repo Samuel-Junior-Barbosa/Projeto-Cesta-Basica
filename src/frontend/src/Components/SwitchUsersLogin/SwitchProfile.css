@@ -1,0 +1,89 @@
+.SwitchProfileContainer {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+    align-items: center;
+    overflow: hidden;
+    margin: auto;
+    border-radius: 15px;
+    background-color: gray;
+
+    width: 20vw;
+    height: 30vh;
+    padding: 10px;
+
+}
+
+.userIconLogin {
+    display: block;
+    width: 80%;
+    height: 80%;
+    margin: 0px;
+    color: white;
+    cursor: pointer;
+    
+}
+
+
+.divLabelName {
+    display: flex;
+}
+
+
+.labelLoginUserName {
+    display: block;
+    cursor: pointer;
+    font-size: 2rem;
+}
+
+
+.selectCurrentUser {
+    border-radius: 10px;
+    border: 0px solid transparent;
+    text-align: center;
+
+}
+
+
+.profiles {
+    display: block;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+
+    width: 100px;
+    height: 100px;
+
+    background-color: var(--bg-page3);
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+
+}
+
+
+
+@media screen and (max-width: 1000px) {
+    .SwitchProfileContainer {
+        width: 30vw;
+        height: 20vh;
+    }
+    .labelLoginUserName {
+        font-size: 1.5rem;
+    }
+}
+
+
+@media screen and (max-width: 500px) {
+    .SwitchProfileContainer {
+        width: 40vw;
+        height: 20vh;
+    }
+    .labelLoginUserName {
+        font-size: 1.5rem;
+    }
+}

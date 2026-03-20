@@ -1,0 +1,140 @@
+.SwitchProfileContainer {
+    display: flex;
+    position: relative;
+    justify-content: center;
+    cursor: pointer;
+    align-items: center;
+    width: 400px;
+    height: 300px;
+    overflow: hidden;
+    margin: auto;
+}
+
+.userIconLogin {
+    display: block;
+    width: 50px;
+    height: 50px;
+    margin: auto;
+    color: white;
+    cursor: pointer;
+}
+
+.labelLoginUserName {
+    display: block;
+    cursor: pointer;
+
+}
+
+.profiles {
+    display: block;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+
+    width: 100px;
+    height: 100px;
+
+    background-color: var(--bg-page3);
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+
+}
+
+.position-0 {
+    transform: translateX(-150px) translateY(-100%);
+    z-index: 1;
+}
+
+.position-1 {
+    transform: translateX(0px) scale(1.2);
+    z-index: 2;
+}
+
+.position-2 {
+    transform: translateX(150px) translateY(-100%);
+    z-index: 3;
+}
+
+.animating-left.position-0 {
+    animation: move-left-to-center 0.5s forwards;
+}
+
+.animating-left.position-1 {
+    animation: move-center-to-right 0.5s forwards;
+}
+
+.animating-left.position-2 {
+    animation: move-right-to-left 0.5s forwards;
+}
+
+.animating-right.position-0 {
+    animation: move-left-to-right 0.5s forwards;
+}
+
+.animating-right.position-1 {
+    animation: move-center-to-left 0.5s forwards;
+}
+
+.animating-right.position-2 {
+    animation: move-right-to-center 0.5s forwards;
+}
+
+@keyframes move-left-to-center {
+    from {
+        transform: translateX(-150px) translateY(-100%);
+    }
+
+    to {
+        transform: translateX(0px) translateY(0%) scale(1.2);
+    }
+}
+
+@keyframes move-center-to-right {
+    from {
+        transform: translateX(0) scale(1.2);
+    }
+    
+    to {
+        transform: translateX(150px) translateY(-100%);
+    }
+}
+
+@keyframes move-right-to-left {
+    from {
+        transform: translateX(150px) translateY(-100%);
+    }
+
+    to {
+        transform: translateX(-150px) translateY(-100%);
+    }
+}
+
+@keyframes move-left-to-right {
+    from {
+        transform: translateX(-150px) translateY(-100%);
+    }
+    to {
+        transform: translateX(150px) translateY(-100%);
+    }
+}
+
+@keyframes move-center-to-left {
+    from {
+        transform: translateX(0) translateY(0%) scale(1.2);
+    }
+    to {
+        transform: translateX(-150px) translateY(-100%);
+    }
+}
+
+@keyframes move-right-to-center {
+    from {
+        transform: translateX(150px) translateY(-100%);
+    }
+    to {
+        transform: translateX(0) translateY(0%) scale(1.2);
+    }
+}
