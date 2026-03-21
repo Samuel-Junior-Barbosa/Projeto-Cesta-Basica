@@ -2,18 +2,29 @@
 
 ## About
 
-This is the official Wails React template.
+Esse projeto foi realizado como um trabalho de faculdade, com o objetivo de facilitar e gerir
+entrega de alimento e cesta basica para instituições de caridade.
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+Ele conta com:
+- um gerenciador de estoque
+- Cadastro de congregações
+- Cadastro de familias
+- Relatorios de Saida de cestas
+- Arrecadação por congregação
 
-## Live Development
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+## Desenvolvimento Rapido
+Para quem quer replicar na sua maquina e desenvolver novas funcionalidades:
+- Instale o python 3.11 ou superior
+- Instale o modulo poetry do python
+- Instale o NPM
 
-## Building
+Vá a pasta Frontend do projeto e rode o comando "npm i" para instalar os pacotes do nodejs necessarios
 
-To build a redistributable, production mode package, use `wails build`.
+Vá a pasta Backend e rode o comando "poetry install" para instalar os pacotes necessarios do backend python
+
+
+## Compilação
+
+Para compilar o projeto em um executavel do seu sistema, rode o comando script "compile.bat" se você estiver usando Windows ou "compile.sh" se você estiver no Linux.
+Depois abra o executavel que estará na pasta "backend/dist/"

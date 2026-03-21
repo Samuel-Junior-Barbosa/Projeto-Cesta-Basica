@@ -15,6 +15,7 @@ const SwitchProfile= () => {
 
     const handleClick = ( value ) => {
         let nameuser = String( value.target.value )
+        nameuser = nameuser
         setCurrentUserSelected( nameuser )
         //localStorage.setItem("user", nameuser)
         SetAuthenticatedUserName( nameuser )
@@ -41,15 +42,18 @@ const SwitchProfile= () => {
         
         async function get_user_data() {
             const response = await getUserListOnLogin()
-            //console.log(" response user list: ", response)
+            console.log(" response user list: ", response)
             if( response.status == 0 ) {
                 let tmp_profiles = [...profiles]
                 for( let i = 0; i < response.content.length; i ++ ) {
+                    console.log(" tmp_profiles : ", response.content[i][1])
                     tmp_profiles.push( response.content[i][1] )
+
+
                 }
             
                 setProfiles(tmp_profiles)
-                
+                console.log(" tmp_profiles user list: ", tmp_profiles)
             }
         }
 
@@ -63,20 +67,22 @@ const SwitchProfile= () => {
             <div className="SwitchProfileContainer">
                 <img className='userIconLogin' src={userIcon} />
                 <div className='divLabelName'>
-                    <label className="labelLoginUserName"> Usuario:
+                    <label className="labelLoginUserName">
+                        Usuario:
                         
                     </label>
                     <select className='selectCurrentUser'
                         onChange={(e) => {
                             handleClick( e )
                         }}
-                        value = {currentUserSelected}
+                        value = { currentUserSelected }
                     >
                         {profiles.map((item, index) => (
                             <option
                                 key = {index}
+                                value={ item }
                             >
-                                {item}
+                                { item }
                             </option>
                         ))}
                     </select>

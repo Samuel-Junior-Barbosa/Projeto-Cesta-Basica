@@ -16,3 +16,8 @@ body {
   overflow-y: hidden;
   
 }
+
+
+hr {
+  border-color: var(--bg-page3);
+}

@@ -159,6 +159,9 @@ const AlterFunctionPage = () => {
 
 
     const handleSaveUserRegister = async () => {
+        if( !alterFunctionPermissionRegister ) {
+            return
+        }
         const confirmDialog = confirm('DESEJA SALVAR AS ALTERAÇÕES NO CADASTRO DESSA FUNÇÃO?')
 
         if( !confirmDialog ) {
@@ -330,21 +333,30 @@ const AlterFunctionPage = () => {
         //console.log(" UNSELECT ALL")
     }
 
-
+    // Um Handle para chamar funções a partir de teclas chamadas
     const handleLinkForFunction = (key) => {
         key = key.code
         let linkFunction = {
-            'KeyL' : handleListFunction,
-            'Key' : undefined,
+            'F3' : handleListFunction,
+            'F7' : handleAlterFunctionPermissionRegister,
+            'F6' : handleSaveUserRegister,
+            'Escape' : handleCancelFunctionPermissionRegister,
+
         }
 
-        let response;
+        let functionLinked;
+        functionLinked = linkFunction[key]
         
-        //response = linkFunction[ key ]()
-        response = handleListFunction()
+        //console.log(" KEY LINK: ", key, functionLinked)
+        if( !functionLinked ) {
+            return functionLinked
+        }
+
+        
+        let response = functionLinked()
         //console.log(" KEY LINK: ", key, linkFunction[ key ], response)
-        console.log(" KEY LINK: ", key, handleListFunction, response)
         
+        return response        
         
     }
     // Obtem os dados de permissões no sistema, para criar as tabelas para selecionar
@@ -584,12 +596,12 @@ const AlterFunctionPage = () => {
 
 
         //onsole.log(" CRIANDO O EVENT LISTNER")
-        window.addEventListener('keypress', handleLinkForFunction)
+        window.addEventListener('keydown', handleLinkForFunction)
 
 
         return () => {
             //console.log(" REMOVENDO O EVENT LISTNER")
-            window.removeEventListener('keypress', handleLinkForFunction)
+            window.removeEventListener('keydown', handleLinkForFunction)
         }
 
     }, [ showFunctionListWindow, readOnlyData ])

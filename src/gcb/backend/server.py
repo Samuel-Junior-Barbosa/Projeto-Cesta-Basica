@@ -49,17 +49,22 @@ else:
 static_path = os.path.join(BASE_DIR, "static")
 
 data_base_address = str( Path(__file__).parent ) + '/db_banco.db'
+#data_base_address = str( Path( BASE_DIR ).parent ) + '/db_banco.db'
 
 #print("static_path: ", data_base_address, flush=1)
 base_de_dados = db_conection.GCBBase( data_base_address )
 
 app = FastAPI()
 
+
 app.mount(
     "/assets",
     StaticFiles(directory=os.path.join(static_path, "assets")),
     name="assets"
 )
+
+
+#app.mount("/", StaticFiles(directory="dist", html=True), name="static")
 
 
 origins = [
@@ -296,7 +301,7 @@ async def get_user_list( list_inative_users = False):
 
     table_name = base_de_dados.user_table_name
     sql_query = ''
-    print(" LSIT USERS: ", list_inative_users)
+    print(" LIST USERS INATIVE: ", list_inative_users, flush=1)
     if list_inative_users == True:
         sql_query = f''' 
             SELECT
@@ -317,6 +322,9 @@ async def get_user_list( list_inative_users = False):
     response = await base_de_dados.query(sql_query)
     for i in range(0, len(response['content'])):
         response['content'][i] = list(response["content"][i])
+    
+
+    print(" list_users: ", response, flush=1)
 
     return response
 
@@ -329,8 +337,8 @@ async def login( data: dict):
         'status' : 90,
         'content' : []
     }
-    #print(" AUTH DATa: ", data,flush=1)
-
+    print(" AUTH DATa: ", data,flush=1)
+    print(" BASE DE DADOS: ", base_de_dados.user_table_name)
     username = data['username']
     password = data['password']
     if not password or password == None:
@@ -351,11 +359,11 @@ async def login( data: dict):
         FROM {user_table_name} u
         LEFT JOIN {role_table_name} rl
         ON rl.id_funcao = u.id_funcao
-        WHERE nome_do_usuario = '{username}'
-            AND status_cadastro = 1;"""
+        WHERE u.nome_do_usuario = '{username}'
+            AND u.status_cadastro = 1;"""
     user = await base_de_dados.query( sql_query )
     #print(" Sql: ", sql_query)
-    #print(f" USER RESPONSE: ", data, ' ---- ', user, flush=1)
+    print(f" USER RESPONSE: ", data, ' ---- ', user, flush=1)
     if user['status'] == 0:
         if len(user["content"]) > 0:
             user = user["content"][0]
@@ -721,7 +729,7 @@ async def get_user_list_api( data : dict, user=Depends(require_permission(72)) )
 @app.post('/get-user-list-on-login')
 async def get_user_list_on_login_api():
     response =  await get_user_list()
-    #print(" GET USER LIST RESPONSE: ", response)
+    print(" GET USER LIST RESPONSE: ", response)
     return response
 
 
@@ -990,6 +998,7 @@ async def alter_function_name( id_function, new_function_name ):
 
     return response
 
+
 async def alter_function_permission(id_function, permissions = None, user=Depends(require_permission(73))):
     response = {
         'status' : 90,
@@ -1076,10 +1085,6 @@ async def alter_function_permission_api( data : dict, user=Depends(require_permi
     response = await alter_function_permission(id_function, permissions)
     print(' (alter_function_permission_api) response: ', response)
     return response
-
-
-
-
 
 
 async def remove_user_register( id_user ):
@@ -5075,27 +5080,29 @@ async def serve_spa(full_path: str):
 
 def start_server():
     uvicorn.run(app, host="127.0.0.1", port=8080)
+    
     #uvicorn.run('server:app', host="127.0.0.1", port=8080, reload=True)
 
 if __name__ == "__main__":
 
     #start_server()    
-
     
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
 
-
     time.sleep(1.5)
-
     
-
+    
     webview.create_window(
         "Meu Sistema",
         "http://127.0.0.1:8080"
         
     )
-    webview.start(gui='gtk')
+    ##webview.start(gui='qt', private_mode=False)
+    ##webview.start(gui='gtk')
+    
+    webview.start(gui='qt', debug=True)
+    
     
     
     print("Aplicação encerrada")

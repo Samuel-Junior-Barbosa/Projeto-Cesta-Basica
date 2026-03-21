@@ -1,4 +1,3 @@
 
-source ./backend/.venv/bin/activate
-cd ./backend/
-poetry run python server.py
+#source ./backend/.venv/bin/activate
+poetry run python ./backend/server.py

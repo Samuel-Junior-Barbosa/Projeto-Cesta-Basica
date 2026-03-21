@@ -129,9 +129,11 @@ const ManagementUserPage = () => {
     }
 
 
-
-
     const handleSaveUserRegister = async () => {
+        if( !alterUserRegister ) {
+            return
+        }
+
         const confirmDialog = confirm('DESEJA SALVAR AS ALTERAÇÕES NO CADASTRO DESSE USUARIO?')
 
         if( !confirmDialog ) {
@@ -168,16 +170,10 @@ const ManagementUserPage = () => {
             await alterUserpasswordApi(userId, password)
         }
 
-        
-
-        
         await handleEnableButtons()
         await handleDisableInputData()
         await handleDisableInputPasswordData()
-        
-
-        
-
+    
     }
 
     const handleCleanInputs = () => {
@@ -422,6 +418,34 @@ const ManagementUserPage = () => {
 
     };
 
+    // Um Handle para chamar funções a partir de teclas chamadas
+    const handleLinkForFunction = (key) => {
+        key = key.code
+        let linkFunction = {
+            'F2' : handleCreateUserRegister,
+            'F3' : handleListUser,
+            'F6' : handleSaveUserRegister,
+            'F7' : handleAlterUserRegister,
+            'F8' : handleDeleteUserRegister,
+            'Escape' : handleCancelUserRegister,
+        }
+
+        let functionLinked;
+        functionLinked = linkFunction[key]
+        
+        //console.log(" KEY LINK: ", key, functionLinked)
+        if( !functionLinked ) {
+            return functionLinked
+        }
+
+        
+        let response = functionLinked()
+        //console.log(" KEY LINK: ", key, linkFunction[ key ], response)
+        
+        return response        
+        
+    }
+
     useEffect(() => {
         //console.log(" MANAGEMENT USER PAGE LOCATION : ", location.state)
         if( idUserRecived ) {
@@ -501,6 +525,19 @@ const ManagementUserPage = () => {
     }, [userSelected])
 
 
+   // Cria eventListener para atalhos
+    useEffect(() => {
+
+        //onsole.log(" CRIANDO O EVENT LISTNER")
+        window.addEventListener('keydown', handleLinkForFunction)
+
+
+        return () => {
+            //console.log(" REMOVENDO O EVENT LISTNER")
+            window.removeEventListener('keydown', handleLinkForFunction)
+        }
+
+    }, [ showUserListWindow, readOnlyData ])
 
 
     return (
