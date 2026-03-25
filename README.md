@@ -27,4 +27,4 @@ Vá a pasta Backend e rode o comando "poetry install" para instalar os pacotes n
 ## Compilação
 
 Para compilar o projeto em um executavel do seu sistema, rode o comando script "compile.bat" se você estiver usando Windows ou "compile.sh" se você estiver no Linux.
-Depois abra o executavel que estará na pasta "backend/dist/"
+Depois abra o executavel que estará na pasta "/src/dist/"

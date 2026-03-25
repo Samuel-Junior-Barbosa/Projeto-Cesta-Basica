@@ -1,3 +1,5 @@
+/src/gcb/build/*
+/src/gcb/dist/*
 /src/gcb/gcb/backend/dist/*
 /src/gcb/backend/dist
 /src/gcb/backend/build/*
