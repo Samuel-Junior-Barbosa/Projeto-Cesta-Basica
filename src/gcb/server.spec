@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['backend/server.py'],
+    ['backend\\server.py'],
     pathex=[],
     binaries=[],
-    datas=[('backend/static', 'static')],
+    datas=[('backend\\static', 'static')],
     hiddenimports=['fastapi', 'uvicorn', 'PySide6', 'uvicorn', 'argon2-cffi', 'passlib.handlers.argon2'],
     hookspath=[],
     hooksconfig={},
@@ -26,13 +26,13 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['icone.png'],
+    icon=['icone.ico'],
 )
 coll = COLLECT(
     exe,

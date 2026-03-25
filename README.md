@@ -33,4 +33,4 @@ Depois abra o executavel que estará na pasta "src/dist/"
 
 
 # Versão compilada
-por esse link do onedrive, você pode baixara a primeira versão compilada para Linux Min 21.3 ou  Windows 10
+por esse [link do onedrive](https://1drv.ms/f/c/027ba71d20de8144/IgA_TprLJqxvR5zT4bMoSXEZATjkU4wcPZ_WRn50zspT4bM?e=ypw55H), você pode baixara a primeira versão compilada para Linux Min 21.3 ou  Windows 10
