@@ -12,6 +12,8 @@
 /src/gcb/backend/static/
 node_modules
 backend/static/*
+build/
+dist/
 *.rar
 *txtt
 *.dia
