@@ -64,9 +64,11 @@ const GridDashboards = () => {
                 />
             </div>
 
+            
             <div id={styles.DB7}>
                 <InputAndOutputGraphs />
             </div>
+            
 
             <div  id={styles.DB8}>
                 <div>
@@ -77,11 +79,11 @@ const GridDashboards = () => {
                 
             </div>
             
-
+            {/*
             <div id={styles.DB9}>
                 <RequestsGraph />
             </div>
-
+            */}
             <div id={styles.DB10}>
                 <SwitchGraphs  textLabelGraph={["Arrecadação", "Familias Ajudadas"]} Graphs={[<CollectionGraph />, <FamilyHelped />]} /> 
             </div>

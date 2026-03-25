@@ -85,48 +85,6 @@ class GCBBase:
                                     """)
             self.banco_de_dados.commit()
 
-            tmp_values = [
-                "IGREJA EVANGÉLICA ASSEMBLEIA DE DEUS EM UBATUBA - CENTRAL",
-                "ELISEU",
-                500,
-                "UBATUBA",
-                "CENTRO",
-                "RUA PROFESSOR THOMAZ GALHARDO",
-                485,
-                "11680-000",
-                "SP",
-                True,
-                1,
-                "2025-12-26",
-                "2025-12-26",
-
-            ]
-
-            tmp_placeholders = [ '?' for column in tmp_values]
-
-            tmp_placeholders = ', '.join( tmp_placeholders )
-
-            tmp_sql_query = f"""INSERT INTO {self.church_table_name} (
-                                        nome,
-                                        representante,
-                                        membros,
-                                        cidade,
-                                        bairro,
-                                        rua,
-                                        numero,
-                                        cep,
-                                        uf,
-                                        status_cadastro,
-                                        id_usuario_responsavel,
-                                        data_criacao,
-                                        ultima_alteracao
-
-                                    ) VALUES (
-                                        { tmp_placeholders }
-                                    );
-                                    """
-            cursor_do_banco.execute( tmp_sql_query, tmp_values )
-            self.banco_de_dados.commit()
 
         # ========================================================
         if not self.exist_table( self.basket_table_name ):
@@ -259,71 +217,6 @@ class GCBBase:
                                         UNIQUE(id_item, nome_do_produto),
                                         FOREIGN KEY (id_usuario_responsavel) REFERENCES {self.user_table_name}(id_usuario)
                                     )""")
-            self.banco_de_dados.commit()
-
-            self.banco_de_dados.execute(f"""
-                                    INSERT INTO {self.product_table_name} (
-                                    nome_do_produto,
-                                    marca,
-                                    quantidade_do_item,
-                                    peso,
-                                    status_cadastro,
-                                    id_usuario_responsavel,
-                                    data_criacao,
-                                    ultima_alteracao
-                                    ) VALUES (
-                                    'BOLACHA',
-                                    'GENERICA',
-                                    100,
-                                    0.150,
-                                    'true',
-                                    1,
-                                    '2026-01-01',
-                                    '2026-01-01'                                    
-                                    );""")
-            self.banco_de_dados.commit()
-
-            self.banco_de_dados.execute(f"""
-                                    INSERT INTO {self.product_table_name} (
-                                    nome_do_produto,
-                                    marca,
-                                    quantidade_do_item,
-                                    peso,
-                                    status_cadastro,
-                                    id_usuario_responsavel,
-                                    data_criacao,
-                                    ultima_alteracao
-                                    ) VALUES (
-                                    'MACARRAO',
-                                    'GENERICA',
-                                    50,
-                                    0.150,
-                                    'true',
-                                    1,
-                                    '2026-01-01',
-                                    '2026-01-01'                                    
-                                    );""")
-            self.banco_de_dados.commit()
-            self.banco_de_dados.execute(f"""
-                                    INSERT INTO {self.product_table_name} (
-                                    nome_do_produto,
-                                    marca,
-                                    quantidade_do_item,
-                                    peso,
-                                    status_cadastro,
-                                    id_usuario_responsavel,
-                                    data_criacao,
-                                    ultima_alteracao
-                                    ) VALUES (
-                                    'CAFE',
-                                    'GENERICA',
-                                    20,
-                                    0.500,
-                                    'true',
-                                    1,
-                                    '2026-01-01',
-                                    '2026-01-01'                                    
-                                    );""")
             self.banco_de_dados.commit()
 
 
@@ -531,36 +424,6 @@ class GCBBase:
             self.banco_de_dados.execute(tmp_sql_query)
             self.banco_de_dados.commit()
 
-            tmp_sql_query = f"""
-                            INSERT INTO usuario (
-                                    id_usuario,
-                                    id_funcao,
-                                    nome_do_usuario,
-                                    senha,
-                                    email,
-                                    status_cadastro,
-                                    data_criacao,
-                                    data_alteracao,
-                                    usuario_responsavel_da_alteracao,
-                                    usuario_responsavel_pelo_cadastro
-                                ) VALUES (
-                                    2,
-                                    2,
-                                    'OPERADOR',
-                                    '$argon2id$v=19$m=65536,t=3,p=4$Xqt1rhViTOmd0/r/35vTeg$ngx65Sh1GyEPBMBZkud1NbMnged3Q1vGXhXDQLK9GRg',
-                                    '',
-                                    true,
-                                    '2026-01-01',
-                                    '2026-01-01',
-                                    1,
-                                    1
-                                )
-                                """
-
-            self.banco_de_dados.execute(tmp_sql_query)
-            self.banco_de_dados.commit()
-
-   
 
 
         # ========================================================
@@ -910,8 +773,8 @@ class GCBBase:
 
 
     async def delete(self, table, param):
-        print(" DELETE FUNCTION")
-        print(" PARAMS : TABLE= ", table, " PARAM: ", param)
+        #print(" DELETE FUNCTION")
+        #print(" PARAMS : TABLE= ", table, " PARAM: ", param)
         response = {
             "status" : 90,
             "content" : None
@@ -932,7 +795,7 @@ class GCBBase:
         delete_query = f"DELETE FROM {table} {condition};"
 
         try:
-            print(" Delete query: ", delete_query, flush=1)
+            #print(" Delete query: ", delete_query, flush=1)
             conn = self.get_connection()
             cursor = conn.cursor()
             cursor.execute( delete_query )
@@ -988,7 +851,7 @@ class GCBBase:
             return response
 
         except Exception as error:
-            print("ERROR: ", error)
+            #print("ERROR: ", error)
             response["content"] = str(error)
             return response
 
@@ -1010,7 +873,7 @@ class GCBBase:
             sequence_response = cursor.fetchall()
             
             response["status"] = 0
-            print("sequence: ", sequence_response, flush=1)
+            #print("sequence: ", sequence_response, flush=1)
             if sequence_response:
                 sequence_response = sequence_response[0][0]
 
@@ -1033,4 +896,4 @@ class GCBBase:
 if __name__ == "__main__":
     db_connection = GCBBase()
     response = db_connection.query("SELECT * FROM familia")
-    print( "db_connection: ", response)
+    #print( "db_connection: ", response)
