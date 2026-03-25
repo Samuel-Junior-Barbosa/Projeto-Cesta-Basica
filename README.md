@@ -30,3 +30,7 @@ Para compilar o projeto em um executavel do seu sistema.
 - Instale os pacotes necessarios para desenvolvimento
 - Rode o comando script "compile.bat" se você estiver usando Windows ou "compile.sh" se você estiver no Linux.
 Depois abra o executavel que estará na pasta "src/dist/"
+
+
+# Versão compilada
+por esse link do onedrive, você pode baixara a primeira versão compilada para Linux Min 21.3 ou  Windows 10
