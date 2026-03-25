@@ -19,9 +19,9 @@ Para quem quer replicar na sua maquina e desenvolver novas funcionalidades:
 - Instale o modulo poetry do python
 - Instale o NPM
 
-Vá a pasta Frontend do projeto e rode o comando "npm i" para instalar os pacotes do nodejs necessarios
+Vá a pasta frontend/ do projeto e rode o comando "npm i" para instalar os pacotes do nodejs necessarios
 
-Vá a pasta Backend e rode o comando "poetry install" para instalar os pacotes necessarios do backend python
+Vá a pasta backend/ e rode o comando "poetry install" para instalar os pacotes necessarios do backend python
 
 
 ## Compilação
@@ -29,8 +29,8 @@ Vá a pasta Backend e rode o comando "poetry install" para instalar os pacotes n
 Para compilar o projeto em um executavel do seu sistema.
 - Instale os pacotes necessarios para desenvolvimento
 - Rode o comando script "compile.bat" se você estiver usando Windows ou "compile.sh" se você estiver no Linux.
-Depois abra o executavel que estará na pasta "src/dist/"
+Depois abra o executavel que estará na pasta "src/gcb/dist/"
 
 
-# Versão compilada
-por esse [link do onedrive](https://1drv.ms/f/c/027ba71d20de8144/IgA_TprLJqxvR5zT4bMoSXEZATjkU4wcPZ_WRn50zspT4bM?e=ypw55H), você pode baixara a primeira versão compilada para Linux Min 21.3 ou  Windows 10
+## Versão compilada
+por esse [link do onedrive](https://1drv.ms/f/c/027ba71d20de8144/IgA_TprLJqxvR5zT4bMoSXEZATjkU4wcPZ_WRn50zspT4bM?e=ypw55H), você pode baixara a primeira versão compilada para Linux Min 21.3 ou  Windows 10 e rodar o programa na sua maquina
