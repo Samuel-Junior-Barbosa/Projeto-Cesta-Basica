@@ -18,10 +18,8 @@ bottle = "^0.13.4"
 anyio = "<4"
 typing-extensions = "^4.15.0"
 PySide6 = "^6.10.2"
-PyQt6 = "^6.10.2"
-QtPy = "^2.4.3"
-PyQt6-WebEngine = "^6.10.0"
 argon2-cffi = "^25.1.0"
+pyinstaller = "^6.19.0"
 
 
 [tool.poetry.dev-dependencies]

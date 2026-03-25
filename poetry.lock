@@ -1,4 +1,12 @@
 [[package]]
+name = "altgraph"
+version = "0.17.5"
+description = "Python graph (network) package"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 description = "Reusable constraint types to use with typing.Annotated"
@@ -175,6 +183,17 @@ python-versions = ">=3.8"
 all = ["ruff (>=0.6.2)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "flake8 (>=7.1.1)"]
 
 [[package]]
+name = "macholib"
+version = "1.16.4"
+description = "Mach-O header analysis and editing"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+altgraph = ">=0.17"
+
+[[package]]
 name = "packaging"
 version = "26.0"
 description = "Core utilities for Python packages"
@@ -195,6 +214,14 @@ argon2 = ["argon2-cffi (>=18.2.0)"]
 bcrypt = ["bcrypt (>=3.1.0)"]
 build_docs = ["sphinx (>=1.6)", "sphinxcontrib-fulltoc (>=1.2.0)", "cloud-sptheme (>=1.10.1)"]
 totp = ["cryptography"]
+
+[[package]]
+name = "pefile"
+version = "2024.8.26"
+description = "Python PE parsing module"
+category = "main"
+optional = false
+python-versions = ">=3.6.0"
 
 [[package]]
 name = "proxy-tools"
@@ -248,6 +275,37 @@ python-versions = ">=3.9"
 
 [package.dependencies]
 typing-extensions = ">=4.14.1"
+
+[[package]]
+name = "pyinstaller"
+version = "6.19.0"
+description = "PyInstaller bundles a Python application and all its dependencies into a single package."
+category = "main"
+optional = false
+python-versions = "<3.15,>=3.8"
+
+[package.dependencies]
+altgraph = "*"
+macholib = {version = ">=1.8", markers = "sys_platform == \"darwin\""}
+packaging = ">=22.0"
+pefile = {version = ">=2022.5.30", markers = "sys_platform == \"win32\""}
+pyinstaller-hooks-contrib = ">=2026.0"
+pywin32-ctypes = {version = ">=0.2.1", markers = "sys_platform == \"win32\""}
+
+[package.extras]
+completion = ["argcomplete"]
+hook-testing = ["execnet (>=1.5.0)", "psutil", "pytest (>=2.7.3)"]
+
+[[package]]
+name = "pyinstaller-hooks-contrib"
+version = "2026.3"
+description = "Community maintained hooks for PyInstaller"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+packaging = ">=22.0"
 
 [[package]]
 name = "pyobjc-core"
@@ -484,6 +542,14 @@ ssl = ["cryptography"]
 dev = ["ruff", "pre-commit"]
 
 [[package]]
+name = "pywin32-ctypes"
+version = "0.2.3"
+description = "A (partial) reimplementation of pywin32 using ctypes/cffi"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "qtpy"
 version = "2.4.3"
 description = "Provides an abstraction layer on top of the various Qt bindings (PyQt5/6 and PySide2/6)."
@@ -584,9 +650,10 @@ standard = ["colorama (>=0.4)", "httptools (>=0.6.3)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "7ff42dbdec9056c5d25fc7a95766d4b9e1e43d4e14e29ca739f609e3035fccb5"
+content-hash = "6afd66105bdcc91c4ac2f5d72e937a256ab87ae00405181bac3bc6c134df996e"
 
 [metadata.files]
+altgraph = []
 annotated-types = []
 anyio = []
 argon2-cffi = []
@@ -602,13 +669,17 @@ exceptiongroup = []
 fastapi = []
 h11 = []
 idna = []
+macholib = []
 packaging = []
 passlib = []
+pefile = []
 proxy-tools = []
 pyasn1 = []
 pycparser = []
 pydantic = []
 pydantic-core = []
+pyinstaller = []
+pyinstaller-hooks-contrib = []
 pyobjc-core = []
 pyobjc-framework-cocoa = []
 pyobjc-framework-quartz = []
@@ -628,6 +699,7 @@ python-jose = []
 python-multipart = []
 pythonnet = []
 pywebview = []
+pywin32-ctypes = []
 qtpy = []
 rsa = []
 shiboken6 = []

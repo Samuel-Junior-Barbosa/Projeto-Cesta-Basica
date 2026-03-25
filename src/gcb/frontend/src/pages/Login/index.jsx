@@ -107,6 +107,7 @@ const Login = () => {
                 />
 
             </form>
+            <label> TESTE </label>
             { useAutenticatorMessage && (
                 <MessageAlert
                     text={useAutenticatorMessage}

@@ -13,31 +13,18 @@ import os
 import sys
 import time
 import threading
-
+import secrets
 
 import db_conection
 import webview
 import webbrowser
-
-load_dotenv()
-
-
 
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 
 
 
-
-SECRET_KEY = os.getenv("SECRET_KEY")
-
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = 8
-
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-
-security = HTTPBearer()
-
+load_dotenv()
 
 # Detecta se está rodando empacotado
 if getattr(sys, "frozen", False):
@@ -45,6 +32,21 @@ if getattr(sys, "frozen", False):
 else:
     BASE_DIR = os.path.dirname(__file__)
 
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    tmp_secret_key = secrets.token_urlsafe(64)
+    with open(f'{BASE_DIR}/.env', 'w' ) as file:
+        file.write(f"SECRET_KEY={tmp_secret_key}")
+        SECRET_KEY = tmp_secret_key
+
+
+#print(" BASE DIR: ", BASE_DIR)
+
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 8
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+security = HTTPBearer()
 
 static_path = os.path.join(BASE_DIR, "static")
 
@@ -5101,7 +5103,7 @@ if __name__ == "__main__":
     ##webview.start(gui='qt', private_mode=False)
     ##webview.start(gui='gtk')
     
-    webview.start(gui='qt', debug=True)
+    webview.start(gui='qt')
     
     
     

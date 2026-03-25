@@ -9,8 +9,9 @@
 /src/gcb/node_modules/*
 /src/gcb/frontend/dist
 /src/gcb/frontend/dist/*
-/src/gcb/backend/static
+/src/gcb/backend/static/
 node_modules
+backend/static/*
 *.rar
 *txtt
 *.dia
