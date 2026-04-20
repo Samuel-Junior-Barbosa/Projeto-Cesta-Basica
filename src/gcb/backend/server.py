@@ -14,10 +14,10 @@ import sys
 import time
 import threading
 import secrets
+import subprocess
 
 import db_conection
 import webview
-import webbrowser
 
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -5085,7 +5085,39 @@ def start_server():
     
     #uvicorn.run('server:app', host="127.0.0.1", port=8080, reload=True)
 
-if __name__ == "__main__":
+
+
+def has_vulkan():
+    try:
+        subprocess.check_output(["vulkaninfo"], stderr=subprocess.DEVNULL)
+        return True
+    except:
+        return False
+
+
+def is_weak_gpu():
+    try:
+        out = subprocess.check_output("glxinfo | grep 'renderer'", shell=True).decode()
+        return "llvmpipe" in out.lower() or "intel(r) hd graphics 500" in out.lower()
+    except:
+        return True
+    
+
+def run_app(safe_mode=False):
+    if not has_vulkan() or is_weak_gpu():
+        safe_mode = True
+
+    if safe_mode:
+        os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
+        os.environ["QT_QPA_PLATFORM"] = "xcb"
+        os.environ["WEBKIT_DISABLE_COMPOSITING_MODE"] = "1"
+        os.environ["GSK_RENDERER"] = "gl"
+
+    
+    
+    #import webview
+    #webview.create_window("Meu App", "index.html")
+    #webview.start()
 
     #start_server()    
     
@@ -5104,6 +5136,23 @@ if __name__ == "__main__":
     ##webview.start(gui='gtk')
     
     webview.start(gui='qt')
+
+
+if __name__ == "__main__":
+    
+    if "--safe-mode" in sys.argv:
+        run_app(safe_mode=True)
+        
+    else:
+        try:
+            run_app()
+
+        except Exception as e:
+            print("Erro gráfico detectado, tentando modo seguro...")
+            
+            subprocess.Popen([sys.executable] + sys.argv + ["--safe-mode"])
+            sys.exit()
+    
     
     
     
